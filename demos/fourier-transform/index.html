@@ -1,0 +1,136 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Interactive 2D Fourier transform: an image and its magnitude and phase spectrum, the basis image of any frequency, low-, high- and band-pass filters, removing periodic noise, and the convolution theorem." />
+    <title>2D Fourier transform, interactive demo · Computer Vision Basics</title>
+  </head>
+  <body>
+    <main class="demo-page">
+      <section class="demo-intro">
+        <h1>2D Fourier transform</h1>
+        <p class="lead">
+          Every image is a sum of 2D sinusoids of different frequencies and orientations. See how much of each one an
+          image contains, click a frequency to see its sinusoid, and filter the image by removing frequencies directly
+          in the spectrum.
+        </p>
+      </section>
+
+      <section class="workspace">
+        <div class="views">
+          <figure class="view card">
+            <figcaption>Image \(f(x, y)\) <span class="muted">\(256 \times 256\) px</span></figcaption>
+            <div id="image-view" class="image-frame"></div>
+          </figure>
+          <figure class="view card">
+            <figcaption>Magnitude \(\log(1 + |F(u, v)|)\) <span class="muted">DC in the center; tinted: removed by the filter</span></figcaption>
+            <div id="magnitude-view" class="image-frame"></div>
+          </figure>
+          <figure class="view card">
+            <figcaption>Filtered \(\mathcal{F}^{-1}\{F \cdot H\}\) <span id="result-caption" class="muted"></span></figcaption>
+            <div id="result-view" class="image-frame"></div>
+          </figure>
+          <figure class="view card">
+            <figcaption>Phase \(\angle F(u, v)\) <span class="muted">black \(-\pi\), white \(+\pi\)</span></figcaption>
+            <div id="phase-view" class="image-frame"></div>
+          </figure>
+        </div>
+        <aside class="controls">
+          <div id="controls"></div>
+          <section class="card basis-card">
+            <h3>Basis image of \((u, v)\)</h3>
+            <div id="basis-view"></div>
+            <p class="muted small">\(\cos\!\big(2\pi (ux + vy) / N\big)\). Click on the spectrum to choose \((u, v)\).</p>
+          </section>
+        </aside>
+      </section>
+
+      <section id="values" class="card values" aria-live="polite"></section>
+
+      <article class="explanation">
+        <h2>The 2D discrete Fourier transform</h2>
+        <p>
+          The Fourier transform describes an image \(f(x, y)\) of \(N \times N\) pixels by how much of each 2D
+          sinusoid it contains:
+        </p>
+        $$ F(u, v) = \sum_{x = 0}^{N - 1} \sum_{y = 0}^{N - 1} f(x, y) \, e^{-i 2\pi (ux + vy) / N}, \qquad
+           f(x, y) = \frac{1}{N^2} \sum_{u, v} F(u, v) \, e^{i 2\pi (ux + vy) / N} $$
+        <p>
+          With \(e^{i\theta} = \cos\theta + i \sin\theta\), each term is a wave across the image: \(u\) cycles along
+          \(x\) and \(v\) cycles along \(y\). Its period is \(N / \sqrt{u^2 + v^2}\) pixels, its stripes run
+          perpendicular to the direction \((u, v)\), and the second formula says that the image is exactly the sum of
+          all these waves. For a real image, \(F(-u, -v)\) is the complex conjugate of \(F(u, v)\), so the two
+          coefficients together form one real cosine
+        </p>
+        $$ A \cos\!\big(2\pi (ux + vy) / N + \varphi\big), \qquad A = \frac{2 |F(u, v)|}{N^2}, \quad \varphi = \angle F(u, v). $$
+        <p>
+          The <strong>magnitude</strong> \(|F|\) says how strong the wave is, the <strong>phase</strong> \(\varphi\)
+          where its crests lie. The transform is computed with the fast Fourier transform, which splits it into
+          smaller transforms and needs about \(N^2 \log_2 N^2\) operations instead of \(N^4\).
+        </p>
+
+        <h2>Reading the spectrum</h2>
+        <p>
+          The spectrum is shown with \((0, 0)\) in the center. That is the <em>DC term</em>, the sum of all pixels;
+          low frequencies lie close to it, fine detail far out, up to the Nyquist frequency \(\pm N/2\) at the border.
+          The magnitudes cover many orders of magnitude, so they are shown on a logarithmic scale. Natural images have
+          most of their energy at low frequencies. A straight edge contains all frequencies perpendicular to it and
+          shows up as a line through the center, rotated by 90° against the edge. The transform treats the image as
+          periodic, so the jumps between opposite borders act as edges too: they cause the bright horizontal and
+          vertical lines through the center.
+        </p>
+        <p>
+          The phase looks like noise, but it carries much of the structure: where the edges are. Without the right
+          phases, the waves would not add up to the image.
+        </p>
+
+        <h2>Filtering in the frequency domain</h2>
+        <p>
+          Multiplying the spectrum by a transfer function \(H(u, v)\) and transforming back scales every wave
+          separately. A <strong>low-pass</strong> filter keeps the frequencies within a radius \(D_0\) and blurs the
+          image; a <strong>high-pass</strong> filter \(1 - H_\text{low}\) removes the low frequencies and keeps edges
+          and texture; a <strong>band-pass</strong> filter keeps a ring between \(D_0\) and \(D_1\). A filter with
+          \(H(0, 0) = 0\) removes the mean brightness, so the result is shown around the original mean.
+        </p>
+        <p>
+          The <em>ideal</em> filter cuts off abruptly at \(D_0\). Just like cutting off a
+          <a href="../fourier-series/">Fourier series</a>, this causes ringing next to edges. The <em>Gaussian</em>
+          profile \(e^{-D^2 / 2 D_0^2}\) falls off smoothly and does not ring.
+        </p>
+        <p>
+          Periodic noise, such as interference stripes from a scanner or sensor, is a single sinusoid: two bright
+          peaks at \(\pm (u, v)\) in the spectrum. Setting \(H = 0\) at just these two spots, a <em>notch filter</em>,
+          removes the stripes and leaves the rest of the image almost unchanged, which no spatial blur can do.
+        </p>
+
+        <h2>The convolution theorem</h2>
+        <p>
+          Convolution in the image domain is multiplication in the frequency domain:
+        </p>
+        $$ \mathcal{F}\{f \ast h\} = \mathcal{F}\{f\} \cdot \mathcal{F}\{h\} = F \cdot H $$
+        <p>
+          Every <a href="../convolution/">convolution filter</a> therefore has a transfer function \(H\), the Fourier
+          transform of its kernel, and filtering via the spectrum gives the same result as sliding the kernel, if the
+          image is extended periodically at the border. A Gaussian kernel with \(\sigma\) pixels has a Gaussian
+          transfer function with \(\sigma_{u} = N / (2\pi\sigma)\): the wider the blur, the narrower the band of
+          frequencies it keeps. A box kernel has a transfer function with ripples that become negative: it lets some
+          high frequencies through and even inverts some of them, which makes it a poor low-pass filter. For large
+          kernels, the detour over the spectrum is also faster, since its cost does not depend on the kernel size.
+        </p>
+
+        <h2>Try this</h2>
+        <ul class="try">
+          <li>Click around the spectrum and watch the basis image: the farther from the center, the finer the stripes, and they always run perpendicular to the direction from the center.</li>
+          <li>Choose the test chart and click on the bright dots along the horizontal axis: they belong to the vertical line groups.</li>
+          <li>Apply an ideal low-pass with \(D_0 = 20\): the image is blurred, with ripples along every edge. Switch the profile to Gaussian and the ripples disappear.</li>
+          <li>Use a high-pass filter: only edges and fine texture remain. Check how little of the energy that is.</li>
+          <li>Open “Periodic noise” and set the amplitude to 0.2: two bright dots appear in the spectrum. Choose the block tool and paint over one of them; its mirror image at \(-(u, v)\) is removed with it.</li>
+          <li>Select the box kernel: the tinted rings in the spectrum are frequencies that the box removes or inverts. Compare with the Gaussian kernel, and check the difference to direct filtering in the values panel.</li>
+          <li>Look at the spectrum of the zone plate: its local frequency grows with the distance from the center, and its spectrum is again a zone plate.</li>
+        </ul>
+      </article>
+    </main>
+    <script type="module" src="./main.ts"></script>
+  </body>
+</html>

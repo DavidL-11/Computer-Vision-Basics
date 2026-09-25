@@ -1,0 +1,15 @@
+.basis-card {
+  margin-top: 0.75rem;
+  padding: 0.6rem 0.8rem 0.8rem;
+}
+.basis-card h3 {
+  font-size: 0.92rem;
+  margin: 0 0 0.5rem;
+}
+.basis-card p {
+  margin: 0.5rem 0 0;
+}
+#basis-view {
+  width: min(100%, 200px);
+  margin: 0 auto;
+}
