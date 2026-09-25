@@ -1,0 +1,163 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Interactive Harris corner detector step by step: image derivatives, the Gaussian-weighted second moment matrix, the cornerness det(M) − α trace(M)², thresholding and non-maximum suppression, with the λ₁/λ₂ plane and second moment ellipses." />
+    <title>Harris corner detector step by step, interactive demo · Computer Vision Basics</title>
+  </head>
+  <body>
+    <main class="demo-page">
+      <section class="demo-intro">
+        <h1>Harris corner detector</h1>
+        <p class="lead">
+          The Harris detector turns the second moment matrix of every pixel into a single cornerness score, then keeps
+          the strongest local peaks. Follow a pixel through the steps, and see where it lands in the plane of the two
+          eigenvalues.
+        </p>
+      </section>
+
+      <section class="workspace">
+        <div class="views steps">
+          <figure class="view card">
+            <figcaption>
+              Image \(I\)
+              <span class="muted legend">
+                <span class="key" style="--key: var(--viz-points)">corners</span>
+                <span class="key" style="--key: var(--viz-highlight)">ellipse of M</span>
+              </span>
+            </figcaption>
+            <div id="image-view" class="image-frame"></div>
+          </figure>
+          <figure class="view card">
+            <figcaption>1 · \(I_x\) <span class="muted">derivative in x, 0 = gray</span></figcaption>
+            <div id="ix-view" class="image-frame"></div>
+          </figure>
+          <figure class="view card">
+            <figcaption>1 · \(I_y\) <span class="muted">derivative in y, 0 = gray</span></figcaption>
+            <div id="iy-view" class="image-frame"></div>
+          </figure>
+          <figure class="view card">
+            <figcaption>2–3 · \(g(I_x^2)\) <span class="muted">squared, then Gaussian window</span></figcaption>
+            <div id="sxx-view" class="image-frame"></div>
+          </figure>
+          <figure class="view card">
+            <figcaption>2–3 · \(g(I_y^2)\) <span class="muted">squared, then Gaussian window</span></figcaption>
+            <div id="syy-view" class="image-frame"></div>
+          </figure>
+          <figure class="view card">
+            <figcaption>2–3 · \(g(I_x I_y)\) <span class="muted">product, then window, 0 = gray</span></figcaption>
+            <div id="sxy-view" class="image-frame"></div>
+          </figure>
+          <figure class="view card">
+            <figcaption>4 · Cornerness \(C\) <span class="muted">0 = gray, square-root scale</span></figcaption>
+            <div id="response-view" class="image-frame"></div>
+          </figure>
+          <figure class="view card">
+            <figcaption>
+              5–6 · \(C \ge t\) and local maxima
+              <span class="muted legend">
+                <span class="key" style="--key: var(--accent)">above t</span>
+                <span class="key" style="--key: var(--viz-points)">corners</span>
+              </span>
+            </figcaption>
+            <div id="peaks-view" class="image-frame"></div>
+          </figure>
+        </div>
+        <aside class="controls">
+          <div id="controls"></div>
+          <section class="card lambda-card">
+            <h3>
+              Eigenvalues \(\lambda_1 \ge \lambda_2\) of every pixel
+              <span class="muted legend">
+                <span class="key" style="--key: var(--accent)">\(C \ge t\)</span>
+                <span class="key" style="--key: var(--viz-points)">\(C \le -t\)</span>
+                <span class="key" style="--key: var(--viz-highlight)">selected</span>
+              </span>
+            </h3>
+            <div id="lambda-plot"></div>
+          </section>
+        </aside>
+      </section>
+
+      <section id="values" class="card values" aria-live="polite"></section>
+
+      <article class="explanation">
+        <h2>From the second moment matrix to a score</h2>
+        <p>
+          The <a href="../autocorrelation/">autocorrelation surface</a> showed the idea: a window is distinctive if
+          shifting it in any direction changes its content. The Harris detector builds on three approximations:
+        </p>
+        <ul>
+          <li>distinctiveness is approximated by the local autocorrelation \(E(u, v)\),</li>
+          <li>the autocorrelation is approximated by the second moment matrix, \(E(u, v) \approx [u \;\, v] \, M \, [u \;\, v]^\top\),</li>
+          <li>cornerness is a function of the eigenvalues \(\lambda_1, \lambda_2\) of \(M\): a corner has two large eigenvalues.</li>
+        </ul>
+        <p>
+          Instead of computing the eigenvalues at every pixel, Harris uses that the determinant is their product and
+          the trace their sum:
+        </p>
+        $$ C = \lambda_1 \lambda_2 - \alpha (\lambda_1 + \lambda_2)^2 = \det(M) - \alpha \operatorname{trace}(M)^2 $$
+        <p>
+          with a small constant \(\alpha\), commonly 0.04 to 0.06. \(C\) is large and positive at corners, negative
+          on edges, where one eigenvalue dominates, and close to 0 in flat regions.
+        </p>
+
+        <h2>The algorithm</h2>
+        <ol start="0">
+          <li>Input: the image \(I\). \(M\) is computed at every pixel.</li>
+          <li>Compute the image derivatives \(I_x\) and \(I_y\), optionally after blurring the image (\(\sigma_D\)).</li>
+          <li>Compute the entries of \(M\) as products of the derivatives: \(I_x^2\), \(I_y^2\), \(I_x I_y\).</li>
+          <li>Filter each product with a Gaussian \(g\) of width \(\sigma\): this is the window function \(w\).</li>
+          <li>Compute the cornerness with element-wise products \(\odot\):</li>
+        </ol>
+        $$ C = g(I_x^2) \odot g(I_y^2) - g(I_x \odot I_y)^2 - \alpha \left[ g(I_x^2) + g(I_y^2) \right]^2 $$
+        <ol start="5">
+          <li>Threshold \(C\) to keep only high cornerness. Here \(t\) is a fraction of the largest \(C\) in the image.</li>
+          <li>Non-maximum suppression: keep a pixel only if its \(C\) is the largest in its neighborhood of \(2r + 1\) pixels square.</li>
+        </ol>
+        <p>
+          Everything up to step 4 is linear filtering and pixel-wise arithmetic, which makes the detector fast.
+        </p>
+
+        <h2>The plane of eigenvalues</h2>
+        <p>
+          The plot next to the controls shows every pixel as a point \((\lambda_1, \lambda_2)\) with
+          \(\lambda_1 \ge \lambda_2\). Flat pixels crowd near the origin, edge pixels lie along the \(\lambda_1\) axis,
+          and corners are the few points that also have a large \(\lambda_2\). The shaded regions are where
+          \(C \ge t\) and \(C \le -t\). Their borders are lines of constant \(C\), so the classification depends on
+          the eigenvalues only.
+        </p>
+        <p>
+          \(\alpha\) sets how equal the eigenvalues must be. For \(t = 0\), a pixel is a corner if
+          \(\lambda_2 / \lambda_1\) is above a ratio that grows with \(\alpha\): about 0.056 for \(\alpha = 0.05\).
+          At \(\alpha = 0.25\), \(C = -(\lambda_1 - \lambda_2)^2 / 4 \le 0\), and nothing is a corner anymore.
+        </p>
+
+        <h2>The ellipses</h2>
+        <p>
+          The red ellipse at the selected pixel is a line of constant \([u \;\, v] \, M \, [u \;\, v]^\top\). Its
+          axes point along the eigenvectors and are proportional to \(\lambda^{-1/2}\): small and round at corners,
+          long and thin along edges, and huge (clipped here) in flat regions. Turn on the grid to see the ellipses all
+          over the image.
+        </p>
+        <p>
+          Which corners survive a change of brightness, a rotation or a change of scale is the topic of
+          <a href="../harris-invariance/">Harris invariance</a>.
+        </p>
+
+        <h2>Try this</h2>
+        <ul class="try">
+          <li>Select a pixel on a straight side of a rectangle and one on a corner, and compare their points in the eigenvalue plane and their ellipses.</li>
+          <li>Look at the cornerness \(C\): corners are bright spots, while edges are dark, negative lines.</li>
+          <li>Increase \(\alpha\) towards 0.25: the corner region in the plane narrows towards the diagonal, and corners whose eigenvalues differ a lot drop out.</li>
+          <li>Add noise with \(\sigma_n = 0.05\) and set the threshold to 0: hundreds of local maxima appear in the flat regions. A threshold of 0.01 brings back the corners of the clean image.</li>
+          <li>Increase the window \(\sigma\) to 5: the window now covers several squares of the checkerboard, and only its inner corners remain.</li>
+          <li>Set the blur \(\sigma_D\) to 0 with noise: the derivatives get much noisier, but the Gaussian window still averages most of it away.</li>
+          <li>Turn on the ellipses on a grid: along the sides of the shapes they are long and thin and follow the edge, on the checkerboard they are small and round.</li>
+        </ul>
+      </article>
+    </main>
+    <script type="module" src="./main.ts"></script>
+  </body>
+</html>

@@ -1,0 +1,41 @@
+.views.steps {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+.views.steps .view figcaption .muted {
+  display: block;
+  margin-left: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Controls and the λ plane together are taller than the screen. */
+.workspace .controls {
+  position: static;
+}
+.lambda-card {
+  margin-top: 0.75rem;
+  overflow: hidden;
+}
+.lambda-card h3 {
+  font-size: 0.92rem;
+  margin: 0;
+  padding: 0.55rem 0.9rem;
+  border-bottom: 1px solid var(--border);
+}
+.lambda-card h3 .muted {
+  display: block;
+  font-weight: 400;
+  font-size: 0.82rem;
+}
+
+@media (max-width: 1500px) {
+  .views.steps {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+@media (max-width: 560px) {
+  .views.steps {
+    grid-template-columns: 1fr;
+  }
+}
