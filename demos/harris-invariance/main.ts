@@ -8,7 +8,8 @@ import { PixelView, type ViewTransform, perFrame } from '../../src/shared/pixelV
 import { Plot } from '../../src/shared/plot';
 import { eq, fmt, texMatrix, texVector } from '../../src/shared/tex';
 import { cssColor, onThemeChange } from '../../src/shared/theme';
-import { type Comparison, type DetectorParams, IDENTITY, type Transform, commonRegion, compareCorners, detectCorners, mapPoint, unmapPoint, warp } from './invariance';
+import { IDENTITY, type Transform, commonRegion, mapPoint, unmapPoint, warp } from '../../src/shared/warp';
+import { type Comparison, type DetectorParams, compareCorners, detectCorners } from './invariance';
 import '../../src/shared/styles/demo.css';
 
 initPage({ title: 'Harris invariance', chapterId: 'corners' });

@@ -224,8 +224,35 @@ export const chapters: Chapter[] = [
     title: 'Feature Matching',
     summary:
       'Detecting keypoints across scales, describing them with gradient histograms and matching them reliably between images.',
-    concepts: ['Scale space', 'LoG / DoG', 'SIFT descriptor', 'Orientation assignment', 'Nearest neighbor matching', 'Ratio test'],
-    demos: [],
+    concepts: [
+      'Scale space',
+      'LoG / DoG',
+      'Keypoint refinement',
+      'SIFT descriptor',
+      'Orientation assignment',
+      'Nearest neighbor matching',
+      'Ratio test',
+    ],
+    demos: [
+      {
+        title: 'Scale space & DoG',
+        description:
+          'Blur an image at growing σ in octaves, subtract neighboring scales, find the extrema in position and scale, and refine and filter them into keypoints whose size follows the image.',
+        slug: 'scale-space',
+      },
+      {
+        title: 'SIFT descriptor',
+        description:
+          'Follow a keypoint through gradients, the orientation histogram, 4 × 4 histograms of 8 orientations, normalization and clamping, and test the 128 values under rotation, scaling and lighting changes.',
+        slug: 'sift-descriptor',
+      },
+      {
+        title: 'Matching & ratio test',
+        description:
+          'Match features between an image and a transformed copy with known ground truth, and compare a distance threshold with the nearest neighbor distance ratio.',
+        slug: 'feature-matching',
+      },
+    ],
   },
   {
     id: 'cameras-optics-perspective',

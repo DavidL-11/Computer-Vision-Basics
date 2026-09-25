@@ -2,7 +2,7 @@
 // Pages ship finished markup, so static formulas need no JavaScript and never flash as raw TeX.
 
 import type { Plugin } from 'vite';
-import { renderTex } from '../src/shared/tex';
+import { renderTex } from '../src/shared/tex.ts';
 
 const ENTITIES: Record<string, string> = { '&amp;': '&', '&lt;': '<', '&gt;': '>', '&nbsp;': ' ' };
 const decode = (s: string) => s.replace(/&(?:amp|lt|gt|nbsp);/g, (m) => ENTITIES[m]);

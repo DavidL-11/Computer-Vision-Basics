@@ -3,13 +3,14 @@
 
 import { type RGBImage, createImage } from './image';
 
-export type TestImage = 'scene' | 'chart' | 'text' | 'shapes' | 'zone-plate' | 'gradients' | 'lights';
+export type TestImage = 'scene' | 'chart' | 'text' | 'shapes' | 'blobs' | 'zone-plate' | 'gradients' | 'lights';
 
 export const TEST_IMAGE_LABELS: Record<TestImage, string> = {
   scene: 'Landscape',
   chart: 'Test chart',
   text: 'Colored text',
   shapes: 'Shapes',
+  blobs: 'Blobs',
   'zone-plate': 'Zone plate',
   gradients: 'Gradients',
   lights: 'Colored lights',
@@ -34,6 +35,8 @@ export function testImage(name: TestImage, width: number, height: number): RGBIm
       return drawn(width, height, drawText);
     case 'shapes':
       return drawn(width, height, drawShapes);
+    case 'blobs':
+      return drawn(width, height, drawBlobs);
   }
 }
 
@@ -310,6 +313,44 @@ function drawShapes(ctx: CanvasRenderingContext2D): void {
     star.push(530 + r * Math.cos(a), 330 + r * Math.sin(a));
   }
   polygon(ctx, star, '#7a4fd6');
+}
+
+/** Bright and dark disks from a few pixels to a quarter of the image, soft blobs and elongated shapes. */
+function drawBlobs(ctx: CanvasRenderingContext2D): void {
+  ctx.fillStyle = '#8c8a84';
+  ctx.fillRect(0, 0, 640, 480);
+  const disk = (x: number, y: number, r: number, fill: string | CanvasGradient) => {
+    ctx.fillStyle = fill;
+    ctx.beginPath();
+    ctx.arc(x, y, r, 0, Math.PI * 2);
+    ctx.fill();
+  };
+  // Radii grow by √2 from disk to disk.
+  [8, 11, 16, 23, 32].forEach((r, i) => disk(40 + [0, 34, 82, 150, 240][i], 58, r, '#f4f1e8'));
+  [8, 11, 16, 23, 32].forEach((r, i) => disk(40 + [0, 34, 82, 150, 240][i], 150, r, '#26272c'));
+  disk(470, 110, 68, '#e8c75a');
+  disk(470, 110, 22, '#3d6fae');
+
+  for (const [x, y, r, c] of [
+    [90, 300, 45, '#26272c'],
+    [220, 270, 26, '#f4f1e8'],
+    [215, 380, 55, '#f4f1e8'],
+  ] as const) {
+    const g = ctx.createRadialGradient(x, y, 0, x, y, r);
+    g.addColorStop(0, c);
+    g.addColorStop(1, 'rgb(140 138 132 / 0)');
+    disk(x, y, r, g);
+  }
+
+  ctx.fillStyle = '#26272c';
+  ctx.beginPath();
+  ctx.ellipse(430, 300, 90, 14, -0.35, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = '#f4f1e8';
+  ctx.fillRect(330, 360, 240, 22);
+
+  const rand = random(3);
+  for (let i = 0; i < 26; i++) disk(345 + rand() * 250, 410 + rand() * 55, 3 + rand() * 7, rand() < 0.5 ? '#f4f1e8' : '#26272c');
 }
 
 /** Lets the user pick an image file and scales it to fit into width × height (cropped to 4:3). */

@@ -1,7 +1,7 @@
 // Adds favicon, canonical and social preview tags to every page and prerenders the landing page from chapters.ts.
 
 import type { Plugin } from 'vite';
-import { renderLanding } from '../src/landing/render';
+import { renderLanding } from '../src/landing/render.ts';
 
 export function seo(options: { origin: string }): Plugin {
   let base = '/';

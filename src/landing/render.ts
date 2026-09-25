@@ -1,4 +1,4 @@
-import { chapters, type Chapter, type Demo } from '../data/chapters';
+import { chapters, type Chapter, type Demo } from '../data/chapters.ts';
 
 const ESCAPES: Record<string, string> = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' };
 const esc = (s: string) => s.replace(/[&<>"]/g, (c) => ESCAPES[c]);

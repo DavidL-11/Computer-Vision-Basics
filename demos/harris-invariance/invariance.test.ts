@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { type Plane, createPlane } from '../../src/shared/image';
-import { IDENTITY, compareCorners, detectCorners, mapPoint, unmapPoint, warp } from './invariance';
+import { IDENTITY, warp } from '../../src/shared/warp';
+import { compareCorners, detectCorners } from './invariance';
 
 function image(width: number, height: number, f: (x: number, y: number) => number): Plane {
   const p = createPlane(width, height);
@@ -8,7 +9,6 @@ function image(width: number, height: number, f: (x: number, y: number) => numbe
   return p;
 }
 
-const at = (p: Plane, x: number, y: number) => p.data[y * p.width + x];
 /** Two rectangles and a triangle on a square image, away from the borders. */
 const shapes = () =>
   image(48, 48, (x, y) => {
@@ -19,40 +19,6 @@ const shapes = () =>
   });
 const params = { sigmaD: 1, sigmaI: 1.5, alpha: 0.05, radius: 2, threshold: 0.05, relative: true };
 const margin = 6;
-
-describe('transform', () => {
-  it('maps points forth and back', () => {
-    const T = { ...IDENTITY, angle: 0.7, scale: 1.3, tx: 4, ty: -2 };
-    const [x, y] = mapPoint(T, 40, 30, 12, 7);
-    const [u, v] = unmapPoint(T, 40, 30, x, y);
-    expect(u).toBeCloseTo(12, 9);
-    expect(v).toBeCloseTo(7, 9);
-  });
-
-  it('turns clockwise on screen for positive angles, around the image center', () => {
-    const [x, y] = mapPoint({ ...IDENTITY, angle: Math.PI / 2 }, 11, 11, 10, 5);
-    expect(x).toBeCloseTo(5, 9);
-    expect(y).toBeCloseTo(10, 9);
-  });
-});
-
-describe('warp', () => {
-  it('keeps the image for the identity and applies gain and bias with clipping', () => {
-    const A = shapes();
-    expect(Array.from(warp(A, IDENTITY).data)).toEqual(Array.from(A.data));
-    const B = warp(A, { ...IDENTITY, gain: 2, bias: -0.3 });
-    expect(at(B, 15, 15)).toBeCloseTo(1, 6);
-    expect(at(B, 2, 2)).toBeCloseTo(0.5, 6);
-  });
-
-  it('rotates by 90° as a permutation of pixels', () => {
-    const A = shapes();
-    const B = warp(A, { ...IDENTITY, angle: Math.PI / 2 });
-    // p' = R(p − c) + c with c = (23.5, 23.5): (x, y) → (47 − y, x)
-    expect(at(B, 47 - 12, 15)).toBeCloseTo(at(A, 15, 12), 6);
-    expect(at(B, 47 - 30, 33)).toBeCloseTo(at(A, 33, 30), 6);
-  });
-});
 
 describe('repeatability', () => {
   const A = shapes();

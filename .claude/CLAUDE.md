@@ -37,6 +37,12 @@ npm run preview   # serve dist/ at http://localhost:4173/Computer-Vision-Basics/
   - `fft.ts`: radix-2 FFT, `fft2`/`ifft2` of a `Plane` (power-of-2 sizes, DC at index 0), `fftShift()` for display.
   - `harris.ts`: image `derivatives()`, Gaussian-windowed `secondMoment()`, 2×2 `eigen()`, Harris `cornerness()` /
     `harris()` and `localMaxima()` (non-maximum suppression).
+  - `warp.ts`: a known similarity `Transform` plus gain/bias, `mapPoint`/`unmapPoint`, bilinear `warp()` and
+    `commonRegion()`, for comparing an image with a transformed copy.
+  - `dog.ts`: Gaussian scale space in octaves, DoG images, `detectKeypoints()` with interpolation and contrast/edge
+    rejection, `locate()` for a σ, `dogSignature()` and `normalizedLoG()`.
+  - `sift.ts`: orientation histogram, `dominantOrientations()`, the 4 × 4 × 8 `describe()`, `siftFeatures()` and
+    descriptor `distance()`.
   - `plot.ts`: `Plot` canvas for function graphs, stems and bars with axes; colors given as CSS tokens.
   - `tex.ts`: TeX helpers (`renderTex`, `eq`, `fmt`, `texMatrix`, `texVector`, `texTuple`) for panels with live values.
   - `styles/base.css`: design tokens and the Tweakpane theme.

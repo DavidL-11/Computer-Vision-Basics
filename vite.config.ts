@@ -1,9 +1,9 @@
 import { readdirSync, existsSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { defineConfig } from 'vitest/config';
-import { katexHtml } from './build/katexHtml';
-import { sitemap } from './build/sitemap';
-import { seo } from './build/seo';
+import { katexHtml } from './build/katexHtml.ts';
+import { sitemap } from './build/sitemap.ts';
+import { seo } from './build/seo.ts';
 
 const root = import.meta.dirname;
 const origin = 'https://davidl-11.github.io';
