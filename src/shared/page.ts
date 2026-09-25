@@ -1,6 +1,7 @@
 import './styles/base.css';
 import { chapterById } from '../data/chapters';
 import { createThemeToggle, initTheme } from './theme';
+import { createRepoLink } from './repoLink';
 
 export interface PageOptions {
   title?: string;
@@ -36,12 +37,11 @@ export function initPage(options: PageOptions = {}): void {
       crumb.append(`/ ${options.title}`);
     }
     container.append(crumb);
-    document.title = `${options.title} · Computer Vision Basics`;
   }
 
   const spacer = document.createElement('div');
   spacer.className = 'spacer';
-  container.append(spacer, createThemeToggle());
+  container.append(spacer, createRepoLink(), createThemeToggle());
   header.append(container);
   document.body.prepend(header);
 

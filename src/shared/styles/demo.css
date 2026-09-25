@@ -75,6 +75,54 @@
   color: var(--fg-muted);
 }
 
+.image-frame {
+  background: var(--bg-sunken);
+  flex: 1;
+  display: flex;
+  align-items: center;
+}
+.pixel-canvas {
+  display: block;
+  width: 100%;
+  height: auto;
+  image-rendering: pixelated;
+}
+.pixel-canvas.pickable {
+  cursor: crosshair;
+  touch-action: none;
+}
+.view-wide {
+  grid-column: 1 / -1;
+}
+.image-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 0.6rem;
+  padding: 0.6rem;
+  background: var(--bg-sunken);
+  flex: 1;
+  align-content: center;
+}
+.image-row figure {
+  margin: 0;
+}
+.image-row figcaption {
+  font-size: 0.82rem;
+  color: var(--fg-muted);
+  padding: 0.2rem 0 0;
+  text-align: center;
+  border: 0;
+  font-weight: 400;
+}
+.swatch {
+  display: inline-block;
+  width: 1.1em;
+  height: 1.1em;
+  border-radius: 3px;
+  border: 1px solid var(--border);
+  vertical-align: -0.2em;
+}
+
 .controls {
   position: sticky;
   top: 72px;
@@ -83,6 +131,19 @@
 .values {
   margin-top: 1rem;
   padding: 1rem 1.25rem 1.25rem;
+}
+.value-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 3rem;
+}
+.value-block {
+  overflow-x: auto;
+  max-width: 100%;
+}
+.value-block h3 {
+  font-size: 0.95rem;
+  margin: 0.6rem 0 0.5rem;
 }
 .eq {
   display: flex;

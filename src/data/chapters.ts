@@ -30,7 +30,38 @@ export const chapters: Chapter[] = [
       'Gamma / sRGB',
       'Linear vs encoded values',
     ],
-    demos: [],
+    demos: [
+      {
+        title: 'Sampling & quantization',
+        description:
+          'Reduce the resolution and bit depth of an image and watch blocks and banding appear, with the intensity profile of a row and the storage it needs.',
+        slug: 'sampling-quantization',
+      },
+      {
+        title: 'Bayer pattern & demosaicing',
+        description:
+          'See the raw RGGB mosaic of a color sensor, why green is sampled twice, and compare nearest-neighbor and bilinear demosaicing and their artifacts.',
+        slug: 'bayer-demosaicing',
+      },
+      {
+        title: 'Color space explorer',
+        description:
+          'Split an image into RGB, HSV, YCbCr and L*a*b* channels, inspect picked colors in every space and interpolate between two colors in each.',
+        slug: 'color-spaces',
+      },
+      {
+        title: 'Chroma subsampling',
+        description:
+          'Store Cb and Cr at lower resolution with 4:2:2, 4:2:0 and coarser schemes, and see why this is almost invisible while reducing Y is not.',
+        slug: 'chroma-subsampling',
+      },
+      {
+        title: 'Gamma',
+        description:
+          'The sRGB curve, what medium gray really is, blurring encoded values versus linear light, and gamma adjustment per channel versus on luma.',
+        slug: 'gamma',
+      },
+    ],
   },
   {
     id: 'filtering',
@@ -219,8 +250,4 @@ export const chapters: Chapter[] = [
 
 export function chapterById(id: string): Chapter | undefined {
   return chapters.find((c) => c.id === id);
-}
-
-export function demoUrl(slug: string): string {
-  return `${import.meta.env.BASE_URL}demos/${slug}/`;
 }

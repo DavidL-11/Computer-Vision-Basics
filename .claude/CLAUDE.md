@@ -15,10 +15,12 @@ npm run preview   # serve dist/ at http://localhost:4173/Computer-Vision-Basics/
 ## Stack and layout
 
 - Vite multi-page build with TypeScript and no UI framework. `base` is `/Computer-Vision-Basics/`, so build internal links from
-  `import.meta.env.BASE_URL` (see `demoUrl()` in `src/data/chapters.ts`).
+  `import.meta.env.BASE_URL`.
 - Three.js for 3D, Canvas 2D/WebGL for 2D, Tweakpane for controls, and plain CSS with custom properties.
-- `src/data/chapters.ts` is the single source of truth for the site. The landing page (`src/landing/`) is
-  generated from it: chapters, key concepts and the existing demos.
+- `src/data/chapters.ts` is the single source of truth for the site. The landing page is prerendered from it at
+  build time (`src/landing/render.ts`): chapters, key concepts and the existing demos.
+- Each page's `<title>` and meta description in its `index.html` are what search engines show; canonical and
+  social tags are added at build time (`build/seo.ts`).
 - `PLANS.md` holds ideas for future demos. It is not part of the website.
 - `src/shared/`:
   - `page.ts`: `initPage()` adds the header, breadcrumb, theme toggle and footer.

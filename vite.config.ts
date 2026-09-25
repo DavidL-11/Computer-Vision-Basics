@@ -3,8 +3,10 @@ import { resolve } from 'node:path';
 import { defineConfig } from 'vitest/config';
 import { katexHtml } from './build/katexHtml';
 import { sitemap } from './build/sitemap';
+import { seo } from './build/seo';
 
 const root = import.meta.dirname;
+const origin = 'https://davidl-11.github.io';
 
 // Every folder in demos/ that contains an index.html becomes its own page.
 const demoSlugs = readdirSync(resolve(root, 'demos'), { withFileTypes: true })
@@ -17,8 +19,9 @@ export default defineConfig({
   base: '/Computer-Vision-Basics/',
   plugins: [
     katexHtml(),
+    seo({ origin }),
     sitemap({
-      origin: 'https://davidl-11.github.io',
+      origin,
       root,
       pages: [
         { path: '', sources: ['index.html', 'src/landing', 'src/data'] },

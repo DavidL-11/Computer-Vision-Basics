@@ -163,6 +163,43 @@ code {
   border-color: var(--accent);
 }
 
+.repo-link {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  height: 36px;
+  padding: 0 0.8rem;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--bg-elev);
+  color: var(--fg-muted);
+  font-size: 0.85rem;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.repo-link:hover {
+  border-color: var(--accent);
+  color: var(--fg);
+  text-decoration: none;
+}
+.repo-link svg {
+  display: block;
+}
+.repo-link > svg {
+  color: var(--fg);
+}
+.repo-stat {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-variant-numeric: tabular-nums;
+}
+@media (max-width: 900px) {
+  .repo-name {
+    display: none;
+  }
+}
+
 .site-footer {
   border-top: 1px solid var(--border);
   margin-top: 4rem;
