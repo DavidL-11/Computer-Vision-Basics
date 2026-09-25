@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Interactive homogeneous coordinates: points as rays, lines as cross products, and parallel lines that meet at a point at infinity." />
+    <title>Homogeneous coordinates · Computer Vision Basics</title>
+  </head>
+  <body>
+    <main class="demo-page">
+      <section class="demo-intro">
+        <h1>Homogeneous coordinates</h1>
+        <p class="lead">
+          Adding one extra coordinate turns the image plane into the plane \(w = 1\) in 3D. Every image point becomes
+          a ray through the origin, and every line becomes a plane through the origin. Drag the four points and watch
+          how lines and their intersection come out of simple cross products, even when the lines are parallel.
+        </p>
+      </section>
+
+      <section class="workspace">
+        <div class="views">
+          <figure class="view card">
+            <figcaption>Image plane \(w = 1\) <span class="muted">drag the points \(p_1 \dots p_4\)</span></figcaption>
+            <div id="plane-view" class="plane-view"></div>
+          </figure>
+          <figure class="view card">
+            <figcaption>Homogeneous space \((x, y, w)\) <span class="muted">drag to orbit, scroll to zoom</span></figcaption>
+            <div id="ray-view" class="view-3d ray-view"></div>
+          </figure>
+        </div>
+        <aside id="controls" class="controls"></aside>
+      </section>
+
+      <section id="values" class="card values" aria-live="polite"></section>
+
+      <article class="explanation">
+        <h2>Points and rays</h2>
+        <p>A 2D point gets a third coordinate 1. Converting back divides by the last coordinate:</p>
+        $$ (x, y) \to \begin{bmatrix} x \\ y \\ 1 \end{bmatrix}, \qquad
+           \begin{bmatrix} x \\ y \\ w \end{bmatrix} \to \left( \frac{x}{w}, \frac{y}{w} \right) $$
+        <p>The same works in 3D, which is how scene points enter the camera's projection matrix:</p>
+        $$ (x, y, z) \to \begin{bmatrix} x \\ y \\ z \\ 1 \end{bmatrix}, \qquad
+           \begin{bmatrix} x \\ y \\ z \\ w \end{bmatrix} \to \left( \frac{x}{w}, \frac{y}{w}, \frac{z}{w} \right) $$
+        <p>Homogeneous coordinates are <em>scale invariant</em>: for any \(k \neq 0\),</p>
+        $$ k \begin{bmatrix} x \\ y \\ w \end{bmatrix} = \begin{bmatrix} kx \\ ky \\ kw \end{bmatrix}
+           \to \left( \frac{kx}{kw}, \frac{ky}{kw} \right) = \left( \frac{x}{w}, \frac{y}{w} \right) $$
+        <p>
+          So a point \((x, y)\) is really the whole ray \((wx, wy, w)\) through the origin, and the image plane
+          \(w = 1\) is just where we look at it. In the 3D view, every vector on the ray through \(p_1\) lands on
+          \(p_1\). This is also why a camera cannot recover depth from a single image: the whole projection ray maps to
+          one pixel.
+        </p>
+
+        <h2>Lines and intersections</h2>
+        <p>
+          A line \(ax + by + c = 0\) is written as the vector \(l = (a, b, c)^\top\). A point \(p = (x, y, 1)^\top\)
+          lies on the line exactly when \(p \cdot l = 0\). Like points, lines are only defined up to scale. Two cross
+          products do all the work:
+        </p>
+        $$ \text{line through two points: } l = p_1 \times p_2, \qquad
+           \text{intersection of two lines: } q = l_1 \times l_2 $$
+        <p>
+          In the 3D view each line is a plane through the origin (the tinted triangles). Two such planes meet in a
+          ray, and that ray is the intersection point \(q\).
+        </p>
+
+        <h2>Parallel lines and points at infinity</h2>
+        <p>
+          In Cartesian coordinates parallel lines never meet. In homogeneous coordinates the cross product still gives
+          an answer, \(q = (x, y, 0)^\top\). A point with \(w = 0\) cannot be divided out: it is a <em>point at
+          infinity</em> in the direction \((x, y)\). In the 3D view, the planes of two parallel lines meet in a ray
+          that lies in the plane \(w = 0\), parallel to the image plane, so it never hits it.
+        </p>
+        <p>
+          This is exactly what happens in perspective images. Parallel lines in the scene have the same direction, and
+          their images meet at a <em>vanishing point</em>: the image of their common point at infinity. Unlike here,
+          the vanishing point is usually at a finite position in the image, because the camera looks at the lines at
+          an angle.
+        </p>
+
+        <div class="callout">
+          <strong>Why bother?</strong> In homogeneous coordinates, operations that are not linear in Cartesian
+          coordinates become matrix products. Perspective division moves to the very end of the
+          <a href="../camera-model/">pinhole camera</a>'s projection. A translation becomes a matrix product too:
+          $$ \begin{bmatrix} x' \\ y' \\ 1 \end{bmatrix} =
+             \begin{bmatrix} 1 &amp; 0 &amp; t_x \\ 0 &amp; 1 &amp; t_y \\ 0 &amp; 0 &amp; 1 \end{bmatrix}
+             \begin{bmatrix} x \\ y \\ 1 \end{bmatrix} $$
+          The axes follow the image convention: \(x\) right, \(y\) down, and \(w\) points away from the viewer, like
+          the camera's optical axis.
+        </div>
+
+        <h2>Try this</h2>
+        <ul class="try">
+          <li>Move \(k\) in “Scale invariance”. The highlighted vector \(k\,p\) slides along its ray, but \(\left(\frac{kx}{kw}, \frac{ky}{kw}\right)\) stays the same.</li>
+          <li>Set \(k\) to a negative value. The vector moves to the other side of the origin and is still the same point.</li>
+          <li>Set \(k = 0\). \((0, 0, 0)\) is not a point, which is why \(k\) must be non-zero.</li>
+          <li>Check that \(p_1 \cdot l_1 = 0\) in the values panel, then drag \(p_1\) and see that it stays 0.</li>
+          <li>Drag \(p_4\) until the lines are almost parallel. \(q\) moves far away and its \(w\) gets close to 0.</li>
+          <li>Press “Make l₂ parallel to l₁”. Now \(w = 0\) exactly, and in the 3D view the intersection ray lies in the plane \(w = 0\).</li>
+          <li>Select \(q\) as the vector to scale while the lines are parallel. Scaling keeps \(w = 0\): the point stays at infinity.</li>
+          <li>Drag \(p_2\) onto \(p_1\). The cross product of two equal points is \((0, 0, 0)\), so they do not define a line.</li>
+        </ul>
+      </article>
+    </main>
+    <script type="module" src="./main.ts"></script>
+  </body>
+</html>

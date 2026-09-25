@@ -1,0 +1,46 @@
+:root {
+  --line-1: light-dark(#7a4fd6, #b28cff);
+  --line-2: light-dark(#1f9a8a, #4fd1bd);
+}
+
+.ray-view {
+  aspect-ratio: 4 / 3;
+}
+.scene-label.highlight {
+  color: var(--viz-highlight);
+}
+
+.plane-view {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  background: var(--bg-sunken);
+}
+.plane-canvas {
+  display: block;
+  width: 100%;
+  cursor: grab;
+  touch-action: none;
+}
+.plane-canvas.dragging {
+  cursor: grabbing;
+}
+
+.value-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 3rem;
+}
+.value-block {
+  overflow-x: auto;
+}
+.value-block h3 {
+  font-size: 0.95rem;
+  margin: 0.6rem 0 0.5rem;
+}
+.katex .line-1 {
+  color: var(--line-1);
+}
+.katex .line-2 {
+  color: var(--line-2);
+}

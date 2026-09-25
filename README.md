@@ -9,4 +9,5 @@ Interactive computer vision fundamentals: **https://davidl-11.github.io/Computer
 
 ## Available demos
 
+- [Homogeneous coordinates](https://davidl-11.github.io/Computer-Vision-Basics/demos/homogeneous-coordinates/) (Cameras and Optics)
 - [Pinhole camera: intrinsics & extrinsics](https://davidl-11.github.io/Computer-Vision-Basics/demos/camera-model/) (Cameras and Optics)

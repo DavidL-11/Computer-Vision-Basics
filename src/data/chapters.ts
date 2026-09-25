@@ -116,6 +116,12 @@ export const chapters: Chapter[] = [
     ],
     demos: [
       {
+        title: 'Homogeneous coordinates',
+        description:
+          'Points become rays and lines become planes through the origin. Build lines and intersections with cross products and watch parallel lines meet at a point at infinity.',
+        slug: 'homogeneous-coordinates',
+      },
+      {
         title: 'Pinhole camera: intrinsics & extrinsics',
         description:
           'Move a virtual camera through a 3D scene, change focal length, principal point and skew, and watch K, [R | t] and P = K[R | t] update together with the image.',
