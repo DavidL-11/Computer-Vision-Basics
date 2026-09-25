@@ -1,0 +1,155 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Interactive scale space and Difference of Gaussians: blur an image at growing σ in octaves, subtract neighboring scales, find the extrema in position and scale, and refine and filter them into SIFT keypoints." />
+    <title>Scale space &amp; Difference of Gaussians, interactive demo · Computer Vision Basics</title>
+  </head>
+  <body>
+    <main class="demo-page">
+      <section class="demo-intro">
+        <h1>Scale space &amp; DoG</h1>
+        <p class="lead">
+          A detector with a fixed window finds a structure only at one size. Blur the image at growing \(\sigma\),
+          subtract neighboring blur levels, and look for points that stand out in position and in scale: each
+          keypoint gets its own size. Click anywhere to see how the response of that point changes with \(\sigma\).
+        </p>
+      </section>
+
+      <section class="workspace">
+        <div class="views">
+          <figure class="view card">
+            <figcaption>
+              Image and keypoints
+              <span class="muted legend">
+                <span class="key" style="--key: var(--viz-points)">maxima</span>
+                <span class="key" style="--key: var(--accent)">minima</span>
+                <span class="key dashed" style="--key: var(--fg-faint)">rejected</span>
+              </span>
+            </figcaption>
+            <div id="image-view" class="image-frame"></div>
+          </figure>
+          <figure class="view card">
+            <figcaption>
+              Response over scale at the selected point
+              <span class="muted legend">
+                <span class="key" style="--key: var(--accent)">\(D(\sigma)\)</span>
+                <span class="key dashed" style="--key: var(--viz-points)">\(-(k - 1)\,\sigma^2 \nabla^2 L\)</span>
+              </span>
+            </figcaption>
+            <div id="signature-plot"></div>
+          </figure>
+          <figure class="view card view-wide">
+            <figcaption id="gauss-caption">Gaussian images \(L_i\)</figcaption>
+            <div id="gauss-row" class="image-row octave-row"></div>
+          </figure>
+          <figure class="view card view-wide">
+            <figcaption id="dog-caption">DoG images \(D_i = L_i - L_{i+1}\)</figcaption>
+            <div id="dog-row" class="image-row octave-row"></div>
+          </figure>
+        </div>
+        <aside id="controls" class="controls"></aside>
+      </section>
+
+      <section id="values" class="card values" aria-live="polite"></section>
+
+      <article class="explanation">
+        <h2>Finding the right patch size</h2>
+        <p>
+          To match a keypoint between two images, a descriptor \(f\) has to see the same patch in both. If one image
+          shows the scene larger, the patch has to be larger by the same factor: we look for sizes \(\sigma\) and
+          \(\sigma'\) with
+        </p>
+        $$ f\big(I(x, \sigma)\big) = f\big(I'(x', \sigma')\big) $$
+        <p>
+          Each image has to be processed independently, so the size can't be negotiated between them. Instead, every
+          point picks the scale at which a response function has an extremum. When the image is scaled by \(s\), that
+          extremum moves to \(s\sigma\), and the patch grows with it. This is what the
+          <a href="../harris-invariance/">Harris detector</a> with its fixed window lacks.
+        </p>
+
+        <h2>Laplacian of Gaussian</h2>
+        <p>
+          A good response function is the Laplacian, the second derivative, of the Gaussian-blurred image
+          \(L = G_\sigma * I\). As a filter, the Laplacian of Gaussian is a blob detector: a bright blob gives a strong
+          negative response, a dark blob a positive one, and it is strongest when the blob fills the center of the
+          kernel. For a disk of radius \(r\) this happens at \(\sigma = r / \sqrt{2}\), which is why the circles in the
+          image have the radius \(\sqrt{2}\,\sigma\). The second derivative shrinks with \(\sigma^2\) as the image gets
+          smoother, so it is multiplied by \(\sigma^2\) to compare scales fairly:
+        </p>
+        $$ \sigma^2 \nabla^2 L = \sigma^2 \left( \frac{\partial^2 L}{\partial x^2} + \frac{\partial^2 L}{\partial y^2} \right) $$
+        <p>Keypoints are the local extrema of this function in position–scale space \((x, y, \sigma)\).</p>
+
+        <h2>Difference of Gaussians</h2>
+        <p>The Difference of Gaussians approximates the LoG with blurring and subtraction only:</p>
+        <ol>
+          <li>Blur the image with a Gaussian of \(\sigma\).</li>
+          <li>Blur the image with a Gaussian of \(k\sigma\).</li>
+          <li>Subtract 2 from 1: \(D(\sigma) = G_\sigma * I - G_{k\sigma} * I\).</li>
+        </ol>
+        <p>
+          Since the blurred image changes with \(\sigma\) as \(\partial L / \partial \sigma = \sigma \nabla^2 L\), the
+          difference is
+        </p>
+        $$ D(\sigma) \approx -(k - 1)\, \sigma^2 \nabla^2 L $$
+        <p>
+          It is scale-normalized by itself, and the constant factor \(k - 1\) doesn't move the extrema. With this sign,
+          bright blobs are maxima and dark blobs minima; many texts subtract the other way round, which swaps the two
+          but finds the same points. The approximation is a finite difference over \([\sigma, k\sigma]\), so in the
+          plot \(D\) runs slightly ahead of the LoG curve.
+        </p>
+
+        <h2>Octaves</h2>
+        <p>
+          The scale space is built with \(s\) intervals per octave, \(k = 2^{1/s}\), and \(s + 3\) Gaussian images
+          \(\sigma_0, k\sigma_0, \dots, k^{s+2}\sigma_0\). Each image is blurred from the previous one, since a
+          Gaussian convolved with a Gaussian is another Gaussian:
+          \(\sigma_{i}^2 = \sigma_{i-1}^2 + \sigma_\Delta^2\). Once \(\sigma\) has doubled, the image carries no
+          detail that half as many pixels couldn't hold, so the next octave starts from \(L_s\) with every other pixel
+          dropped: the blur protects it from aliasing. Every octave takes a quarter of the work of the one before.
+          Neighboring DoG images give \(s + 2\) differences per octave; extrema are searched in the \(s\) middle ones,
+          which have a neighbor above and below. Each pixel is compared with its 26 neighbors: 8 in its own image and
+          9 each in the images above and below.
+        </p>
+
+        <h2>Refining and filtering the extrema</h2>
+        <ul>
+          <li>
+            <strong>Position interpolation</strong>: just as for the
+            <a href="../autocorrelation/">autocorrelation surface</a>, \(D\) is approximated by its second-order
+            Taylor expansion around the sample point, with gradient and Hessian from finite differences:
+            \(D(\mathbf{x}) \approx D + \nabla D^\top \mathbf{x} + \tfrac{1}{2} \mathbf{x}^\top H \mathbf{x}\). Its
+            extremum lies at \(\hat{\mathbf{x}} = -H^{-1} \nabla D\), with an offset in \(x\), \(y\) and \(\sigma\). If
+            an offset is larger than half a sample, the fit is repeated at the neighboring sample; if it doesn't settle
+            within five steps, the point is dropped as unstable.
+          </li>
+          <li>
+            <strong>Discard low-contrast points</strong> with
+            \(|D(\hat{\mathbf{x}})| = |D + \tfrac{1}{2} \nabla D^\top \hat{\mathbf{x}}| < t\). They are too easily
+            moved by noise.
+          </li>
+          <li>
+            <strong>Eliminate points along edges</strong>: the DoG responds strongly along edges, but the position along
+            the edge is poorly defined. As with Harris, the 2 × 2 Hessian of \(D\) tells edges from blobs by its
+            eigenvalues: if the principal curvatures differ by more than a factor \(r\), the point is rejected. This is
+            checked without eigenvalues, as
+            \(\operatorname{trace}(H)^2 / \det(H) < (r + 1)^2 / r\); for \(r = 10\), the limit is 12.1.
+          </li>
+        </ul>
+
+        <h2>Try this</h2>
+        <ul class="try">
+          <li>Click the centers of the bright disks in the top row: from disk to disk the radius grows by \(\sqrt{2}\), and the peak of \(D(\sigma)\) moves half an octave to the right.</li>
+          <li>With a disk selected, set the image scale to 0.5: the selection follows the disk, its peak moves one octave to the left, and the \(\sigma\) of its keypoint halves. The scale of a keypoint follows the image.</li>
+          <li>Look at the DoG images of each octave: the small disks light up in the first octave, the large ones only in the later, smaller ones.</li>
+          <li>Turn on the rejected points: along the dark ellipse, the white bar and the yellow ring, \(D\) has extrema that the curvature test removes as edges. Raise \(r\) to 40 and a few of them come back.</li>
+          <li>Add noise with \(\sigma_n = 0.05\) and set \(t\) to 0.005: the number of keypoints nearly doubles, with small circles where there is no blob. At \(t = 0.03\) it drops back to about the count of the clean image.</li>
+          <li>Turn off the interpolation: keypoints snap to whole pixels of their octave and to the discrete scales \(\sigma_0 k^i\), so the circles only come in a few sizes.</li>
+          <li>Change the number of intervals \(s\): with more intervals, the scales are sampled more finely, but \(D\) gets smaller with \(k - 1\), so the same threshold keeps fewer points.</li>
+        </ul>
+      </article>
+    </main>
+    <script type="module" src="./main.ts"></script>
+  </body>
+</html>

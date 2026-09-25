@@ -1,0 +1,13 @@
+.octave-row {
+  grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+}
+.octave-row figcaption .katex {
+  font-size: 1em;
+}
+.searched {
+  color: var(--accent);
+  font-size: 0.78rem;
+}
+.view figcaption .katex {
+  font-weight: 400;
+}
