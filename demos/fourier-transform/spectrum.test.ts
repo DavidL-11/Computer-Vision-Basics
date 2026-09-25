@@ -1,13 +1,12 @@
 import { describe, expect, it } from 'vitest';
 import { fft2, freqIndex, ifft2 } from '../../src/shared/fft';
 import { boxKernel1D, correlateSeparable, gaussianKernel, outerProduct } from '../../src/shared/filter';
-import { createPlane } from '../../src/shared/image';
+import { centerCrop, createPlane } from '../../src/shared/image';
 import {
   addPeriodicNoise,
   allPass,
   applyFilter,
   basisImage,
-  centerCrop,
   component,
   energyFraction,
   kernelTransfer,

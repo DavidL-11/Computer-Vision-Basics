@@ -1,7 +1,7 @@
 import { Pane } from 'tweakpane';
 import { type Spectrum, fft2, fftShift, ifft2 } from '../../src/shared/fft';
 import { boxKernel1D, correlateSeparable, gaussianKernel, outerProduct } from '../../src/shared/filter';
-import { type Plane, type RGBImage, planeToImage, toGray } from '../../src/shared/image';
+import { type Plane, type RGBImage, centerCrop, planeToImage, toGray } from '../../src/shared/image';
 import { addImagePicker } from '../../src/shared/imagePicker';
 import { initPage } from '../../src/shared/page';
 import { PixelView, type ViewTransform, perFrame } from '../../src/shared/pixelView';
@@ -14,7 +14,6 @@ import {
   allPass,
   applyFilter,
   basisImage,
-  centerCrop,
   component,
   energyFraction,
   kernelTransfer,

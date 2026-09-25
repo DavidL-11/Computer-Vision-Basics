@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Interactive magnitude vs phase demo: swap the Fourier magnitude and phase of two images and see that the phase carries the structure, while magnitude spectra of natural images all look alike." />
+    <title>Magnitude vs phase, interactive demo · Computer Vision Basics</title>
+  </head>
+  <body>
+    <main class="demo-page">
+      <section class="demo-intro">
+        <h1>Magnitude vs phase</h1>
+        <p class="lead">
+          The Fourier transform splits an image into the magnitude and the phase of its sinusoids. Combine the
+          magnitude of one image with the phase of another and see which of the two you recognize.
+        </p>
+      </section>
+
+      <section class="workspace">
+        <div class="views">
+          <figure class="view card">
+            <figcaption>Image A <span class="muted">\(|A| \, e^{i \angle A}\)</span></figcaption>
+            <div id="a-view" class="image-frame"></div>
+          </figure>
+          <figure class="view card">
+            <figcaption>Image B <span class="muted">\(|B| \, e^{i \angle B}\)</span></figcaption>
+            <div id="b-view" class="image-frame"></div>
+          </figure>
+          <figure class="view card">
+            <figcaption>\(\mathcal{F}^{-1}\{|A| \, e^{i \angle B}\}\) <span class="muted">magnitude of A, phase of B</span></figcaption>
+            <div id="mag-a-phase-b-view" class="image-frame"></div>
+          </figure>
+          <figure class="view card">
+            <figcaption>\(\mathcal{F}^{-1}\{|B| \, e^{i \angle A}\}\) <span class="muted">magnitude of B, phase of A</span></figcaption>
+            <div id="mag-b-phase-a-view" class="image-frame"></div>
+          </figure>
+          <figure class="view card view-wide">
+            <figcaption>Only one part of image A</figcaption>
+            <div class="image-row">
+              <figure>
+                <div id="radial-view"></div>
+                <figcaption>phase of A, radial average of \(|A|\)</figcaption>
+              </figure>
+              <figure>
+                <div id="flat-view"></div>
+                <figcaption>phase of A, \(|F| = 1\) (contrast stretched)</figcaption>
+              </figure>
+              <figure>
+                <div id="random-view"></div>
+                <figcaption>\(|A|\), random phase</figcaption>
+              </figure>
+              <figure>
+                <div id="zero-view"></div>
+                <figcaption>\(|A|\), zero phase (origin in the center, stretched)</figcaption>
+              </figure>
+            </div>
+          </figure>
+        </div>
+        <aside id="controls" class="controls"></aside>
+      </section>
+
+      <section id="values" class="card values" aria-live="polite"></section>
+
+      <article class="explanation">
+        <h2>Two halves of the spectrum</h2>
+        <p>
+          The <a href="../fourier-transform/">2D Fourier transform</a> describes an image as a sum of sinusoids. Each
+          coefficient is a complex number, which can be written by its length and angle:
+        </p>
+        $$ F(u, v) = |F(u, v)| \, e^{i \varphi(u, v)} $$
+        <p>
+          The <strong>magnitude</strong> \(|F|\) says how strong the sinusoid of frequency \((u, v)\) is, the
+          <strong>phase</strong> \(\varphi\) where its crests lie. Both are needed to get the image back. The
+          experiment here keeps one of them and replaces the other: the result \(\mathcal{F}^{-1}\{|A| \, e^{i \angle
+          B}\}\) has exactly the frequency content of A, but the wave positions of B.
+        </p>
+
+        <h2>Phase carries the structure</h2>
+        <p>
+          The result looks like the image that donated the <em>phase</em>. An edge is a place where many sinusoids of
+          different frequencies have their crests at the same spot, so that they add up to a step. The phase decides
+          where the waves line up, and therefore where the edges, lines and corners are. The magnitude only decides how
+          strongly each frequency takes part.
+        </p>
+        <p>
+          The shift theorem makes this concrete: moving an image by \((x_0, y_0)\) multiplies its spectrum by
+          \(e^{-i 2\pi (u x_0 + v y_0) / N}\). The magnitude does not change at all; the position of everything in the
+          image is stored in the phase.
+        </p>
+
+        <h2>Magnitude spectra look alike</h2>
+        <p>
+          Natural images have similar magnitude spectra: strong at low frequencies and falling off roughly like
+          \(1 / \sqrt{u^2 + v^2}\), with some extra energy perpendicular to dominant edge directions. Replacing
+          \(|A|\) by its average over rings of equal frequency, which removes all directional information, still
+          leaves a clearly recognizable image. Setting \(|F| = 1\) instead makes all frequencies equally strong; this
+          <em>whitening</em> boosts the fine detail, so only the edges remain, but they are all in the right place.
+        </p>
+        <p>
+          The other way round, the magnitude alone says little. With random phases, the waves no longer line up
+          anywhere and the image turns into texture-like noise with the same frequency content. With zero phase, every
+          wave has a crest at the origin: all energy piles up there, and the image becomes symmetric about the origin.
+        </p>
+
+        <h2>Try this</h2>
+        <ul class="try">
+          <li>Compare the two swapped images with A and B: each looks like its phase donor. The values panel confirms it with the correlation coefficients.</li>
+          <li>Choose the test chart as image B: the lines and patches appear in the swapped image, with the tone of the landscape overlaid as noise.</li>
+          <li>Look at the radially averaged magnitude: the landscape is still easy to recognize, even though its spectrum now has no preferred direction.</li>
+          <li>Compare the whitened image with image A: only the edges are left, like an edge detector.</li>
+          <li>Press “New random phase” a few times: every version has the same magnitude as A, and none of them looks like it.</li>
+          <li>Open two of your own photos as A and B: faces and buildings follow the phase just as clearly.</li>
+        </ul>
+      </article>
+    </main>
+    <script type="module" src="./main.ts"></script>
+  </body>
+</html>

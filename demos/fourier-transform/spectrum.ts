@@ -14,15 +14,6 @@ import { type Plane, createPlane } from '../../src/shared/image';
 export type RadialKind = 'low-pass' | 'high-pass' | 'band-pass';
 export type Profile = 'ideal' | 'gaussian';
 
-/** The w × h region in the middle of p. */
-export function centerCrop(p: Plane, w: number, h: number): Plane {
-  const out = createPlane(w, h);
-  const x0 = Math.floor((p.width - w) / 2);
-  const y0 = Math.floor((p.height - h) / 2);
-  for (let y = 0; y < h; y++) out.data.set(p.data.subarray((y0 + y) * p.width + x0, (y0 + y) * p.width + x0 + w), y * w);
-  return out;
-}
-
 /**
  * log(1 + |F|) scaled to [0, 1] and centered; the logarithm makes the weak high frequencies visible. The scale ignores
  * the DC term, which is far larger than everything else and is clipped to 1.

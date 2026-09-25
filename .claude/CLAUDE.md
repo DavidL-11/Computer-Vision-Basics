@@ -27,7 +27,7 @@ npm run preview   # serve dist/ at http://localhost:4173/Computer-Vision-Basics/
   - `theme.ts`: light/dark handling plus `cssColor()`.
   - `linalg.ts`: small row-major Vec3/Mat3 helpers.
   - `opencv.ts`: lazy `loadOpenCV()`.
-  - `image.ts`: `RGBImage`/`Plane` as plain Float32Arrays in [0, 1], `mapPixels()`, `toGray()`, `psnr()`.
+  - `image.ts`: `RGBImage`/`Plane` as plain Float32Arrays in [0, 1], `mapPixels()`, `toGray()`, `centerCrop()`, `psnr()`.
   - `filter.ts`: linear filtering of a `Plane`: `correlate`/`convolve` with border modes, separable passes,
     `gaussianKernel`, `boxKernel1D`, `padPlane`.
   - `color.ts`: sRGB decode/encode, BT.601 luma, YCbCr, hex helpers.
