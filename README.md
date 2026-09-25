@@ -7,7 +7,14 @@
 
 Interactive computer vision fundamentals: **https://davidl-11.github.io/Computer-Vision-Basics/**
 
+If you found this repository useful, please consider starring it on GitHub.
+
 ## Available demos
 
+- [Sampling & quantization](https://davidl-11.github.io/Computer-Vision-Basics/demos/sampling-quantization/) (Images, Color and Gamma)
+- [Bayer pattern & demosaicing](https://davidl-11.github.io/Computer-Vision-Basics/demos/bayer-demosaicing/) (Images, Color and Gamma)
+- [Color space explorer](https://davidl-11.github.io/Computer-Vision-Basics/demos/color-spaces/) (Images, Color and Gamma)
+- [Chroma subsampling](https://davidl-11.github.io/Computer-Vision-Basics/demos/chroma-subsampling/) (Images, Color and Gamma)
+- [Gamma](https://davidl-11.github.io/Computer-Vision-Basics/demos/gamma/) (Images, Color and Gamma)
 - [Homogeneous coordinates](https://davidl-11.github.io/Computer-Vision-Basics/demos/homogeneous-coordinates/) (Cameras and Optics)
 - [Pinhole camera: intrinsics & extrinsics](https://davidl-11.github.io/Computer-Vision-Basics/demos/camera-model/) (Cameras and Optics)
