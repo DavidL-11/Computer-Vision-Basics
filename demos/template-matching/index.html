@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Interactive template matching: select a template in an image and compare correlation, zero-mean correlation, SSD and normalized cross-correlation score maps and their best matches." />
+    <title>Template matching, interactive demo · Computer Vision Basics</title>
+  </head>
+  <body>
+    <main class="demo-page">
+      <section class="demo-intro">
+        <h1>Template matching</h1>
+        <p class="lead">
+          Where in the image does a small patch appear again? Slide the <strong>template</strong> over every position
+          and compute how well it fits. Select a template, compare four ways to score the fit, and see why the obvious
+          one fails.
+        </p>
+      </section>
+
+      <section class="workspace">
+        <div class="views">
+          <figure class="view card">
+            <figcaption>Image <span class="muted">click to choose the template center</span></figcaption>
+            <div id="image-view" class="image-frame"></div>
+          </figure>
+          <figure class="view card">
+            <figcaption>Score map \(h[m, n]\) <span id="score-caption" class="muted"></span></figcaption>
+            <div id="score-view" class="image-frame"></div>
+          </figure>
+        </div>
+        <aside class="controls">
+          <div id="controls"></div>
+          <section class="card template-card">
+            <h3>Template \(f\) <span id="template-size" class="muted"></span></h3>
+            <div id="template-view"></div>
+          </section>
+        </aside>
+      </section>
+
+      <section id="values" class="card values" aria-live="polite"></section>
+
+      <article class="explanation">
+        <h2>Matching as filtering</h2>
+        <p>
+          Template matching slides the template \(f\) over the image \(I\) like a filter and computes a score
+          \(h[m, n]\) for every position. The best matches are the peaks of the score map. The score is only defined
+          where the template fits completely inside the image; the border of the map stays black. There are several
+          choices for the score:
+        </p>
+
+        <h2>Correlation</h2>
+        <p>Use the template itself as the filter:</p>
+        $$ h[m, n] = \sum_{k, l} f[k, l] \, I[m + k, n + l] $$
+        <p>
+          High values get multiplied by high values and low values by low values, so a good match gives a strong peak.
+          But the sum is also large wherever the image is simply bright, whether or not it looks like the template. A
+          white area beats a perfect match.
+        </p>
+
+        <h2>Zero-mean correlation</h2>
+        <p>Subtract the mean \(\bar f\) of the template first, so that the filter sums to 0:</p>
+        $$ h[m, n] = \sum_{k, l} \big( f[k, l] - \bar f \big) \, I[m + k, n + l] $$
+        <p>
+          Flat areas now give 0, whatever their brightness. The score still grows with the contrast of the image, so a
+          strong edge can beat a faint but exact match.
+        </p>
+
+        <h2>Sum of squared differences</h2>
+        $$ h[m, n] = \sum_{k, l} \big( I[m + k, n + l] - f[k, l] \big)^2 $$
+        <p>
+          Here smaller is better, and 0 means an exact copy; the score map shows \(-h\), so that good matches are
+          bright. Large errors are strongly penalized. SSD is simple and precise, but any change of brightness or
+          contrast (bias and gain) between template and image makes the differences large.
+        </p>
+
+        <h2>Normalized cross-correlation</h2>
+        <p>Subtract the means of both the template and the image patch under it, and divide by their norms:</p>
+        $$ h[m, n] = \frac{\sum_{k, l} \big[ f[k, l] - \bar f \big] \big[ I[m + k, n + l] - \bar I_{m, n} \big]}
+           {\sqrt{\sum_{k, l} \big[ f[k, l] - \bar f \big]^2} \, \sqrt{\sum_{k, l} \big[ I[m + k, n + l] - \bar I_{m, n} \big]^2}} $$
+        <p>
+          with the means \(\bar f = \frac{1}{N} \sum_{k, l} f[k, l]\) and \(\bar I_{m, n} = \frac{1}{N} \sum_{k, l} I[m + k, n + l]\)
+          over the \(N\) pixels of the template.
+        </p>
+        <p>
+          This is the cosine of the angle between the two patches as vectors, after removing their means, so
+          \(-1 \le h \le 1\). The normalization removes linear changes of brightness and contrast (bias and gain),
+          \(I \to \alpha I + \beta\) with \(\alpha &gt; 0\), so it also works when exposure or lighting differ. An
+          inverted copy gives \(-1\). For a flat patch without any variation the denominator is 0 and the score is
+          undefined; here it is set to 0. NCC is the slowest of the four, since the mean and norm of every image patch
+          are needed, but usually the most reliable.
+        </p>
+
+        <h2>Finding the matches</h2>
+        <p>
+          Next to a peak, the score is almost as high, because a template shifted by one pixel still fits well. Taking
+          the highest scores directly would report the same match many times. <strong>Non-maximum suppression</strong>
+          accepts the best position, discards all positions within one template size around it, and repeats.
+        </p>
+        <p>
+          Template matching only works if the object appears at the same size and orientation as the template. For
+          anything else it needs to be repeated over scales and rotations, or replaced by the local features of later
+          chapters.
+        </p>
+
+        <h2>Try this</h2>
+        <ul class="try">
+          <li>
+            The template is the black ring on white. With NCC, the dark rings on light backgrounds score near 1 even at
+            low contrast, while the light rings on dark backgrounds come out near \(-1\): dark spots in the score map.
+          </li>
+          <li>Switch to correlation: the best “matches” are now in the white rows, where the image is simply bright.</li>
+          <li>Try zero-mean correlation: the rings are found again, but the scores follow their contrast, and edges of letters compete.</li>
+          <li>With SSD, only the ring itself scores 0. The other dark rings still come next, but far behind, because their gray values differ.</li>
+          <li>Click one of the letters, e.g. an “e” or “o”, to use it as template, and look for its other occurrences with NCC.</li>
+          <li>Enlarge the template to 41 pixels, so that it includes the neighboring rows: now the context has to match too, and the other rings score much lower.</li>
+        </ul>
+      </article>
+    </main>
+    <script type="module" src="./main.ts"></script>
+  </body>
+</html>

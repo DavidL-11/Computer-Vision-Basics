@@ -1,0 +1,33 @@
+.template-card {
+  margin-top: 0.75rem;
+  padding: 0.6rem 0.8rem 0.8rem;
+}
+.template-card h3 {
+  font-size: 0.92rem;
+  margin: 0 0 0.5rem;
+}
+.template-card h3 .muted {
+  font-weight: 400;
+  font-size: 0.82rem;
+  margin-left: 0.4rem;
+}
+#template-view {
+  width: min(100%, 200px);
+  margin: 0 auto;
+}
+
+.match-table {
+  border-collapse: collapse;
+  font-size: 0.9rem;
+  font-variant-numeric: tabular-nums;
+}
+.match-table th,
+.match-table td {
+  padding: 0.15rem 1.25rem 0.15rem 0;
+  text-align: left;
+  white-space: nowrap;
+}
+.match-table th {
+  font-weight: 600;
+  color: var(--fg-muted);
+}
