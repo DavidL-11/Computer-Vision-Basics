@@ -186,16 +186,6 @@ code {
   margin: 1rem 0;
 }
 
-.math {
-  font-family: var(--font-mono);
-  background: var(--bg-sunken);
-  border-radius: var(--radius-sm);
-  padding: 0.75rem 1rem;
-  overflow-x: auto;
-  white-space: pre;
-  line-height: 1.5;
-}
-
 /* Tweakpane variables mapped onto the site tokens, so panels follow the theme. */
 :root {
   --tp-base-background-color: var(--bg-elev);

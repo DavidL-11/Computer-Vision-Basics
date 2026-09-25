@@ -1,6 +1,7 @@
 import { readdirSync, existsSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { defineConfig } from 'vitest/config';
+import { katexHtml } from './build/katexHtml';
 
 const root = import.meta.dirname;
 
@@ -14,8 +15,9 @@ const demoEntries = Object.fromEntries(
 export default defineConfig({
   // GitHub Pages serves the site from https://<user>.github.io/Computer-Vision-Basics/
   base: '/Computer-Vision-Basics/',
+  plugins: [katexHtml()],
   build: {
-    // Three.js alone is ~700 kB; that is expected for the 3D demos.
+    // Three.js (~700 kB) and KaTeX (~260 kB) end up in one chunk shared by the demos.
     chunkSizeWarningLimit: 1000,
     rolldownOptions: {
       input: {

@@ -11,6 +11,7 @@
     "test": "vitest run"
   },
   "dependencies": {
+    "katex": "^0.18.9",
     "three": "^0.186.1",
     "tweakpane": "^4.0.5"
   },

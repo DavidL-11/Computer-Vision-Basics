@@ -14,5 +14,5 @@
     "skipLibCheck": true,
     "noEmit": true
   },
-  "include": ["src", "demos", "vite.config.ts"]
+  "include": ["src", "demos", "build", "vite.config.ts"]
 }
