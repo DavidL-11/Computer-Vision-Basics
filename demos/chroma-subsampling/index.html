@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Interactive chroma subsampling: compare 4:4:4, 4:2:2 and 4:2:0 on the Cb and Cr channels of YCbCr, and see why reducing color resolution is almost invisible while reducing luma is not." />
+    <title>Chroma subsampling: 4:2:2 and 4:2:0 explained · Computer Vision Basics</title>
+  </head>
+  <body>
+    <main class="demo-page">
+      <section class="demo-intro">
+        <h1>Chroma subsampling</h1>
+        <p class="lead">
+          Our eyes see fine detail in brightness, but only coarse detail in color. Image and video formats exploit this:
+          they convert to YCbCr and store the color channels \(C_b\) and \(C_r\) at a lower resolution than the luma
+          \(Y\). Reduce the resolution of either and compare how much you notice.
+        </p>
+      </section>
+
+      <section class="workspace">
+        <div class="views">
+          <figure class="view card">
+            <figcaption>Original <span class="muted">click to set the zoom center</span></figcaption>
+            <div id="original-view" class="image-frame"></div>
+          </figure>
+          <figure class="view card">
+            <figcaption>Subsampled <span class="muted">reduced channel upsampled back to 320 × 240 px</span></figcaption>
+            <div id="result-view" class="image-frame"></div>
+          </figure>
+          <figure class="view card view-wide">
+            <figcaption>Channels of the subsampled image <span class="muted">mid gray means \(C_b = C_r = 128\): no color</span></figcaption>
+            <div class="image-row">
+              <figure><div id="plane-0"></div><figcaption>\(Y\)</figcaption></figure>
+              <figure><div id="plane-1"></div><figcaption>\(C_b\)</figcaption></figure>
+              <figure><div id="plane-2"></div><figcaption>\(C_r\)</figcaption></figure>
+            </div>
+          </figure>
+        </div>
+        <aside id="controls" class="controls"></aside>
+      </section>
+
+      <section id="values" class="card values" aria-live="polite"></section>
+
+      <article class="explanation">
+        <h2>Luma and chroma</h2>
+        <p>
+          The <a href="../color-spaces/">YCbCr</a> transform splits a color into the luma \(Y\), a weighted sum of R, G
+          and B, and two color differences \(C_b\) and \(C_r\):
+        </p>
+        $$ Y = 0.299\,R + 0.587\,G + 0.114\,B, \qquad C_b = 128 + \frac{B - Y}{1.772}, \qquad C_r = 128 + \frac{R - Y}{1.402} $$
+        <p>
+          Edges, texture and text live almost entirely in \(Y\). The chroma channels mostly contain large, smooth
+          regions, because object colors change much less often than shading does. The visual system matches this:
+          its resolution for color differences is several times lower than for brightness.
+        </p>
+
+        <h2>Subsampling schemes</h2>
+        <p>
+          The chroma channels are stored at a reduced resolution, one value per \(f_x \times f_y\) block (here the
+          block average). The notation \(J{:}a{:}b\) describes a region 4 pixels wide and 2 rows high: \(J = 4\) luma
+          samples per row, \(a\) chroma samples in the first row and \(b\) additional ones in the second.
+        </p>
+        <ul>
+          <li><strong>4:4:4</strong>: no subsampling.</li>
+          <li><strong>4:2:2</strong>: half horizontal resolution, \(2 \times 1\) blocks. Common in professional video.</li>
+          <li><strong>4:2:0</strong>: half resolution in both directions, \(2 \times 2\) blocks. The default for JPEG and most video.</li>
+          <li><strong>4:1:1</strong>: a quarter of the horizontal resolution, \(4 \times 1\) blocks.</li>
+        </ul>
+        <p>With \(f_x \times f_y\) blocks, the number of stored values per pixel drops from 3 to</p>
+        $$ 1 + \frac{2}{f_x f_y}, \qquad \text{e.g. } 1.5 \text{ for 4:2:0, which halves the raw data.} $$
+        <p>
+          To display the image, the decoder upsamples the chroma channels back to full size, by repeating each value
+          (nearest neighbor) or by interpolating between block centers (bilinear), and converts back to RGB.
+        </p>
+
+        <div class="callout">
+          <strong>Where it fails.</strong> Subsampling is nearly invisible in natural images, but not for sharp edges
+          between strongly colored regions of similar brightness, such as red text on blue. There the edge is mostly
+          a chroma edge, and it gets blurred or blocky. This is why screenshots with colored text often look smeared
+          after JPEG compression.
+        </div>
+
+        <h2>Try this</h2>
+        <ul class="try">
+          <li>Compare the landscape at 4:2:0 with the original. Can you find any difference without zooming?</li>
+          <li>Switch “reduce” to luma Y with the same scheme. It saves less data, but the image gets visibly blurry and blocky.</li>
+          <li>Try 8 × 8 blocks on chroma. Zoom in: color bleeds across edges, while the shapes stay sharp.</li>
+          <li>Open the colored text at 4:2:0 and zoom to 4×. Red on blue and magenta on green suffer most, black on white not at all.</li>
+          <li>Look at the \(C_b\) and \(C_r\) channels. In 8 × 8 mode they are coarse blocks, yet the image still looks detailed.</li>
+          <li>Compare nearest-neighbor and bilinear upsampling at 4 × 4 blocks: blocky versus soft color fringes.</li>
+          <li>The zone plate is gray, so its chroma is constant. Chroma subsampling changes nothing, luma subsampling destroys it.</li>
+        </ul>
+      </article>
+    </main>
+    <script type="module" src="./main.ts"></script>
+  </body>
+</html>
