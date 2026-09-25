@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Interactive binary morphology: paint a binary image, choose a structuring element, apply erosion, dilation, opening and closing, and label the connected components with 4- or 8-connectivity." />
+    <title>Morphology &amp; connected components, interactive demo · Computer Vision Basics</title>
+  </head>
+  <body>
+    <main class="demo-page">
+      <section class="demo-intro">
+        <h1>Morphology &amp; connected components</h1>
+        <p class="lead">
+          Binary images, such as the result of a threshold, often contain specks, holes, gaps and thin bridges.
+          <strong>Morphological operations</strong> clean them up by probing the image with a small shape, the
+          structuring element. Afterwards, <strong>connected component labeling</strong> turns the pixels into
+          separate objects that can be counted and measured.
+        </p>
+      </section>
+
+      <section class="workspace">
+        <div class="views">
+          <figure class="view card">
+            <figcaption>Input \(A\) <span class="muted">drag to paint, hold Shift to erase</span></figcaption>
+            <div id="input-view" class="image-frame"></div>
+          </figure>
+          <figure class="view card">
+            <figcaption><span id="result-title">Result</span> <span class="muted legend"><span class="swatch added"></span> added <span class="swatch removed"></span> removed</span></figcaption>
+            <div id="result-view" class="image-frame"></div>
+          </figure>
+          <figure class="view card">
+            <figcaption>Connected components of the result <span id="components-caption" class="muted"></span></figcaption>
+            <div id="components-view" class="image-frame"></div>
+          </figure>
+          <figure class="view card">
+            <figcaption>Structuring element \(B\) <span class="muted">the origin is marked</span></figcaption>
+            <div class="image-frame se-frame"><div id="se-view"></div></div>
+          </figure>
+        </div>
+        <aside id="controls" class="controls"></aside>
+      </section>
+
+      <section id="values" class="card values" aria-live="polite"></section>
+
+      <article class="explanation">
+        <h2>Sets and structuring elements</h2>
+        <p>
+          A binary image is a set \(A\): the positions of its foreground pixels. The <strong>structuring
+          element</strong> (SE) \(B\) is a small binary matrix, i.e. a set of offsets around an origin, for example a
+          \(3 \times 3\) square, a cross or a disk. \(B_z\) denotes \(B\) moved to position \(z\), and \(\hat B\) its reflection through the
+          origin (for the symmetric shapes here, \(\hat B = B\)).
+        </p>
+
+        <h2>Dilation and erosion</h2>
+        $$ A \oplus B = \{\, z \mid (\hat B)_z \cap A \neq \emptyset \,\}, \qquad A \ominus B = \{\, z \mid B_z \subseteq A \,\} $$
+        <p>
+          <strong>Dilation</strong> keeps every position where \(B\) touches the object: objects grow by the shape of
+          \(B\), small holes and gaps close, and nearby objects merge. <strong>Erosion</strong> keeps only the positions
+          where \(B\) fits completely inside: objects shrink, and specks and thin lines disappear. The two are dual:
+          eroding the foreground is the same as dilating the background, \((A \ominus B)^c = A^c \oplus \hat B\).
+        </p>
+        <p>
+          Both are max and min filters: dilation takes the maximum of the image under \(B\), erosion the minimum. Like
+          the median, they are non-linear. Here pixels outside the image count as background for dilation and do not
+          constrain erosion.
+        </p>
+
+        <h2>Opening and closing</h2>
+        $$ A \circ B = (A \ominus B) \oplus B, \qquad A \bullet B = (A \oplus B) \ominus B $$
+        <p>
+          <strong>Opening</strong> erodes and then dilates. Everything that survives the erosion grows back, so large
+          objects keep their shape, but whatever \(B\) cannot fit into (specks, thin lines, narrow bridges) is gone.
+          The opening is the union of all copies of \(B\) that fit inside \(A\). <strong>Closing</strong> does the
+          opposite: it fills holes, gaps and bays that are smaller than \(B\) without growing the objects. Applying
+          either one a second time changes nothing.
+        </p>
+        <p>
+          The <strong>boundary</strong> \(A - (A \ominus B)\) keeps the pixels removed by erosion: an outline as thick
+          as the radius of \(B\).
+        </p>
+
+        <h2>Connected components</h2>
+        <p>
+          Two foreground pixels belong to the same component if a path of neighboring foreground pixels connects
+          them. With <strong>4-connectivity</strong>, neighbors share an edge; with <strong>8-connectivity</strong>,
+          diagonal neighbors count too. A diagonal line is one object with 8-connectivity but falls apart into single
+          pixels with 4-connectivity.
+        </p>
+        <p>
+          The classic <strong>two-pass algorithm</strong> scans the image row by row. Each foreground pixel gets the
+          smallest label of its already visited neighbors (left and above), or a new label if there is none. When
+          different labels meet, as at the bottom of a U, they are recorded as equivalent in a union-find structure.
+          A second pass replaces every label by the representative of its set. The labels then give each object's
+          area, bounding box or centroid.
+        </p>
+
+        <h2>Try this</h2>
+        <ul class="try">
+          <li>Apply an opening with the 3 × 3 square: the two disks joined by a bridge become two components, and the specks, the diagonal line and the spike disappear.</li>
+          <li>Apply a closing: the small holes in the rectangle, the gap in the ring and the notch in the disk are filled. The 5 × 5 hole is only filled from radius 3 on, when \(B\) no longer fits into it.</li>
+          <li>Dilate with radius 3 and compare the shapes of \(B\): the square keeps the corners of the rectangle, the disk rounds them, and the cross leaves them notched.</li>
+          <li>Choose the boundary operation and increase the radius: the outlines get thicker.</li>
+          <li>Set the radius to 0, so that every operation leaves \(A\) unchanged, and switch between 4- and 8-connectivity: the diagonal line is one component or 17.</li>
+          <li>Paint a diagonal line of your own and switch the connectivity again.</li>
+          <li>Paint two shapes that almost touch and dilate them: they merge into one component, and the count in the values panel drops.</li>
+        </ul>
+      </article>
+    </main>
+    <script type="module" src="./main.ts"></script>
+  </body>
+</html>
