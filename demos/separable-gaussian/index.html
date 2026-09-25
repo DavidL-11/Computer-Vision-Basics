@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Interactive separable Gaussian filter: a 2D Gaussian kernel as the product of two 1D kernels, row and column passes, the multiplication count MNPQ vs MN(P+Q), and repeated box filtering converging to a Gaussian." />
+    <title>Separable Gaussian filter, interactive demo · Computer Vision Basics</title>
+  </head>
+  <body>
+    <main class="demo-page">
+      <section class="demo-intro">
+        <h1>Gaussian &amp; separability</h1>
+        <p class="lead">
+          The Gaussian is the standard blur kernel. Its 2D kernel is the product of two 1D kernels, so the image can be
+          filtered along the rows and then along the columns, with a fraction of the work. And if you blur with a
+          simple box often enough, you get a Gaussian anyway.
+        </p>
+      </section>
+
+      <section class="workspace">
+        <div class="views">
+          <figure class="view card">
+            <figcaption>1D kernel \(G_\sigma(x)\) <span class="muted">sampled at the integers, truncated at \(\pm\lceil 3\sigma \rceil\)</span></figcaption>
+            <div id="kernel-plot"></div>
+          </figure>
+          <figure class="view card">
+            <figcaption>2D kernel \(G_\sigma(x) \, G_\sigma(y)\) <span id="kernel-size" class="muted"></span></figcaption>
+            <div class="image-frame kernel-frame"><div id="kernel-view"></div></div>
+          </figure>
+          <figure class="view card view-wide">
+            <figcaption>Two 1D passes <span class="muted">filter the rows, then the columns of the result</span></figcaption>
+            <div class="image-row">
+              <figure><div id="original-view"></div><figcaption>original</figcaption></figure>
+              <figure><div id="rows-view"></div><figcaption>after the horizontal pass</figcaption></figure>
+              <figure><div id="both-view"></div><figcaption>after both passes = 2D Gaussian</figcaption></figure>
+            </div>
+          </figure>
+          <figure class="view card view-wide">
+            <figcaption>Repeated box filter <span class="muted">bars: box of width \(w\) convolved \(n\) times, line: Gaussian with the same variance</span></figcaption>
+            <div id="box-plot"></div>
+          </figure>
+        </div>
+        <aside id="controls" class="controls"></aside>
+      </section>
+
+      <section id="values" class="card values" aria-live="polite"></section>
+
+      <article class="explanation">
+        <h2>The Gaussian kernel</h2>
+        <p>
+          The Gaussian weights neighbors by their distance from the center, with a standard deviation \(\sigma\) that
+          sets the amount of blur:
+        </p>
+        $$ G_\sigma = \frac{1}{2\pi\sigma^2} \, e^{-\frac{x^2 + y^2}{2\sigma^2}} $$
+        <p>
+          It never reaches zero, so in practice it is cut off at \(\pm 3\sigma\), which keeps 99.7 % of the weight in
+          each direction, and the samples are normalized to sum to 1. A kernel for \(\sigma\) is then
+          \(P = 2\lceil 3\sigma \rceil + 1\) pixels wide.
+        </p>
+
+        <h2>Separability</h2>
+        <p>
+          The Gaussian is a <em>separable kernel</em>: the exponential of a sum is a product, so the 2D Gaussian factors
+          into a product of two 1D Gaussians,
+        </p>
+        $$ G_\sigma(x, y) = G_\sigma(x) \, G_\sigma(y), \qquad G_\sigma(x) = \frac{1}{\sqrt{2\pi}\,\sigma} \, e^{-\frac{x^2}{2\sigma^2}} $$
+        <p>
+          As a matrix, the 2D kernel is the outer product of a column and a row vector, a matrix of rank 1. A small
+          example with integer weights:
+        </p>
+        $$ \begin{bmatrix} 1 &amp; 2 &amp; 1 \\ 2 &amp; 4 &amp; 2 \\ 1 &amp; 2 &amp; 1 \end{bmatrix} =
+           \begin{bmatrix} 1 \\ 2 \\ 1 \end{bmatrix} \begin{bmatrix} 1 &amp; 2 &amp; 1 \end{bmatrix} $$
+        <p>
+          Because convolution is associative, filtering with the 2D kernel is the same as filtering with the row kernel
+          and then with the column kernel:
+        </p>
+        $$ I * G_\sigma(x, y) = \big( I * G_\sigma(x) \big) * G_\sigma(y) $$
+        <p>
+          An \(M \times N\) image with a \(P \times Q\) filter requires \(MNPQ\) multiplications, the two passes only
+          \(MN(P + Q)\). The saving grows with the filter size: for a \(9 \times 9\) filter the speedup is
+          \((9 \cdot 9)/(9 + 9) = 4.5\). Every kernel of rank 1 is separable, for example the box filter and the Sobel
+          filter \(S_x = \left[\begin{smallmatrix} 1 \\ 2 \\ 1 \end{smallmatrix}\right] [\,-1 \;\; 0 \;\; 1\,]\);
+          whether a kernel is separable, and into which vectors, can be read off its singular value decomposition.
+        </p>
+
+        <h2>Repeated box filtering</h2>
+        <p>
+          Convolving a box filter with itself gives a triangle, then a piecewise quadratic, and so on: if you convolve
+          many times with a box filter, it converges to a Gaussian. This is the central limit theorem: the sum of many
+          independent random variables tends to a normal distribution. Variances add under convolution, and a box of width \(w\)
+          has variance \((w^2 - 1)/12\), so \(n\) boxes give
+        </p>
+        $$ \sigma^2 = n \, \frac{w^2 - 1}{12}. $$
+        <p>
+          A box filter can be computed with a running sum at a cost that does not depend on its width, so a few box
+          passes are a cheap way to approximate a large Gaussian. A Gaussian convolved with a Gaussian is again a
+          Gaussian, and the variances add as well, \(\sigma^2 = \sigma_1^2 + \sigma_2^2\): convolving two times with
+          width \(\sigma\) is the same as convolving once with width \(\sigma \sqrt{2}\).
+        </p>
+
+        <h2>Try this</h2>
+        <ul class="try">
+          <li>Increase \(\sigma\) to 5: the kernel is 31 × 31 pixels, and the two passes need 62 instead of 961 multiplications per pixel.</li>
+          <li>Look at the line groups of the test chart after the horizontal pass: the vertical stripes are blurred, the horizontal ones are still sharp.</li>
+          <li>Check the difference between the two passes and the direct 2D filter in the values panel: it is only rounding error.</li>
+          <li>Set the number of box passes to 1, 2 and 3: box, triangle, and something already hard to tell from the Gaussian.</li>
+          <li>Compare \(w = 3\) with 10 passes and \(w = 9\) with 1 pass: the same variance \(\sigma^2 = 6.67\), but very different shapes.</li>
+          <li>Blur the zone plate with a small and a large \(\sigma\): the Gaussian removes the fine rings first, starting from the corners.</li>
+        </ul>
+      </article>
+    </main>
+    <script type="module" src="./main.ts"></script>
+  </body>
+</html>
