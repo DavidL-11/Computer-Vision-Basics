@@ -11,24 +11,40 @@ If you found this repository useful, please consider starring it on GitHub.
 
 ## Available demos
 
-- [Sampling & quantization](https://davidl-11.github.io/Computer-Vision-Basics/demos/sampling-quantization/) (Images, Color and Gamma)
-- [Bayer pattern & demosaicing](https://davidl-11.github.io/Computer-Vision-Basics/demos/bayer-demosaicing/) (Images, Color and Gamma)
-- [Color space explorer](https://davidl-11.github.io/Computer-Vision-Basics/demos/color-spaces/) (Images, Color and Gamma)
-- [Chroma subsampling](https://davidl-11.github.io/Computer-Vision-Basics/demos/chroma-subsampling/) (Images, Color and Gamma)
-- [Gamma](https://davidl-11.github.io/Computer-Vision-Basics/demos/gamma/) (Images, Color and Gamma)
-- [Convolution & correlation](https://davidl-11.github.io/Computer-Vision-Basics/demos/convolution/) (Image Filtering)
-- [Gaussian & separability](https://davidl-11.github.io/Computer-Vision-Basics/demos/separable-gaussian/) (Image Filtering)
-- [Template matching](https://davidl-11.github.io/Computer-Vision-Basics/demos/template-matching/) (Image Filtering)
-- [Median vs mean filter](https://davidl-11.github.io/Computer-Vision-Basics/demos/median-filter/) (Image Filtering)
-- [Morphology & connected components](https://davidl-11.github.io/Computer-Vision-Basics/demos/morphology/) (Image Filtering)
-- [Aliasing & Moiré](https://davidl-11.github.io/Computer-Vision-Basics/demos/aliasing/) (Frequency Domain)
-- [Fourier series](https://davidl-11.github.io/Computer-Vision-Basics/demos/fourier-series/) (Frequency Domain)
-- [2D Fourier transform](https://davidl-11.github.io/Computer-Vision-Basics/demos/fourier-transform/) (Frequency Domain)
-- [Magnitude vs phase](https://davidl-11.github.io/Computer-Vision-Basics/demos/magnitude-phase/) (Frequency Domain)
-- [Deconvolution](https://davidl-11.github.io/Computer-Vision-Basics/demos/deconvolution/) (Frequency Domain)
-- [JPEG & the DCT](https://davidl-11.github.io/Computer-Vision-Basics/demos/jpeg-dct/) (Frequency Domain)
-- [Homogeneous coordinates](https://davidl-11.github.io/Computer-Vision-Basics/demos/homogeneous-coordinates/) (Cameras and Optics)
-- [Pinhole camera: intrinsics & extrinsics](https://davidl-11.github.io/Computer-Vision-Basics/demos/camera-model/) (Cameras and Optics)
+### 1. Images, Color and Gamma
+
+- [Sampling & quantization](https://davidl-11.github.io/Computer-Vision-Basics/demos/sampling-quantization/)
+- [Bayer pattern & demosaicing](https://davidl-11.github.io/Computer-Vision-Basics/demos/bayer-demosaicing/)
+- [Color space explorer](https://davidl-11.github.io/Computer-Vision-Basics/demos/color-spaces/)
+- [Chroma subsampling](https://davidl-11.github.io/Computer-Vision-Basics/demos/chroma-subsampling/)
+- [Gamma](https://davidl-11.github.io/Computer-Vision-Basics/demos/gamma/)
+
+### 2. Image Filtering
+
+- [Convolution & correlation](https://davidl-11.github.io/Computer-Vision-Basics/demos/convolution/)
+- [Gaussian & separability](https://davidl-11.github.io/Computer-Vision-Basics/demos/separable-gaussian/)
+- [Template matching](https://davidl-11.github.io/Computer-Vision-Basics/demos/template-matching/)
+- [Median vs mean filter](https://davidl-11.github.io/Computer-Vision-Basics/demos/median-filter/)
+- [Morphology & connected components](https://davidl-11.github.io/Computer-Vision-Basics/demos/morphology/)
+
+### 3. Frequency Domain
+
+- [Aliasing & Moiré](https://davidl-11.github.io/Computer-Vision-Basics/demos/aliasing/)
+- [Fourier series](https://davidl-11.github.io/Computer-Vision-Basics/demos/fourier-series/)
+- [2D Fourier transform](https://davidl-11.github.io/Computer-Vision-Basics/demos/fourier-transform/)
+- [Magnitude vs phase](https://davidl-11.github.io/Computer-Vision-Basics/demos/magnitude-phase/)
+- [Deconvolution](https://davidl-11.github.io/Computer-Vision-Basics/demos/deconvolution/)
+- [JPEG & the DCT](https://davidl-11.github.io/Computer-Vision-Basics/demos/jpeg-dct/)
+
+### 4. Edge Detection
+
+- [Derivatives & noise](https://davidl-11.github.io/Computer-Vision-Basics/demos/edge-derivatives/)
+- [Canny edge detector](https://davidl-11.github.io/Computer-Vision-Basics/demos/canny/)
+
+### 7. Cameras and Optics
+
+- [Homogeneous coordinates](https://davidl-11.github.io/Computer-Vision-Basics/demos/homogeneous-coordinates/)
+- [Pinhole camera: intrinsics & extrinsics](https://davidl-11.github.io/Computer-Vision-Basics/demos/camera-model/)
 
 ## Read the code, too
 
