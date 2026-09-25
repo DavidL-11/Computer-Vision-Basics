@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+  <style>
+    .fg { stroke: #1d1f23; }
+    .ac { stroke: #2f6fdf; fill: none; }
+    .pupil { fill: #2f6fdf; }
+    @media (prefers-color-scheme: dark) {
+      .fg { stroke: #e6e7ea; }
+      .ac { stroke: #6a9cff; }
+      .pupil { fill: #6a9cff; }
+    }
+  </style>
+  <g fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path class="fg" d="M2 10V3h7M23 3h7v7M30 22v7h-7M9 29H2v-7" />
+    <path class="fg" d="M5 16c3-5.5 7-8 11-8s8 2.5 11 8c-3 5.5-7 8-11 8s-8-2.5-11-8Z" />
+  </g>
+  <circle class="ac" cx="16" cy="16" r="4.5" stroke-width="2" />
+  <rect class="pupil" x="14.5" y="14.5" width="3" height="3" />
+</svg>

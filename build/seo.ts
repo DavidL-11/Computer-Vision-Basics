@@ -1,4 +1,4 @@
-// Adds canonical and social preview tags to every page and prerenders the landing page from chapters.ts.
+// Adds favicon, canonical and social preview tags to every page and prerenders the landing page from chapters.ts.
 
 import type { Plugin } from 'vite';
 import { renderLanding } from '../src/landing/render';
@@ -16,6 +16,7 @@ export function seo(options: { origin: string }): Plugin {
       const title = html.match(/<title>([\s\S]*?)<\/title>/)?.[1] ?? '';
       const description = html.match(/<meta name="description" content="([^"]*)"/)?.[1] ?? '';
       const head = [
+        `<link rel="icon" type="image/svg+xml" href="${base}favicon.svg" />`,
         `<link rel="canonical" href="${url}" />`,
         `<meta property="og:type" content="website" />`,
         `<meta property="og:site_name" content="Computer Vision Basics" />`,
