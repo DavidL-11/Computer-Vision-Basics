@@ -80,7 +80,38 @@ export const chapters: Chapter[] = [
       'Morphology',
       'Connected components',
     ],
-    demos: [],
+    demos: [
+      {
+        title: 'Convolution & correlation',
+        description:
+          'Slide a kernel over an image: box, Gaussian, sharpen, Sobel or your own weights, correlation vs convolution with an asymmetric kernel, and four ways to handle the border.',
+        slug: 'convolution',
+      },
+      {
+        title: 'Gaussian & separability',
+        description:
+          'Split a 2D Gaussian into two 1D passes, count the multiplications MNPQ vs MN(P+Q), and watch repeated box filtering converge to a Gaussian.',
+        slug: 'separable-gaussian',
+      },
+      {
+        title: 'Template matching',
+        description:
+          'Select a template and compare correlation, zero-mean correlation, SSD and normalized cross-correlation score maps and their best matches.',
+        slug: 'template-matching',
+      },
+      {
+        title: 'Median vs mean filter',
+        description:
+          'Add salt-and-pepper or Gaussian noise and compare how the mean and the median remove it, how they treat edges, and their PSNR.',
+        slug: 'median-filter',
+      },
+      {
+        title: 'Morphology & connected components',
+        description:
+          'Paint a binary image, apply erosion, dilation, opening and closing with a structuring element, and label the connected components.',
+        slug: 'morphology',
+      },
+    ],
   },
   {
     id: 'frequency',

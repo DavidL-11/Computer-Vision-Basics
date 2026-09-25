@@ -1,21 +1,12 @@
 import { describe, expect, it } from 'vitest';
 import { luma } from '../../src/shared/color';
 import { createImage, getPixel } from '../../src/shared/image';
-import { adjustChannels, adjustLuma, blur, decodeGamma, encodeGamma, gaussianKernel } from './gamma';
+import { adjustChannels, adjustLuma, blur, decodeGamma, encodeGamma } from './gamma';
 
 describe('gamma 2.2', () => {
   it('pixel value 186 is about half the light', () => {
     expect(encodeGamma(0.5, 2.2) * 255).toBeCloseTo(186, 0);
     expect(decodeGamma(128 / 255, 2.2)).toBeCloseTo(0.22, 2);
-  });
-});
-
-describe('Gaussian kernel', () => {
-  it('sums to 1 and is symmetric', () => {
-    const k = gaussianKernel(1.5);
-    expect(k.reduce((a, b) => a + b, 0)).toBeCloseTo(1, 6);
-    expect(k[0]).toBeCloseTo(k[k.length - 1], 9);
-    expect(k.length).toBe(11);
   });
 });
 

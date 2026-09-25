@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="description" content="Interactive gamma correction: the sRGB transfer curve, what medium gray really is, blurring in linear light versus gamma-encoded values, and gamma per channel versus on luminance." />
+    <meta name="description" content="Interactive gamma correction: the sRGB transfer curve, what medium gray really is, blurring in linear light versus gamma-encoded values, and gamma per channel versus on luma." />
     <title>Gamma correction &amp; sRGB, interactive demo · Computer Vision Basics</title>
   </head>
   <body>
@@ -103,7 +103,11 @@
           the same factor and the colors keep their hue:
         </p>
         $$ (R, G, B) \;\to\; \frac{Y'^{\,\gamma}}{Y'} \, (R, G, B), \qquad Y' = 0.299\,R + 0.587\,G + 0.114\,B $$
-        <p>Channels that would exceed 1 are clipped.</p>
+        <p>
+          Channels that would exceed 1 are clipped. This is often described as applying gamma to the
+          <em>luminance</em> only. Strictly, a weighted sum of encoded values like \(Y'\) is the <em>luma</em>;
+          luminance would be computed from linear light, \(Y = 0.2126\,R + 0.7152\,G + 0.0722\,B\) on decoded values.
+        </p>
 
         <h2>Try this</h2>
         <ul class="try">

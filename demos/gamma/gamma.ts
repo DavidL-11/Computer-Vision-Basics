@@ -6,23 +6,13 @@
  */
 
 import { linearToSrgb, luma, srgbToLinear } from '../../src/shared/color';
+import { gaussianKernel } from '../../src/shared/filter';
 import { type RGBImage, clamp01, createImage, mapPixels } from '../../src/shared/image';
 
 export type BlurSpace = 'encoded' | 'linear';
 
 export const decodeGamma = (v: number, gamma: number) => v ** gamma;
 export const encodeGamma = (v: number, gamma: number) => v ** (1 / gamma);
-
-export function gaussianKernel(sigma: number): Float32Array {
-  const radius = Math.ceil(3 * sigma);
-  const k = new Float32Array(2 * radius + 1);
-  let sum = 0;
-  for (let i = -radius; i <= radius; i++) {
-    k[i + radius] = Math.exp(-(i * i) / (2 * sigma * sigma));
-    sum += k[i + radius];
-  }
-  return k.map((v) => v / sum);
-}
 
 /** Separable Gaussian blur, clamping coordinates at the border. */
 function gaussianBlur(img: RGBImage, sigma: number): RGBImage {

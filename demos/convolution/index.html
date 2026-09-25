@@ -1,0 +1,136 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Interactive image convolution and correlation: apply box, Gaussian, sharpen, Sobel or your own filter kernel, flip an asymmetric kernel, and compare clip, wrap-around, copy-edge and reflect boundary handling." />
+    <title>Convolution &amp; correlation, interactive demo · Computer Vision Basics</title>
+  </head>
+  <body>
+    <main class="demo-page">
+      <section class="demo-intro">
+        <h1>Convolution &amp; correlation</h1>
+        <p class="lead">
+          A linear filter replaces every pixel by a weighted sum of its neighborhood. The weights form a small
+          <strong>filter kernel</strong> that slides over the image. Pick a filter or type your own weights, see which pixels
+          go into one output value, and find out what happens beyond the edge of the image.
+        </p>
+      </section>
+
+      <section class="workspace">
+        <div class="views">
+          <figure class="view card">
+            <figcaption>Input with border <span class="muted">dashed: the real image, click to select a pixel</span></figcaption>
+            <div id="input-view" class="image-frame"></div>
+          </figure>
+          <figure class="view card">
+            <figcaption>Filtered <span id="result-caption" class="muted"></span></figcaption>
+            <div id="result-view" class="image-frame"></div>
+          </figure>
+        </div>
+        <aside class="controls">
+          <div id="controls"></div>
+          <section class="card kernel-card">
+            <h3>Filter \(f[k, l]\)</h3>
+            <div id="kernel-grid" class="kernel-grid"></div>
+            <p id="kernel-sum" class="muted small"></p>
+            <p class="muted small">Weights can be numbers or fractions such as 1/9. Editing one switches to a custom filter.</p>
+          </section>
+        </aside>
+      </section>
+
+      <section id="values" class="card values" aria-live="polite"></section>
+
+      <article class="explanation">
+        <h2>Correlation</h2>
+        <p>
+          The filter \(f\), also called the kernel, has its origin in the center, so its offsets \(k\) and \(l\) run
+          from \(-r\) to \(r\) for a \((2r + 1) \times (2r + 1)\) filter. Placing it over pixel \([m, n]\) of the
+          image \(I\) and adding up the products of weights and pixel values is called <strong>correlation</strong>:
+        </p>
+        $$ h[m, n] = \sum_{k, l} f[k, l] \, I[m + k, n + l] $$
+        <p>
+          The same weights are used everywhere, so the filter is <em>linear</em> (filtering with \(f_1 + f_2\) gives
+          the sum of the two results) and <em>shift invariant</em> (filtering a shifted image gives the shifted
+          result). Every operation with these two properties can be written this way.
+        </p>
+
+        <h2>Convolution</h2>
+        <p><strong>Convolution</strong> uses the filter flipped horizontally and vertically, i.e. rotated by 180°:</p>
+        $$ h[m, n] = \sum_{k, l} f[k, l] \, I[m - k, n - l], \qquad h = I * f $$
+        <p>
+          For symmetric filters such as the box or the Gaussian both are identical. For asymmetric ones they are
+          not: a filter with a single 1 at \([k, l] = [2, 1]\) moves the image by 2 pixels left and 1 up under
+          correlation, and right and down under convolution. The flip gives convolution its useful properties:
+        </p>
+        <ul>
+          <li>Commutative: \(a * b = b * a\), so there is no conceptual difference between filter and signal.</li>
+          <li>
+            Associative: \(a * (b * c) = (a * b) * c\), so several filters in a row,
+            \(((a * b_1) * b_2) * b_3\), can be combined into one filter \(a * (b_1 * b_2 * b_3)\). Correlation is
+            not associative.
+          </li>
+          <li>Distributes over addition, \(a * (b + c) = (a * b) + (a * c)\), and scalars factor out, \(ka * b = a * kb = k(a * b)\).</li>
+          <li>Identity: the unit impulse \(e = [0, 0, 1, 0, 0]\) gives \(a * e = a\).</li>
+        </ul>
+        <p>
+          Convolving an image with a single bright pixel produces a copy of the filter, which is why \(f\) is also
+          called the <em>impulse response</em>.
+        </p>
+
+        <h2>Common filters</h2>
+        <ul>
+          <li>
+            <strong>Box filter</strong> (mean filter): all \(N\) weights are \(1/N\), so the result is the plain
+            average of the neighborhood, \(B = \frac{1}{N} \sum_{i=1}^{N} I_i\).
+          </li>
+          <li>
+            <strong>Gaussian</strong>: weights that fall off with the distance from the center; a smoother blur than
+            the box. The 5 × 5 preset uses binomial weights \(\tfrac{1}{16}(1, 4, 6, 4, 1)\) in each direction.
+          </li>
+          <li>
+            <strong>Sharpen</strong>: the image plus four times the difference between each pixel and the average
+            of its four neighbors, which boosts edges and fine detail.
+          </li>
+          <li>
+            <strong>Sobel</strong>: central differences in one direction combined with smoothing in the other,
+            $$ S_x = \begin{bmatrix} -1 &amp; 0 &amp; 1 \\ -2 &amp; 0 &amp; 2 \\ -1 &amp; 0 &amp; 1 \end{bmatrix}, \qquad
+               S_y = \begin{bmatrix} -1 &amp; -2 &amp; -1 \\ 0 &amp; 0 &amp; 0 \\ 1 &amp; 2 &amp; 1 \end{bmatrix}. $$
+            Their weights sum to 0, so flat areas give 0 and the output has positive and negative values. They are
+            often scaled by \(\tfrac{1}{8}\) to give the slope per pixel.
+          </li>
+        </ul>
+        <p>Filters that average have weights summing to 1, so the overall brightness of the image is preserved.</p>
+
+        <h2>Boundary handling</h2>
+        <p>
+          Near the edge, part of the filter lies outside the image, and some rule has to supply those values. The left
+          view shows the image extended by that rule:
+        </p>
+        <ul>
+          <li><strong>Clip filter (black)</strong>: pixels outside are 0. Averaging filters darken the border.</li>
+          <li><strong>Wrap around</strong>: the image repeats periodically, so the opposite edge leaks in.</li>
+          <li><strong>Copy edge</strong>: the edge pixels are replicated outward.</li>
+          <li><strong>Reflect</strong>: the image is mirrored across the edge.</li>
+        </ul>
+        <p>
+          Applying a filter \(n\) times acts like a single, \(n\) times wider filter (associativity), so the
+          border effects creep further into the image with every pass.
+        </p>
+
+        <h2>Try this</h2>
+        <ul class="try">
+          <li>Select the shift filter, set “apply” to 20 and switch between correlation and convolution: the image moves in opposite directions.</li>
+          <li>With the shift filter, compare the border modes. Clip filter pads with black, wrap around brings in the opposite side of the image, copy edge smears the edge pixels.</li>
+          <li>Apply the 5 × 5 box 20 times with the clip filter: a dark frame grows from the edges. Copy edge and reflect keep the border bright.</li>
+          <li>Choose Sobel \(S_x\) and switch between correlation and convolution: dark and light edges swap, because the flipped filter measures the slope with the opposite sign.</li>
+          <li>Select a pixel on an edge and check the values panel: the output is the sum of the element-wise products of the two matrices.</li>
+          <li>Set the result display to “absolute” with Sobel \(S_x\): now all vertical edges are bright, whatever their direction.</li>
+          <li>Emboss is asymmetric too: under convolution the light seems to come from the other side.</li>
+          <li>Edit the center weight of the identity filter to 2: the image gets twice as bright and clips. Then try a filter whose weights sum to 0.</li>
+        </ul>
+      </article>
+    </main>
+    <script type="module" src="./main.ts"></script>
+  </body>
+</html>

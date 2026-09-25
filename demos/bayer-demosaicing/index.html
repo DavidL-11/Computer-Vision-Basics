@@ -45,9 +45,10 @@
         <p>
           Half of all pixels measure green, a quarter red and a quarter blue. Green gets twice the samples because it
           carries most of the brightness we perceive: the <em>M</em> and <em>L</em> cones of the eye are most
-          sensitive to green-yellow light, and in the luma
-          \(Y' = 0.299\,R + 0.587\,G + 0.114\,B\) green has the largest weight. Our visual system resolves fine detail
-          mainly in brightness and much less in color, so it makes sense to spend the samples there.
+          sensitive to green-yellow light. The luminance of linear light, which models this sensitivity, is
+          \(Y = 0.2126\,R + 0.7152\,G + 0.0722\,B\) for the sRGB primaries: green has by far the largest weight. Our
+          visual system resolves fine detail mainly in brightness and much less in color, so it makes sense to spend the
+          samples there.
         </p>
         <p>
           The raw image has a single value per pixel. Shown in gray it looks like a normal black-and-white image with a

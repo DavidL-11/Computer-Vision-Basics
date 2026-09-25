@@ -1,0 +1,36 @@
+.kernel-card {
+  margin-top: 0.75rem;
+  padding: 0.6rem 0.8rem 0.4rem;
+}
+.kernel-card h3 {
+  font-size: 0.92rem;
+  margin: 0 0 0.5rem;
+}
+.kernel-grid {
+  display: grid;
+  grid-template-columns: repeat(var(--size), minmax(0, 1fr));
+  gap: 4px;
+}
+.kernel-grid input {
+  min-width: 0;
+  padding: 0.3rem 0.1rem;
+  font: 0.8rem var(--font-mono);
+  text-align: center;
+  color: var(--fg);
+  background: var(--bg-sunken);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+}
+.kernel-grid input:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+.kernel-grid input.invalid {
+  border-color: var(--viz-highlight);
+}
+.kernel-card p {
+  margin: 0.5rem 0;
+}
+.katex .pad {
+  color: var(--viz-points);
+}

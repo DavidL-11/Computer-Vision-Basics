@@ -81,12 +81,20 @@
           Gray has \(C_b = C_r = 128\). Image and video compression use this split because the eye resolves detail in
           brightness much better than in color, see <a href="../chroma-subsampling/">chroma subsampling</a>.
         </p>
+        <p>
+          Luma is often loosely called <em>luminance</em>, but the two are different. Luma (strictly written \(Y'\)) is
+          a weighted sum of the gamma-encoded values R, G, B, as stored in the image. Luminance is the same kind of sum
+          of <em>linear</em> light, with its own weights (\(0.2126, 0.7152, 0.0722\) for sRGB): the \(Y\) of the CIE XYZ
+          space below. Luma is cheaper to compute and close enough for compression, but it is not a physical
+          quantity.
+        </p>
 
         <h2>L*a*b*</h2>
         <p>
           CIE L*a*b* is designed so that equal distances correspond to roughly equal <em>perceived</em> differences.
           \(L^*\) is lightness from 0 to 100, \(a^*\) runs from green to red and \(b^*\) from blue to yellow. It is
-          computed from linear RGB via the CIE XYZ space and a cube root that mimics the eye's response:
+          computed from linear RGB via the CIE XYZ space, whose \(Y\) is the luminance, and a cube root that mimics the
+          eye's response:
         </p>
         $$ L^* = 116\, f\!\left(\tfrac{Y}{Y_n}\right) - 16, \qquad
            a^* = 500 \left( f\!\left(\tfrac{X}{X_n}\right) - f\!\left(\tfrac{Y}{Y_n}\right) \right), \qquad

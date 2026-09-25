@@ -9,7 +9,10 @@ export function linearToSrgb(v: number): number {
   return v <= 0.0031308 ? 12.92 * v : 1.055 * v ** (1 / 2.4) - 0.055;
 }
 
-/** BT.601 luma weights, as used by JPEG. Applied to encoded values, so this is luma Y′, not luminance. */
+/**
+ * BT.601 luma weights, as used by JPEG. Applied to gamma-encoded values, so this is luma Y′, not luminance Y
+ * (which weights linear light, with different weights for sRGB primaries).
+ */
 export const LUMA: RGB = [0.299, 0.587, 0.114];
 
 export const luma = ([r, g, b]: RGB) => LUMA[0] * r + LUMA[1] * g + LUMA[2] * b;

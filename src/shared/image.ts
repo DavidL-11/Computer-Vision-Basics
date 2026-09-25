@@ -1,5 +1,7 @@
 // Images as plain arrays, so the image-processing math stays visible and testable without a DOM.
 
+import { luma } from './color';
+
 export type RGB = [number, number, number];
 
 /** Interleaved RGB with values in [0, 1]. Values are sRGB-encoded unless stated otherwise. */
@@ -50,8 +52,15 @@ export function planeToImage(p: Plane): RGBImage {
   return out;
 }
 
+/** Luma Y′ of every pixel: the usual grayscale version of a color image. */
+export function toGray(img: RGBImage): Plane {
+  const out = createPlane(img.width, img.height);
+  for (let i = 0; i < out.data.length; i++) out.data[i] = luma([img.data[i * 3], img.data[i * 3 + 1], img.data[i * 3 + 2]]);
+  return out;
+}
+
 /** Peak signal-to-noise ratio in dB for values in [0, 1]: 10·log₁₀(1 / MSE). */
-export function psnr(a: RGBImage, b: RGBImage): number {
+export function psnr(a: RGBImage | Plane, b: RGBImage | Plane): number {
   let sum = 0;
   for (let i = 0; i < a.data.length; i++) sum += (a.data[i] - b.data[i]) ** 2;
   const mse = sum / a.data.length;
