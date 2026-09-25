@@ -1,0 +1,224 @@
+/* Colors are light-dark(<light>, <dark>); color-scheme picks one, either from
+   the OS or from <html data-theme> (see theme.ts). */
+:root {
+  color-scheme: light dark;
+  --bg: light-dark(#f7f7f5, #15171b);
+  --bg-elev: light-dark(#ffffff, #1d2025);
+  --bg-sunken: light-dark(#eeeeea, #111316);
+  --fg: light-dark(#1d1f23, #e6e7ea);
+  --fg-muted: light-dark(#5c6068, #a2a6ae);
+  --fg-faint: light-dark(#8d9199, #6f737b);
+  --border: light-dark(#dcdcd6, #2e3239);
+  --accent: light-dark(#2f6fdf, #6a9cff);
+  --accent-fg: light-dark(#ffffff, #0d1117);
+  --accent-soft: light-dark(#e3ecfb, #1e2a42);
+
+  /* Visualization colors */
+  --axis-x: light-dark(#d9423a, #ff6b61);
+  --axis-y: light-dark(#2e9e4f, #5fd07f);
+  --axis-z: light-dark(#2f6fdf, #6a9cff);
+  --viz-object: light-dark(#7a4fd6, #b28cff);
+  --viz-points: light-dark(#e0892b, #ffac4d);
+  --viz-frustum: light-dark(#1d1f23, #e6e7ea);
+  --viz-ray: light-dark(#e0892b, #ffac4d);
+  --viz-grid: light-dark(#d4d4ce, #30353c);
+  --viz-highlight: light-dark(#e3304b, #ff5c77);
+
+  --radius: 10px;
+  --radius-sm: 6px;
+  --shadow: 0 1px 2px rgb(0 0 0 / 0.06), 0 2px 8px rgb(0 0 0 / 0.04);
+  --font-sans: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  --font-mono: ui-monospace, 'SF Mono', 'JetBrains Mono', Menlo, Consolas, monospace;
+  --content-width: 1180px;
+}
+:root[data-theme='light'] {
+  color-scheme: light;
+}
+:root[data-theme='dark'] {
+  color-scheme: dark;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--fg);
+  font-family: var(--font-sans);
+  font-size: 16px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+
+a {
+  color: var(--accent);
+  text-decoration: none;
+}
+a:hover {
+  text-decoration: underline;
+}
+
+h1,
+h2,
+h3,
+h4 {
+  line-height: 1.25;
+  margin: 1.6em 0 0.5em;
+}
+h1 {
+  font-size: 2rem;
+  margin-top: 0;
+}
+h2 {
+  font-size: 1.45rem;
+}
+h3 {
+  font-size: 1.15rem;
+}
+
+p {
+  margin: 0.6em 0;
+}
+
+code,
+kbd,
+pre {
+  font-family: var(--font-mono);
+  font-size: 0.9em;
+}
+code {
+  background: var(--bg-sunken);
+  padding: 0.1em 0.35em;
+  border-radius: 4px;
+}
+
+.muted {
+  color: var(--fg-muted);
+}
+
+.container {
+  max-width: var(--content-width);
+  margin: 0 auto;
+  padding: 0 1.25rem;
+}
+
+.site-header {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background: color-mix(in srgb, var(--bg) 88%, transparent);
+  backdrop-filter: blur(8px);
+  border-bottom: 1px solid var(--border);
+}
+.site-header .container {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  height: 56px;
+}
+.site-header .brand {
+  font-weight: 700;
+  color: var(--fg);
+  letter-spacing: -0.01em;
+}
+.site-header .brand:hover {
+  text-decoration: none;
+}
+.site-header .brand span {
+  color: var(--accent);
+}
+.breadcrumb {
+  color: var(--fg-muted);
+  font-size: 0.92rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.breadcrumb a {
+  color: var(--fg-muted);
+}
+.site-header .spacer {
+  flex: 1;
+}
+
+.theme-toggle {
+  border: 1px solid var(--border);
+  background: var(--bg-elev);
+  color: var(--fg);
+  border-radius: 999px;
+  width: 36px;
+  height: 36px;
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  font-size: 1rem;
+  flex-shrink: 0;
+}
+.theme-toggle:hover {
+  border-color: var(--accent);
+}
+
+.site-footer {
+  border-top: 1px solid var(--border);
+  margin-top: 4rem;
+  padding: 1.5rem 0 2.5rem;
+  color: var(--fg-faint);
+  font-size: 0.9rem;
+}
+
+.card {
+  background: var(--bg-elev);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+}
+
+.callout {
+  border-left: 3px solid var(--accent);
+  background: var(--accent-soft);
+  padding: 0.75rem 1rem;
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+  margin: 1rem 0;
+}
+
+.math {
+  font-family: var(--font-mono);
+  background: var(--bg-sunken);
+  border-radius: var(--radius-sm);
+  padding: 0.75rem 1rem;
+  overflow-x: auto;
+  white-space: pre;
+  line-height: 1.5;
+}
+
+/* Tweakpane variables mapped onto the site tokens, so panels follow the theme. */
+:root {
+  --tp-base-background-color: var(--bg-elev);
+  --tp-base-shadow-color: transparent;
+  --tp-base-font-family: var(--font-sans);
+  --tp-blade-value-width: 150px;
+  --tp-button-background-color: var(--accent);
+  --tp-button-background-color-hover: color-mix(in srgb, var(--accent) 88%, var(--fg));
+  --tp-button-background-color-focus: color-mix(in srgb, var(--accent) 82%, var(--fg));
+  --tp-button-background-color-active: color-mix(in srgb, var(--accent) 75%, var(--fg));
+  --tp-button-foreground-color: var(--accent-fg);
+  --tp-container-background-color: color-mix(in srgb, var(--fg) 7%, transparent);
+  --tp-container-background-color-hover: color-mix(in srgb, var(--fg) 11%, transparent);
+  --tp-container-background-color-focus: color-mix(in srgb, var(--fg) 14%, transparent);
+  --tp-container-background-color-active: color-mix(in srgb, var(--fg) 17%, transparent);
+  --tp-container-foreground-color: var(--fg);
+  --tp-groove-foreground-color: color-mix(in srgb, var(--fg) 10%, transparent);
+  --tp-input-background-color: color-mix(in srgb, var(--fg) 6%, transparent);
+  --tp-input-background-color-hover: color-mix(in srgb, var(--fg) 10%, transparent);
+  --tp-input-background-color-focus: color-mix(in srgb, var(--fg) 13%, transparent);
+  --tp-input-background-color-active: color-mix(in srgb, var(--fg) 16%, transparent);
+  --tp-input-foreground-color: var(--fg);
+  --tp-label-foreground-color: var(--fg-muted);
+  --tp-monitor-background-color: color-mix(in srgb, var(--fg) 5%, transparent);
+  --tp-monitor-foreground-color: var(--fg-muted);
+}
