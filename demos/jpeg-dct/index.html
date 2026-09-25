@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Interactive JPEG and DCT demo: inspect the DCT coefficients of 8×8 blocks, quantize them with a quality slider, and watch zeros appear and block artifacts and ringing grow." />
+    <title>JPEG &amp; the DCT, interactive demo · Computer Vision Basics</title>
+  </head>
+  <body>
+    <main class="demo-page">
+      <section class="demo-intro">
+        <h1>JPEG &amp; the DCT</h1>
+        <p class="lead">
+          JPEG cuts an image into 8×8 blocks, describes each block by 64 cosine patterns and stores their weights
+          only as precisely as needed. Lower the quality and watch the coefficients turn into zeros, and the block
+          structure show through.
+        </p>
+      </section>
+
+      <section class="workspace">
+        <div class="views">
+          <figure class="view card">
+            <figcaption>Original <span class="muted">click to select a block</span></figcaption>
+            <div id="original-view" class="image-frame"></div>
+          </figure>
+          <figure class="view card">
+            <figcaption>Decoded JPEG <span class="muted">gray channel only</span></figcaption>
+            <div id="decoded-view" class="image-frame"></div>
+          </figure>
+          <figure class="view card">
+            <figcaption>Difference <span class="muted">decoded − original, amplified 4×, gray = 0</span></figcaption>
+            <div id="error-view" class="image-frame"></div>
+          </figure>
+          <figure class="view card">
+            <figcaption>Stored coefficients \(F_Q\) per block <span class="muted">\(\log(1 + |F_Q|)\), black = 0, DC top left</span></figcaption>
+            <div id="coef-view" class="image-frame"></div>
+          </figure>
+        </div>
+        <aside class="controls">
+          <div id="controls"></div>
+          <section class="card basis-card">
+            <h3>The 64 DCT basis images</h3>
+            <div id="basis-view"></div>
+            <p class="muted small">
+              Basis image \((u, v)\) in column \(u\), row \(v\): \(u\) cycles horizontally, \(v\) vertically. Every
+              8×8 block is a weighted sum of these.
+            </p>
+          </section>
+        </aside>
+      </section>
+
+      <section id="values" class="card values" aria-live="polite"></section>
+
+      <article class="explanation">
+        <h2>The JPEG pipeline</h2>
+        <p>
+          A JPEG encoder converts the colors to YCbCr and usually stores the two
+          <a href="../chroma-subsampling/">chroma channels at lower resolution</a>. Each channel is then processed the
+          same way, which this demo shows for a gray image:
+        </p>
+        <ol>
+          <li>Split the image into 8×8 blocks and subtract 128, so that the values are centered on 0.</li>
+          <li>Transform every block with the discrete cosine transform (DCT).</li>
+          <li>Divide every coefficient by its step \(Q(u, v)\) and round to an integer.</li>
+          <li>Read the integers in zigzag order and store them compactly with run-length and Huffman coding.</li>
+        </ol>
+        <p>
+          The decoder multiplies by \(Q\) again and applies the inverse DCT. All steps can be undone exactly except the
+          rounding in step 3: this is where the information, and the file size, is lost.
+        </p>
+
+        <h2>The discrete cosine transform</h2>
+        <p>
+          Like the <a href="../fourier-transform/">Fourier transform</a>, the DCT writes a block as a sum of waves,
+          but it uses only cosines, and its coefficients are real numbers:
+        </p>
+        $$ F(u, v) = \tfrac14 \, C(u) \, C(v) \sum_{x = 0}^{7} \sum_{y = 0}^{7} f(x, y)
+           \cos\frac{(2x + 1) u \pi}{16} \cos\frac{(2y + 1) v \pi}{16} $$
+        <p>
+          with \(C(0) = 1 / \sqrt 2\) and \(C(k) = 1\) otherwise, which makes the transform orthonormal: it preserves
+          the energy of the block, and the inverse uses the same cosines.
+          \(F(0, 0)\) is the <em>DC coefficient</em>, 8 times the mean of the shifted block; the other 63 are
+          <em>AC coefficients</em>. The DCT behaves like a Fourier transform of the block mirrored at its borders. A
+          mirrored block has no jump at the border, unlike a periodically repeated one, so smooth blocks need only a
+          few low-frequency coefficients. For natural images, most of the energy ends up in the top-left corner: the
+          DCT <em>compacts</em> the energy into few coefficients.
+        </p>
+
+        <h2>Quantization</h2>
+        <p>
+          Every coefficient is divided by a step size and rounded:
+          \(F_Q(u, v) = \operatorname{round}\big(F(u, v) / Q(u, v)\big)\). The standard luminance table uses small
+          steps for low frequencies and large steps for high frequencies, because the eye is much less sensitive to
+          errors in fine detail. The quality setting scales the whole table: quality 50 uses it as is, quality 100 uses
+          step 1 everywhere, and low qualities use steps up to 255. Most high-frequency coefficients then round to 0.
+          The zigzag order visits the coefficients from low to high frequency, so the zeros collect at the end, and a
+          single end-of-block code (EOB) replaces all of them.
+        </p>
+        <p>
+          The values panel estimates the storage with the <em>entropy</em> of the stored integers: the fewer different
+          values and the more zeros, the fewer bits per coefficient an ideal code needs. It is a rough estimate; real
+          JPEG also codes runs of zeros and the differences between neighboring DC coefficients.
+        </p>
+
+        <h2>Artifacts</h2>
+        <ul>
+          <li>
+            <strong>Blocking:</strong> each block is quantized on its own. In smooth areas, only the DC coefficient
+            survives, and every block becomes flat with a small step to its neighbor.
+          </li>
+          <li>
+            <strong>Ringing</strong> or <em>mosquito noise</em>: a sharp edge needs many high frequencies. Without them,
+            the edge overshoots and ripples, like a <a href="../fourier-series/">truncated Fourier series</a>, but only
+            within the 8×8 block that contains the edge.
+          </li>
+          <li><strong>Loss of texture:</strong> fine repetitive detail, such as the fence, is smoothed away or turns into a coarser pattern.</li>
+        </ul>
+
+        <h2>Try this</h2>
+        <ul class="try">
+          <li>Select a block in the sky and one on the fence: the smooth block keeps only a few coefficients, the fence needs many.</li>
+          <li>Lower the quality step by step and watch the stored coefficients turn black, from the bottom right towards the DC coefficient.</li>
+          <li>At quality 10, zoom in on the sky: the gradient turns into a staircase of flat blocks.</li>
+          <li>Zoom in on the text or the test chart at quality 20: ringing appears around every edge and stops at the block borders.</li>
+          <li>Look at the zigzag sequence of a block: at low quality it is a few numbers followed by EOB.</li>
+          <li>Switch to the flat table and adjust the quality until the entropy matches that of the JPEG table. Compare the PSNR, and look at where each table puts its errors.</li>
+        </ul>
+      </article>
+    </main>
+    <script type="module" src="./main.ts"></script>
+  </body>
+</html>

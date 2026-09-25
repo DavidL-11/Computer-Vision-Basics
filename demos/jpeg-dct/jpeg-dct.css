@@ -1,0 +1,47 @@
+.basis-card {
+  margin-top: 0.75rem;
+  padding: 0.6rem 0.8rem 0.8rem;
+}
+.basis-card h3 {
+  font-size: 0.92rem;
+  margin: 0 0 0.5rem;
+}
+.basis-card p {
+  margin: 0.5rem 0 0;
+}
+#basis-view {
+  width: min(100%, 220px);
+  margin: 0 auto;
+}
+
+.value-block.blocks {
+  flex-basis: 100%;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem 1.5rem;
+  margin-top: 0.5rem;
+}
+.block-table h4 {
+  font-size: 0.85rem;
+  font-weight: 600;
+  margin: 0 0 0.35rem;
+}
+.grid8 {
+  display: grid;
+  grid-template-columns: repeat(8, 2.7em);
+  gap: 1px;
+  font: 0.72rem var(--font-mono);
+}
+.grid8 span {
+  text-align: right;
+  padding: 0.18rem 0.3rem;
+  border-radius: 2px;
+}
+.grid8 .zero {
+  color: var(--fg-faint);
+}
+.zigzag {
+  font: 0.8rem var(--font-mono);
+  max-width: 40rem;
+  overflow-wrap: anywhere;
+}

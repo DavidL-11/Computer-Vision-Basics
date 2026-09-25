@@ -148,6 +148,24 @@ export const chapters: Chapter[] = [
           'An image and its magnitude and phase spectrum: click a frequency to see its basis image, apply low-, high- and band-pass filters, paint out stripe noise and check the convolution theorem.',
         slug: 'fourier-transform',
       },
+      {
+        title: 'Magnitude vs phase',
+        description:
+          'Combine the Fourier magnitude of one image with the phase of another and see that the phase carries the structure, while magnitude spectra all look alike.',
+        slug: 'magnitude-phase',
+      },
+      {
+        title: 'Deconvolution',
+        description:
+          'Undo a known blur by dividing in the frequency domain, watch a tiny amount of noise explode, and tame it with a truncated inverse or a Wiener filter.',
+        slug: 'deconvolution',
+      },
+      {
+        title: 'JPEG & the DCT',
+        description:
+          'Inspect the DCT coefficients of 8×8 blocks, quantize them with a quality slider, and watch zeros appear and block artifacts and ringing grow.',
+        slug: 'jpeg-dct',
+      },
     ],
   },
   {

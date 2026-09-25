@@ -24,6 +24,9 @@ If you found this repository useful, please consider starring it on GitHub.
 - [Aliasing & Moiré](https://davidl-11.github.io/Computer-Vision-Basics/demos/aliasing/) (Frequency Domain)
 - [Fourier series](https://davidl-11.github.io/Computer-Vision-Basics/demos/fourier-series/) (Frequency Domain)
 - [2D Fourier transform](https://davidl-11.github.io/Computer-Vision-Basics/demos/fourier-transform/) (Frequency Domain)
+- [Magnitude vs phase](https://davidl-11.github.io/Computer-Vision-Basics/demos/magnitude-phase/) (Frequency Domain)
+- [Deconvolution](https://davidl-11.github.io/Computer-Vision-Basics/demos/deconvolution/) (Frequency Domain)
+- [JPEG & the DCT](https://davidl-11.github.io/Computer-Vision-Basics/demos/jpeg-dct/) (Frequency Domain)
 - [Homogeneous coordinates](https://davidl-11.github.io/Computer-Vision-Basics/demos/homogeneous-coordinates/) (Cameras and Optics)
 - [Pinhole camera: intrinsics & extrinsics](https://davidl-11.github.io/Computer-Vision-Basics/demos/camera-model/) (Cameras and Optics)
 
