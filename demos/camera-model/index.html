@@ -1,0 +1,164 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Interactive pinhole camera model: change intrinsics K and extrinsics [R | t] and see the projection matrix and the image update live." />
+    <title>Pinhole camera: intrinsics & extrinsics · Computer Vision Basics</title>
+  </head>
+  <body>
+    <main class="demo-page">
+      <section class="demo-intro">
+        <h1>Pinhole camera: intrinsics &amp; extrinsics</h1>
+        <p class="lead">
+          A camera maps 3D world points to 2D pixels in two steps. The <strong>extrinsics</strong> \([R \mid t]\) move a
+          point from the world into the camera's coordinate frame. The <strong>intrinsics</strong> \(K\) project it onto
+          the image. Change the parameters on the right and watch the camera, the image and all matrices update together.
+        </p>
+      </section>
+
+      <section class="workspace">
+        <div class="views">
+          <figure class="view card">
+            <figcaption>3D world <span class="muted">drag to orbit, scroll to zoom, click a vertex to select it</span></figcaption>
+            <div id="world-view" class="view-3d world-view"></div>
+          </figure>
+          <figure class="view card">
+            <figcaption>Camera image <span class="muted">640 × 480 px, click a vertex to select it</span></figcaption>
+            <div id="image-view" class="image-view"></div>
+          </figure>
+        </div>
+        <aside id="controls" class="controls"></aside>
+      </section>
+
+      <section id="matrices" class="card values" aria-live="polite"></section>
+
+      <article class="explanation">
+        <h2>The pinhole model</h2>
+        <p>
+          In an ideal pinhole camera every ray of light passes through a single point, the <em>camera center</em>
+          \(C\). A scene point, the camera center and its image lie on one line (the projection rays in the 3D view).
+          The sensor sits at distance \(f\) behind the pinhole, the <em>focal length</em>. By similar triangles, a point
+          at camera coordinates \((X_c, Y_c, Z_c)\) lands on the sensor at
+        </p>
+        $$ U = -f \, \frac{X_c}{Z_c}, \qquad V = -f \, \frac{Y_c}{Z_c} $$
+        <p>
+          The minus signs mean the image is upside down. The division by the depth \(Z_c\) makes far objects look
+          small, and it loses information: every point on a projection ray lands on the same pixel.
+        </p>
+        <p>
+          The 3D view shows the equivalent <em>virtual</em> image plane at distance \(f\) <em>in front of</em> \(C\)
+          instead. There the image is upright and the minus signs disappear, which is the form used from here on. The
+          plane is drawn at \(Z_c = f_x / 500\), so 1 world unit corresponds to 500 px.
+        </p>
+
+        <h2>The projection matrix</h2>
+        <p>
+          Division by depth is not linear, but in
+          <a href="../homogeneous-coordinates/">homogeneous coordinates</a> the whole projection becomes one matrix
+          product. The division only happens at the very end:
+        </p>
+        $$ \mathbf{x} = K \, [R \mid t] \, \mathbf{X} $$
+        $$
+          w \begin{bmatrix} u \\ v \\ 1 \end{bmatrix} =
+          \begin{bmatrix} f_x &amp; s &amp; u_0 \\ 0 &amp; f_y &amp; v_0 \\ 0 &amp; 0 &amp; 1 \end{bmatrix}
+          \left[\begin{array}{ccc:c}
+            r_{11} &amp; r_{12} &amp; r_{13} &amp; t_x \\
+            r_{21} &amp; r_{22} &amp; r_{23} &amp; t_y \\
+            r_{31} &amp; r_{32} &amp; r_{33} &amp; t_z
+          \end{array}\right]
+          \begin{bmatrix} X \\ Y \\ Z \\ 1 \end{bmatrix}
+        $$
+        <p>
+          \(P = K [R \mid t]\) is the \(3 \times 4\) <em>projection matrix</em>. It is also often called \(M\). The
+          pixel \((u, v)\) is found by dividing by \(w\), which here equals the depth \(Z_c\). Scaling \(P\) by any
+          non-zero factor gives the same pixels, so of its 12 entries only 11 are free. This matches the camera's 11
+          degrees of freedom: 5 in \(K\) (\(f_x, f_y, s, u_0, v_0\)), 3 for the rotation and 3 for the translation.
+        </p>
+
+        <h2>Intrinsics \(K\)</h2>
+        <p>
+          Start with the simplest camera: no rotation (\(R = I\)), center at the origin (\(t = 0\)), square pixels
+          (\(f_x = f_y = f\)), principal point at \((0, 0)\) and no skew:
+        </p>
+        $$
+          w \begin{bmatrix} u \\ v \\ 1 \end{bmatrix} =
+          \begin{bmatrix} f &amp; 0 &amp; 0 &amp; 0 \\ 0 &amp; f &amp; 0 &amp; 0 \\ 0 &amp; 0 &amp; 1 &amp; 0 \end{bmatrix}
+          \begin{bmatrix} X \\ Y \\ Z \\ 1 \end{bmatrix}
+        $$
+        <p>Real cameras relax these assumptions one at a time:</p>
+        <ul>
+          <li>
+            <strong>\(u_0, v_0\)</strong>: the <em>principal point</em>, where the optical axis hits the sensor. The
+            pixel origin is the top-left corner, so it is usually close to, but not exactly at, the image center
+            (dashed cross). Changing it shifts the image in \(u\) and \(v\).
+          </li>
+          <li>
+            <strong>\(f_x, f_y\)</strong>: the focal length in pixels (focal length in mm divided by the pixel size).
+            They differ only when the pixels are not square (aspect ratio \(\neq 1\)).
+          </li>
+          <li>
+            <strong>\(s\)</strong>: skew between the pixel axes. It is essentially zero for modern sensors, but try it
+            to see the frustum shear.
+          </li>
+        </ul>
+        <p>The focal length sets the angular field of view. For a sensor of size \(H\):</p>
+        $$ \mathrm{AFOV} = 2 \arctan \frac{H}{2f} $$
+        <p>
+          \(H\) and \(f\) must be in the same units. In pixels, the horizontal AFOV uses the image width (640 px) with
+          \(f_x\), and the vertical AFOV uses the height (480 px) with \(f_y\). A shorter focal length gives a wider
+          field of view.
+        </p>
+
+        <h2>Extrinsics \([R \mid t]\)</h2>
+        <p>
+          The extrinsics describe the transformation <em>from world to camera</em>:
+          \(\mathbf{X}_c = R\,\mathbf{X}_w + t\). The point is rotated first and then translated, so \(t\) is
+          <strong>not the camera position</strong>. It is the world origin expressed in camera coordinates. The camera
+          center is the point that maps to \(\mathbf{X}_c = 0\):
+        </p>
+        $$ C = -R^{-1} t = -R^\top t \qquad \text{(a rotation satisfies } R^{-1} = R^\top \text{)} $$
+        <p>
+          The rows of \(R\) are the camera's \(x\), \(y\) and \(z\) axes expressed in world coordinates (the colored
+          axes at \(C\)).
+        </p>
+        <p>Any 3D rotation can be built from counter-clockwise rotations about the coordinate axes, for example</p>
+        $$
+          R_x(\alpha) = \begin{bmatrix} 1 &amp; 0 &amp; 0 \\ 0 &amp; \cos\alpha &amp; -\sin\alpha \\ 0 &amp; \sin\alpha &amp; \cos\alpha \end{bmatrix},
+          \qquad
+          R_z(\gamma) = \begin{bmatrix} \cos\gamma &amp; -\sin\gamma &amp; 0 \\ \sin\gamma &amp; \cos\gamma &amp; 0 \\ 0 &amp; 0 &amp; 1 \end{bmatrix}
+        $$
+        <p>
+          and \(R\) has 3 degrees of freedom. Here the pose is set with a center \(C\) and three angles: yaw about the
+          world \(Z\) axis, pitch up or down, and roll about the optical axis. The camera's orientation in the world is
+        </p>
+        $$ R^\top = R_z(\text{yaw}) \, R_x(\text{pitch} - 90^\circ) \, R_z(\text{roll}) $$
+        <p>
+          The \(-90^\circ\) turns the optical axis from straight up to horizontal. \(R\) and \(t = -R\,C\) are then
+          computed from them.
+        </p>
+
+        <div class="callout">
+          <strong>Conventions.</strong> This demo uses the camera frame that is common in computer vision: \(x\)
+          right, \(y\) down, \(z\) forward (into the scene). The pixel origin \((0, 0)\) is the top-left corner, with
+          \(u\) to the right and \(v\) down. Computer graphics usually has the camera look down \(-z\) with \(y\) up, so
+          matrices from the two fields often differ by a flip of the \(y\) and \(z\) axes. The world frame is
+          right-handed with \(Z\) up, and its origin is at a corner of the checkerboard, like a calibration target.
+        </div>
+
+        <h2>Try this</h2>
+        <ul class="try">
+          <li>Increase \(f_x\). The field of view narrows, the image plane moves away from \(C\), and the cube grows in the image.</li>
+          <li>Set \(f_x = 320\) px and check that the horizontal AFOV is \(2 \arctan(640 / 640) = 90^\circ\).</li>
+          <li>Unlock “fy = fx” and change \(f_y\) alone. The image stretches vertically, as with non-square pixels.</li>
+          <li>Move \(u_0\) and watch the frustum become asymmetric. The camera has not moved, but the image content shifts.</li>
+          <li>Move the camera center \(C\) until some vertices end up behind the camera. Points with \(Z_c \le 0\) disappear from the image, and the step-by-step panel explains why.</li>
+          <li>Change only roll and compare \(R\) before and after: its third row (the optical axis) stays the same.</li>
+          <li>Move \(C\) to the world origin: \(t\) becomes zero. Move it elsewhere and compare \(t\) with \(C\). \(t = -R\,C\) is the world origin seen from the camera, not the camera position.</li>
+          <li>Pick a vertex and check the chain \(\mathbf{X}_w \to \mathbf{X}_c \to w\,(u, v, 1)^\top \to (u, v)\) by hand.</li>
+        </ul>
+      </article>
+    </main>
+    <script type="module" src="./main.ts"></script>
+  </body>
+</html>

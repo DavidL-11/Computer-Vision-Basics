@@ -1,0 +1,48 @@
+:root {
+  --board-dark: light-dark(#b9bcc4, #3a3f48);
+  --board-light: light-dark(#eef0f3, #252930);
+}
+
+.world-view {
+  aspect-ratio: 800 / 640;
+}
+.scene-label.selected,
+.scene-label.camera-label {
+  color: var(--viz-highlight);
+}
+
+.image-view {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
+  background: var(--bg-sunken);
+}
+.image-canvas {
+  display: block;
+  width: 100%;
+  cursor: crosshair;
+}
+
+.mat-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 3rem;
+}
+.mat-block {
+  overflow-x: auto;
+}
+.mat-block h3 {
+  font-size: 0.95rem;
+  margin: 0.6rem 0 0.5rem;
+}
+.mat-block.chain {
+  flex-basis: 100%;
+}
+.chain .eq {
+  display: inline-flex;
+  margin-right: 1.75rem;
+}
+.point-tag {
+  color: var(--viz-highlight);
+}
