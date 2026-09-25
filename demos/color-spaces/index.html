@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Interactive color space explorer: split images into RGB, HSV, YCbCr and CIELAB (L*a*b*) channels, convert picked colors between spaces and interpolate between two colors in each." />
+    <title>Color spaces: RGB, HSV, YCbCr &amp; CIELAB explorer · Computer Vision Basics</title>
+  </head>
+  <body>
+    <main class="demo-page">
+      <section class="demo-intro">
+        <h1>Color space explorer</h1>
+        <p class="lead">
+          Three numbers describe a color, but which three? <strong>RGB</strong> says how much of each primary a display
+          emits. <strong>HSV</strong>, <strong>YCbCr</strong> and <strong>L*a*b*</strong> rearrange the same information
+          so that brightness and color, or perceived differences, are easier to work with. Split an image into its
+          channels and blend two colors in each space.
+        </p>
+      </section>
+
+      <section class="workspace">
+        <div class="views">
+          <figure class="view card">
+            <figcaption>Image <span class="muted">click to pick a color</span></figcaption>
+            <div id="image-view" class="image-frame"></div>
+          </figure>
+          <figure class="view card">
+            <figcaption>Channels <span class="muted">each channel as gray; for signed channels, mid gray is 0</span></figcaption>
+            <div class="image-row">
+              <figure><div id="channel-0"></div><figcaption id="channel-0-name"></figcaption></figure>
+              <figure><div id="channel-1"></div><figcaption id="channel-1-name"></figcaption></figure>
+              <figure><div id="channel-2"></div><figcaption id="channel-2-name"></figcaption></figure>
+            </div>
+          </figure>
+          <figure class="view card view-wide">
+            <figcaption>From A to B in a straight line <span class="muted">the same two colors, interpolated in each space</span></figcaption>
+            <div id="strips" class="strips"></div>
+          </figure>
+        </div>
+        <aside id="controls" class="controls"></aside>
+      </section>
+
+      <section id="values" class="card values" aria-live="polite"></section>
+
+      <article class="explanation">
+        <h2>RGB</h2>
+        <p>
+          RGB mixes red, green and blue light, like the pixels of a display and the filters of a camera sensor. It is
+          the space images are stored in, but its channels are strongly correlated: every channel carries brightness,
+          so a shadow changes all three at once. Values here are sRGB-encoded, as in image files (see the
+          <a href="../gamma/">gamma demo</a>).
+        </p>
+
+        <h2>HSV</h2>
+        <p>
+          HSV describes a color by its <em>hue</em> (the angle on the color wheel), its <em>saturation</em> (how far it
+          is from gray) and its <em>value</em> (the brightest channel):
+        </p>
+        $$ V = \max(R, G, B), \qquad S = \frac{\max - \min}{\max}, \qquad
+           H = 60^\circ \cdot \begin{cases}
+             \frac{G - B}{\max - \min} \bmod 6 &amp; \text{if } \max = R \\
+             \frac{B - R}{\max - \min} + 2 &amp; \text{if } \max = G \\
+             \frac{R - G}{\max - \min} + 4 &amp; \text{if } \max = B
+           \end{cases} $$
+        <p>
+          Hue is useful for picking colors and for segmenting objects by color, since it stays roughly the same when the
+          light gets brighter or darker. But it is undefined for grays, where \(\max = \min\), and it wraps around:
+          359° and 1° are both red.
+        </p>
+
+        <h2>YCbCr</h2>
+        <p>
+          YCbCr separates the <em>luma</em> \(Y\) from two color differences, \(C_b\) (blue minus luma) and \(C_r\) (red
+          minus luma). It is a linear transformation of RGB, here in the full-range form used by JPEG with values from 0
+          to 255:
+        </p>
+        $$ \begin{bmatrix} Y \\ C_b \\ C_r \end{bmatrix} =
+           \begin{bmatrix} 0.299 &amp; 0.587 &amp; 0.114 \\ -0.1687 &amp; -0.3313 &amp; 0.5 \\ 0.5 &amp; -0.4187 &amp; -0.0813 \end{bmatrix}
+           \begin{bmatrix} R \\ G \\ B \end{bmatrix} + \begin{bmatrix} 0 \\ 128 \\ 128 \end{bmatrix} $$
+        <p>
+          Gray has \(C_b = C_r = 128\). Image and video compression use this split because the eye resolves detail in
+          brightness much better than in color, see <a href="../chroma-subsampling/">chroma subsampling</a>.
+        </p>
+
+        <h2>L*a*b*</h2>
+        <p>
+          CIE L*a*b* is designed so that equal distances correspond to roughly equal <em>perceived</em> differences.
+          \(L^*\) is lightness from 0 to 100, \(a^*\) runs from green to red and \(b^*\) from blue to yellow. It is
+          computed from linear RGB via the CIE XYZ space and a cube root that mimics the eye's response:
+        </p>
+        $$ L^* = 116\, f\!\left(\tfrac{Y}{Y_n}\right) - 16, \qquad
+           a^* = 500 \left( f\!\left(\tfrac{X}{X_n}\right) - f\!\left(\tfrac{Y}{Y_n}\right) \right), \qquad
+           b^* = 200 \left( f\!\left(\tfrac{Y}{Y_n}\right) - f\!\left(\tfrac{Z}{Z_n}\right) \right) $$
+        <p>
+          with \(f(t) = \sqrt[3]{t}\) (plus a linear piece near 0) and \((X_n, Y_n, Z_n)\) the white point. The distance
+          \(\Delta E^*_{ab}\) between two colors in L*a*b* is a simple measure of how different they look.
+        </p>
+
+        <h2>Interpolation</h2>
+        <p>
+          A straight line between two colors is a different path through the colors in every space. In RGB, red to
+          green passes through a dull olive. HSV keeps the saturation and walks around the color wheel instead, and
+          L*a*b* changes lightness evenly. Some points on a straight line in L*a*b* have no RGB equivalent; these are
+          clipped to the nearest displayable value.
+        </p>
+
+        <h2>Try this</h2>
+        <ul class="try">
+          <li>Compare the RGB and YCbCr strips. They are identical: YCbCr is a linear map of RGB, so straight lines stay straight lines.</li>
+          <li>Set A to red and B to green. RGB goes through a dark olive, HSV through a bright yellow.</li>
+          <li>Blend a saturated color with gray or white in HSV. Gray has no hue, so only saturation and value change.</li>
+          <li>Look at the H channel of the test chart. Red appears both black and white, because hue wraps around at 0° = 360°.</li>
+          <li>Show the YCbCr channels of the landscape. Almost all detail is in Y, while Cb and Cr are smooth.</li>
+          <li>Set A to pure blue <code>#0000ff</code> and B to pure yellow <code>#ffff00</code>. Both have \(V = 1\), but \(L^*\) is about 32 versus 97: V is not perceived brightness.</li>
+        </ul>
+      </article>
+    </main>
+    <script type="module" src="./main.ts"></script>
+  </body>
+</html>

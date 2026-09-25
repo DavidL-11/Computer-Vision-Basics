@@ -1,0 +1,44 @@
+.strips {
+  display: grid;
+  gap: 0.5rem;
+  padding: 0.75rem 0.9rem 0.9rem;
+}
+.strip-row {
+  display: grid;
+  grid-template-columns: 9rem minmax(0, 1fr);
+  align-items: center;
+  gap: 0.75rem;
+}
+.strip-label {
+  font-size: 0.9rem;
+  font-weight: 600;
+  display: flex;
+  flex-direction: column;
+  line-height: 1.3;
+}
+.strip-label .small {
+  font-weight: 400;
+}
+.strip {
+  display: block;
+  width: 100%;
+  height: 2.4rem;
+  border-radius: var(--radius-sm);
+}
+
+.color-table {
+  border-collapse: collapse;
+}
+.color-table th,
+.color-table td {
+  padding: 0.3rem 1rem 0.3rem 0;
+  text-align: left;
+  white-space: nowrap;
+}
+.color-table tbody th {
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+.color-table tbody tr + tr {
+  border-top: 1px solid var(--border);
+}
