@@ -21,5 +21,24 @@ If you found this repository useful, please consider starring it on GitHub.
 - [Template matching](https://davidl-11.github.io/Computer-Vision-Basics/demos/template-matching/) (Image Filtering)
 - [Median vs mean filter](https://davidl-11.github.io/Computer-Vision-Basics/demos/median-filter/) (Image Filtering)
 - [Morphology & connected components](https://davidl-11.github.io/Computer-Vision-Basics/demos/morphology/) (Image Filtering)
+- [Aliasing & Moiré](https://davidl-11.github.io/Computer-Vision-Basics/demos/aliasing/) (Frequency Domain)
+- [Fourier series](https://davidl-11.github.io/Computer-Vision-Basics/demos/fourier-series/) (Frequency Domain)
+- [2D Fourier transform](https://davidl-11.github.io/Computer-Vision-Basics/demos/fourier-transform/) (Frequency Domain)
 - [Homogeneous coordinates](https://davidl-11.github.io/Computer-Vision-Basics/demos/homogeneous-coordinates/) (Cameras and Optics)
 - [Pinhole camera: intrinsics & extrinsics](https://davidl-11.github.io/Computer-Vision-Basics/demos/camera-model/) (Cameras and Optics)
+
+## Read the code, too
+
+The algorithms behind the demos are written out by hand instead of calling an image-processing library, so the code
+is meant to be read alongside the demos. This is a deliberate choice for learning: the implementations favor clarity
+over speed, while staying fast enough for the image sizes in the demos.
+
+- Each demo keeps its math in a small, pure TypeScript module next to its page, e.g.
+  [`demos/template-matching/matching.ts`](demos/template-matching/matching.ts) or
+  [`demos/fourier-transform/spectrum.ts`](demos/fourier-transform/spectrum.ts). The conventions are documented at the
+  top of each file.
+- Building blocks shared by several demos are in [`src/shared/`](src/shared/), e.g. linear filtering in
+  [`filter.ts`](src/shared/filter.ts), the fast Fourier transform in [`fft.ts`](src/shared/fft.ts) and color
+  conversions in [`color.ts`](src/shared/color.ts).
+- The `*.test.ts` file next to each module checks the math against definitions and known results. They are a good
+  place to see what each function is expected to do.

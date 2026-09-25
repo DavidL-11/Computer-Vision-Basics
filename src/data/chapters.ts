@@ -129,7 +129,26 @@ export const chapters: Chapter[] = [
       'Deconvolution',
       'JPEG / DCT',
     ],
-    demos: [],
+    demos: [
+      {
+        title: 'Aliasing & Moiré',
+        description:
+          'Sample a sinusoid below the Nyquist rate and find its alias frequency, then subsample an image with and without a Gaussian pre-filter and watch moiré appear.',
+        slug: 'aliasing',
+      },
+      {
+        title: 'Fourier series',
+        description:
+          'Add sine terms one by one to approximate a square, sawtooth or triangle wave, and see how the coefficients decay and why jumps overshoot.',
+        slug: 'fourier-series',
+      },
+      {
+        title: '2D Fourier transform',
+        description:
+          'An image and its magnitude and phase spectrum: click a frequency to see its basis image, apply low-, high- and band-pass filters, paint out stripe noise and check the convolution theorem.',
+        slug: 'fourier-transform',
+      },
+    ],
   },
   {
     id: 'edges',

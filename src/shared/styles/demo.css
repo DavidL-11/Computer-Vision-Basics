@@ -193,3 +193,24 @@
     order: -1;
   }
 }
+
+.plot-canvas {
+  display: block;
+  width: 100%;
+}
+/* Line keys in a figcaption: <span class="key" style="--key: var(--accent)">label</span> */
+.legend .key {
+  margin-left: 0.9rem;
+  white-space: nowrap;
+}
+.legend .key::before {
+  content: '';
+  display: inline-block;
+  width: 1.1em;
+  margin-right: 0.35em;
+  vertical-align: 0.3em;
+  border-top: 2.5px solid var(--key);
+}
+.legend .key.dashed::before {
+  border-top-style: dashed;
+}

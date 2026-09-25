@@ -1,0 +1,133 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Interactive aliasing demo: sample a sinusoid below the Nyquist rate and see its alias frequency, then subsample an image with and without a Gaussian anti-aliasing filter and watch moiré patterns appear." />
+    <title>Aliasing &amp; moiré, interactive demo · Computer Vision Basics</title>
+  </head>
+  <body>
+    <main class="demo-page">
+      <section class="demo-intro">
+        <h1>Aliasing &amp; Moiré</h1>
+        <p class="lead">
+          Sample a signal too sparsely and a high frequency disguises itself as a low one. Sample a sinusoid and find its
+          alias, then shrink an image and see the same effect as moiré, and how blurring before subsampling prevents it.
+        </p>
+      </section>
+
+      <section class="workspace">
+        <div class="views">
+          <figure class="view card view-wide">
+            <figcaption>
+              Sampling \(x(t) = \cos(2\pi f t + \varphi)\)
+              <span class="muted legend">
+                <span class="key" style="--key: var(--fg-muted)">signal</span>
+                <span class="key" style="--key: var(--accent)">samples at \(t = n / f_s\)</span>
+                <span class="key dashed" style="--key: var(--viz-highlight)">alias through the same samples</span>
+              </span>
+            </figcaption>
+            <div id="signal-plot"></div>
+          </figure>
+          <figure class="view card view-wide">
+            <figcaption>
+              Spectrum of the sampled signal
+              <span class="muted legend">
+                <span class="key" style="--key: var(--fg-muted)">\(\pm f\)</span>
+                <span class="key" style="--key: var(--accent)">copies \(k f_s \pm f\)</span>
+                <span class="key" style="--key: var(--viz-highlight)">the copy inside \([-f_s/2, f_s/2]\)</span>
+                (Hz)
+              </span>
+            </figcaption>
+            <div id="spectrum-plot"></div>
+          </figure>
+          <figure class="view card view-wide">
+            <figcaption>Subsampling an image <span class="muted">each result enlarged back to the original size</span></figcaption>
+            <div class="image-row">
+              <figure><div id="original-view"></div><figcaption>original</figcaption></figure>
+              <figure><div id="naive-view"></div><figcaption id="naive-caption"></figcaption></figure>
+              <figure><div id="filtered-view"></div><figcaption id="filtered-caption"></figcaption></figure>
+            </div>
+          </figure>
+        </div>
+        <aside id="controls" class="controls"></aside>
+      </section>
+
+      <section id="values" class="card values" aria-live="polite"></section>
+
+      <article class="explanation">
+        <h2>Sampling a sinusoid</h2>
+        <p>
+          Sampling a continuous signal \(x(t)\) at rate \(f_s\) keeps only the values \(x[n] = x(n / f_s)\). For a
+          sinusoid of frequency \(f\) and any integer \(k\), the sinusoids at \(f + k f_s\) and at \(k f_s - f\) pass
+          through exactly the same samples, since
+        </p>
+        $$ \cos\!\Big(2\pi (f + k f_s) \frac{n}{f_s} + \varphi\Big) = \cos\!\Big(2\pi f \frac{n}{f_s} + \varphi + 2\pi k n\Big) = \cos\!\Big(2\pi f \frac{n}{f_s} + \varphi\Big) $$
+        <p>
+          and the cosine is even, so \(-f\) with phase \(-\varphi\) gives the same values as \(f\) with \(\varphi\). The
+          samples cannot tell these frequencies apart. Exactly one of them lies in \([0, f_s / 2]\): the frequency that
+          the samples appear to have, the <strong>alias</strong>
+        </p>
+        $$ f_a = \big| f - k f_s \big|, \qquad k = \operatorname{round}(f / f_s). $$
+        <p>
+          In the spectrum, sampling turns the two lines at \(\pm f\) into copies repeated at every multiple of \(f_s\).
+          Whatever copy lands inside the band \([-f_s/2, f_s/2]\) is what a reconstruction from the samples produces.
+        </p>
+
+        <h2>The Nyquist rate</h2>
+        <p>
+          If \(f &lt; f_s / 2\), the alias is the signal itself and nothing is lost. This is the
+          <strong>sampling theorem</strong>: a signal that contains no frequencies above \(f_\text{max}\) is determined
+          by its samples if
+        </p>
+        $$ f_s &gt; 2 f_\text{max}. $$
+        <p>
+          \(2 f_\text{max}\) is the <em>Nyquist rate</em>, and \(f_s / 2\) the <em>Nyquist frequency</em> of a given
+          sampling rate: more than two samples per period. Above the Nyquist frequency, the alias folds back: raising
+          \(f\) from \(f_s / 2\) to \(f_s\) lowers \(f_a\) from \(f_s / 2\) to 0. This is why wheels in films seem to
+          turn slowly or backwards: the frame rate samples the rotation too sparsely.
+        </p>
+
+        <h2>Aliasing in images</h2>
+        <p>
+          An image is a 2D signal, sampled once per pixel, so its Nyquist frequency is \(\tfrac{1}{2}\) cycle per pixel:
+          a stripe pattern with a period of 2 pixels, black and white. Keeping only every \(k\)-th pixel lowers the
+          sampling rate by \(k\), and the new Nyquist frequency is \(\tfrac{1}{2k}\) cycles per pixel. Every finer
+          detail folds back into coarser patterns that are not in the scene: <strong>moiré</strong>. The zone plate
+          shows it best, since its frequency grows steadily from the center outwards; after subsampling, new rings
+          appear around new centers. The same happens at the fence in the landscape, and the aliased stripes of a
+          fine pattern can even run in a different direction than the original ones.
+        </p>
+
+        <h2>Anti-aliasing: filter first, then subsample</h2>
+        <p>
+          Once aliasing has happened, it cannot be undone: the samples of the fine pattern and of its alias are the
+          same. The only remedy is to remove the frequencies above the new Nyquist frequency <em>before</em> sampling,
+          with a low-pass filter. The Gaussian is a good choice; its frequency response is again a Gaussian,
+        </p>
+        $$ G_\sigma(x) = \frac{1}{\sqrt{2\pi}\,\sigma} e^{-\frac{x^2}{2\sigma^2}} \quad \longleftrightarrow \quad |G(f)| = e^{-2\pi^2 \sigma^2 f^2}, $$
+        <p>
+          with \(f\) in cycles per pixel: a wider Gaussian in space is narrower in frequency. A rule of thumb for
+          subsampling by \(k\) is \(\sigma \approx k / 2\). A smaller \(\sigma\) leaves more aliasing, a larger one
+          blurs away detail that the smaller image could still show. Image pyramids use this “blur, then subsample”
+          step at every level. A camera does it optically: the lens and the sensor pixel area blur the image before it
+          is sampled (compare cell center and cell average in <a href="../sampling-quantization/">sampling &amp; quantization</a>),
+          and many cameras add an optical low-pass filter in front of the sensor. The Gaussian itself is covered in
+          <a href="../separable-gaussian/">Gaussian &amp; separability</a>.
+        </p>
+
+        <h2>Try this</h2>
+        <ul class="try">
+          <li>Start with \(f = 8\) Hz at \(f_s = 10\) Hz: the samples trace a 2 Hz sinusoid. Lower \(f\) slowly to 5 Hz and watch the alias rise to meet it.</li>
+          <li>Set \(f = 10\) Hz: one sample per period, and the samples are constant. The sinusoid has aliased to 0 Hz.</li>
+          <li>Set \(f = 5\) Hz exactly at \(f_s = 10\) Hz and change the phase: at 90° all samples are 0 and the sinusoid disappears. The theorem needs \(f_s &gt; 2f\), strictly.</li>
+          <li>With \(f = 8\) Hz, change the phase: the alias moves in the opposite direction, because it comes from the mirrored copy \(f_s - f\).</li>
+          <li>Pick the zone plate, subsample by 4 and set \(\sigma = 0\): outside the center, the rings turn into new ring patterns around new centers. Increase \(\sigma\) until they fade to gray.</li>
+          <li>Look at the line groups of the test chart subsampled by 3 without a pre-filter: the finest groups show stripes with the wrong period, or none at all.</li>
+          <li>Set \(\sigma = 4\) with \(k = 2\): no aliasing, but the result is blurrier than necessary. Compare the Gaussian's response at \(\tfrac{1}{4k}\) in the values panel.</li>
+        </ul>
+      </article>
+    </main>
+    <script type="module" src="./main.ts"></script>
+  </body>
+</html>

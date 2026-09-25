@@ -33,6 +33,8 @@ npm run preview   # serve dist/ at http://localhost:4173/Computer-Vision-Basics/
   - `color.ts`: sRGB decode/encode, BT.601 luma, YCbCr, hex helpers.
   - `pixelView.ts`: `PixelView` shows an `RGBImage` with visible pixels, zoom, picking and overlays; `perFrame()`.
   - `testImages.ts` / `imagePicker.ts`: procedural test images and a Tweakpane image list with "Open image…".
+  - `fft.ts`: radix-2 FFT, `fft2`/`ifft2` of a `Plane` (power-of-2 sizes, DC at index 0), `fftShift()` for display.
+  - `plot.ts`: `Plot` canvas for function graphs, stems and bars with axes; colors given as CSS tokens.
   - `tex.ts`: TeX helpers (`renderTex`, `eq`, `fmt`, `texMatrix`, `texVector`, `texTuple`) for panels with live values.
   - `styles/base.css`: design tokens and the Tweakpane theme.
   - `styles/demo.css`: shared demo layout (intro, views + controls, `.values` panel, explanation). Import it in
