@@ -31,6 +31,7 @@ npm run preview   # serve dist/ at http://localhost:4173/Computer-Vision-Basics/
   - `filter.ts`: linear filtering of a `Plane`: `correlate`/`convolve` with border modes, separable passes,
     `gaussianKernel`, `boxKernel1D`, `padPlane`.
   - `color.ts`: sRGB decode/encode, BT.601 luma, YCbCr, hex helpers.
+  - `noise.ts`: seeded `random()` and `gaussianNoise()` for a `Plane`.
   - `pixelView.ts`: `PixelView` shows an `RGBImage` with visible pixels, zoom, picking and overlays; `perFrame()`.
   - `testImages.ts` / `imagePicker.ts`: procedural test images and a Tweakpane image list with "Open image…".
   - `fft.ts`: radix-2 FFT, `fft2`/`ifft2` of a `Plane` (power-of-2 sizes, DC at index 0), `fftShift()` for display.

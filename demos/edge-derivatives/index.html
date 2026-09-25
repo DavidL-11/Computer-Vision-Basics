@@ -1,0 +1,179 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Interactive image derivatives and noise: plot the intensity along an image row with its first and second derivative, add noise, smooth with a Gaussian first and see that this equals filtering with a derivative of Gaussian." />
+    <title>Derivatives &amp; noise for edge detection, interactive demo · Computer Vision Basics</title>
+  </head>
+  <body>
+    <main class="demo-page">
+      <section class="demo-intro">
+        <h1>Derivatives &amp; noise</h1>
+        <p class="lead">
+          An edge is a place of rapid change in intensity. Along one row of an image it shows up as a peak in the first
+          derivative. Add a little noise and the derivative drowns in it, unless you smooth before you differentiate.
+        </p>
+      </section>
+
+      <section class="workspace">
+        <div class="views">
+          <figure class="view card">
+            <figcaption>Image \(f\) <span class="muted">click to select a row and pixel</span></figcaption>
+            <div id="noisy-view" class="image-frame"></div>
+          </figure>
+          <figure class="view card">
+            <figcaption>Smoothed \(f * g\) <span id="smooth-caption" class="muted"></span></figcaption>
+            <div id="smooth-view" class="image-frame"></div>
+          </figure>
+          <figure class="view card">
+            <figcaption>Derivative \(\frac{d f}{dx}\) <span class="muted">without smoothing, 0 = gray</span></figcaption>
+            <div id="raw-view" class="image-frame"></div>
+          </figure>
+          <figure class="view card">
+            <figcaption>Derivative \(\frac{d}{dx}(f * g)\) <span class="muted">smoothed first, 0 = gray</span></figcaption>
+            <div id="deriv-view" class="image-frame"></div>
+          </figure>
+          <figure class="view card view-wide">
+            <figcaption>
+              Intensity along the selected row
+              <span class="muted legend">
+                <span class="key" style="--key: var(--fg-faint)">\(f\)</span>
+                <span class="key dashed" style="--key: var(--fg-muted)">without noise</span>
+                <span class="key" style="--key: var(--accent)">\(f * g\)</span>
+                <span class="key" style="--key: var(--viz-object)">detected edges</span>
+              </span>
+            </figcaption>
+            <div id="profile-plot"></div>
+          </figure>
+          <figure class="view card view-wide">
+            <figcaption>
+              First derivative
+              <span class="muted legend">
+                <span class="key" style="--key: var(--fg-faint)">\(\frac{d f}{dx}\)</span>
+                <span class="key" style="--key: var(--accent)">\(\frac{d}{dx}(f * g)\)</span>
+                <span class="key dashed" style="--key: var(--viz-points)">\(f * \frac{dg}{dx}\)</span>
+                <span class="key dashed" style="--key: var(--fg-muted)">threshold \(\pm t\)</span>
+              </span>
+            </figcaption>
+            <div id="deriv-plot"></div>
+          </figure>
+          <figure class="view card view-wide">
+            <figcaption>
+              Second derivative \(\frac{d^2}{dx^2}(f * g)\)
+              <span class="muted legend">
+                <span class="key" style="--key: var(--accent)">smoothed</span>
+                <span class="key" style="--key: var(--viz-object)">zero crossings where \(\left|\frac{d}{dx}(f * g)\right| \ge t\)</span>
+              </span>
+            </figcaption>
+            <div id="second-plot"></div>
+          </figure>
+          <figure class="view card view-wide">
+            <figcaption>
+              Filter kernels
+              <span class="muted legend">
+                <span class="key" style="--key: var(--fg-faint)">\(G_\sigma(x)\)</span>
+                <span class="key dashed" style="--key: var(--viz-highlight)">\(G'_\sigma(x)\)</span>
+                <span class="key" style="--key: var(--accent)">sampled \(\frac{dg}{dx}\)</span>
+              </span>
+            </figcaption>
+            <div id="kernel-plot"></div>
+          </figure>
+        </div>
+        <aside id="controls" class="controls"></aside>
+      </section>
+
+      <section id="values" class="card values" aria-live="polite"></section>
+
+      <article class="explanation">
+        <h2>Where edges come from</h2>
+        <p>
+          Edges are discontinuities in an image, and they are caused by discontinuities in the scene:
+        </p>
+        <ul>
+          <li>of the <strong>surface normal</strong>, where the orientation of a surface changes, like the fold of a box,</li>
+          <li>of <strong>depth</strong>, where one object ends in front of another,</li>
+          <li>of the <strong>surface color</strong>, like printed text or the texture of a material,</li>
+          <li>of the <strong>illumination</strong>, like the border of a shadow.</li>
+        </ul>
+        <p>
+          Edges are much more compact than the full image and still carry most of its structure, so they help to
+          recover the geometry of a scene and the viewpoint, and they are a basis for recognition.
+        </p>
+
+        <h2>Edges are peaks of the derivative</h2>
+        <p>
+          Take a single row of the image: the intensity as a function of position is a 1D signal \(f(x)\). An edge is a
+          place where \(f\) changes rapidly, so it corresponds to an <strong>extremum of the first derivative</strong>
+          and to a <strong>zero crossing of the second derivative</strong>. On pixels the derivative is approximated by
+          a difference; this demo uses the central difference
+        </p>
+        $$ \frac{d f}{dx}[x] \approx \frac{f[x + 1] - f[x - 1]}{2}, $$
+        <p>
+          which is a linear filter with the weights \([-\tfrac{1}{2} \;\; 0 \;\; \tfrac{1}{2}]\) applied by
+          correlation. A dark-to-bright step is positive, a bright-to-dark step negative. The
+          <a href="../convolution/">Sobel filter</a> \(S_x\) uses the same central difference along \(x\) and adds a
+          small smoothing \([1 \;\; 2 \;\; 1]\) along \(y\).
+        </p>
+
+        <h2>Difference filters respond strongly to noise</h2>
+        <p>
+          Image noise makes pixels look different from their neighbors, and a difference filter measures exactly that.
+          The larger the noise, the stronger the response. For independent noise with standard deviation
+          \(\sigma_n\) in every pixel, the central difference has noise with standard deviation
+          \(\sigma_n / \sqrt{2}\), no matter how gentle the real edges are. A sharp step of height \(h\) still stands
+          out with a peak of \(h / 2\), but a blurry edge spreads the same change over many pixels, and its small
+          derivative disappears in the noise. Thresholding the derivative then finds edges everywhere.
+        </p>
+
+        <h2>Smooth first</h2>
+        <p>
+          The solution is to smooth the signal with a filter \(g\), such as a Gaussian, and look for peaks in
+          \(\frac{d}{dx}(f * g)\). Differentiation is itself a convolution, and convolution is associative, so
+          smoothing and differentiating can be combined into one filter, the <strong>derivative of the
+          Gaussian</strong>:
+        </p>
+        $$ \frac{d}{dx}(f * g) = f * \frac{d g}{dx}, \qquad G'_\sigma(x) = -\frac{x}{\sigma^2} \, G_\sigma(x) = -\frac{x}{\sqrt{2\pi}\,\sigma^3} \, e^{-\frac{x^2}{2\sigma^2}} $$
+        <p>
+          This saves one operation. In the demo, \(\frac{dg}{dx}\) is the central difference of the sampled Gaussian,
+          so the two curves in the derivative plot agree up to rounding, and it follows the continuous
+          \(G'_\sigma\) closely. For an image, the Gaussian derivative in one direction is a 2D kernel that
+          differentiates along \(x\) and smooths along \(y\):
+        </p>
+        $$ \frac{\partial G_\sigma}{\partial x}(x, y) = G'_\sigma(x) \, G_\sigma(y) $$
+        <p>
+          With “smooth along x and y”, the rows above and below the selected one are averaged in as well, which removes
+          much more noise than smoothing along the row alone.
+        </p>
+
+        <h2>Choosing σ</h2>
+        <p>
+          A larger \(\sigma\) removes more noise, but it also spreads each edge: the peak gets lower and wider, which
+          makes its position less precise, and nearby edges merge into one. Small \(\sigma\) finds fine details, large
+          \(\sigma\) only the large-scale edges. Detecting all real edges and localizing them precisely pull in
+          opposite directions; the <a href="../canny/">Canny edge detector</a> is built around this trade-off.
+        </p>
+
+        <h2>The second derivative</h2>
+        <p>
+          Every extremum of the first derivative is a zero crossing of the second, so edges can be found as zero
+          crossings, too. But in a flat, noisy region the second derivative crosses zero all the time. The demo only
+          marks crossings where the first derivative reaches the threshold \(t\), and these coincide with the peaks.
+          Differentiating twice amplifies noise even more, so the second derivative needs smoothing all the more.
+        </p>
+
+        <h2>Try this</h2>
+        <ul class="try">
+          <li>Set the noise to 0 and follow the selected row: every edge is a peak in the first derivative and a zero crossing in the second.</li>
+          <li>Raise the noise to 0.05 with the smallest σ: the raw derivative image is covered in noise, and the values panel counts dozens of peaks above the threshold.</li>
+          <li>Now increase σ until only the real edges remain as peaks. Watch the peaks get lower and wider at the same time.</li>
+          <li>Compare the accent and the dashed curve in the derivative plot: smoothing and then differentiating is the same as filtering once with the derivative of Gaussian.</li>
+          <li>Switch between smoothing along the row and along x and y: with the same σ, the 2D version removes much more noise from the derivative.</li>
+          <li>Turn on “edges of all rows” to search every row on its own. The raw derivative view marks the peaks without smoothing, and with noise they are everywhere; after smoothing they line up along the outlines. Horizontal edges are missing, because a row only sees changes along x. The <a href="../canny/">Canny edge detector</a> uses both derivatives.</li>
+          <li>Choose the test chart and a large σ: the closely spaced lines merge, and their edges disappear from the derivative.</li>
+        </ul>
+      </article>
+    </main>
+    <script type="module" src="./main.ts"></script>
+  </body>
+</html>
