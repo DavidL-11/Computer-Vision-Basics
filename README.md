@@ -47,6 +47,12 @@ If you found this repository useful, please consider starring it on GitHub.
 - [Harris corner detector](https://davidl-11.github.io/Computer-Vision-Basics/demos/harris/)
 - [Harris invariance](https://davidl-11.github.io/Computer-Vision-Basics/demos/harris-invariance/)
 
+### 6. Feature Matching
+
+- [Scale space & DoG](https://davidl-11.github.io/Computer-Vision-Basics/demos/scale-space/)
+- [SIFT descriptor](https://davidl-11.github.io/Computer-Vision-Basics/demos/sift-descriptor/)
+- [Matching & ratio test](https://davidl-11.github.io/Computer-Vision-Basics/demos/feature-matching/)
+
 ### 7. Cameras and Optics
 
 - [Homogeneous coordinates](https://davidl-11.github.io/Computer-Vision-Basics/demos/homogeneous-coordinates/)

@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Interactive SIFT feature matching with known ground truth: nearest neighbor matching, a distance threshold versus the nearest neighbor distance ratio (Lowe's ratio test), the distributions of correct and incorrect matches, and the trade-off between them." />
+    <title>Feature matching &amp; the ratio test, interactive demo · Computer Vision Basics</title>
+  </head>
+  <body>
+    <main class="demo-page">
+      <section class="demo-intro">
+        <h1>Matching &amp; ratio test</h1>
+        <p class="lead">
+          Features of two images are matched by comparing their descriptors. The second image here is a transformed
+          copy of the first, so every match can be checked. Compare a threshold on the descriptor distance with the
+          ratio test, and see which one separates correct from incorrect matches better.
+        </p>
+      </section>
+
+      <section class="workspace">
+        <div class="views">
+          <figure class="view card view-wide">
+            <figcaption>
+              Image \(A\) and transformed image \(B\)
+              <span class="muted legend">
+                <span class="key" style="--key: var(--axis-y)">correct match</span>
+                <span class="key" style="--key: var(--viz-highlight)">incorrect match</span>
+              </span>
+            </figcaption>
+            <div id="pair-view" class="image-frame"></div>
+          </figure>
+          <figure class="view card">
+            <figcaption>
+              Distance \(d_1\) to the nearest neighbor
+              <span class="muted legend">
+                <span class="key" style="--key: var(--axis-y)">correct</span>
+                <span class="key" style="--key: var(--viz-highlight)">incorrect</span>
+              </span>
+            </figcaption>
+            <div id="distance-plot"></div>
+          </figure>
+          <figure class="view card">
+            <figcaption>
+              Ratio \(d_1 / d_2\)
+              <span class="muted legend">
+                <span class="key" style="--key: var(--axis-y)">correct</span>
+                <span class="key" style="--key: var(--viz-highlight)">incorrect</span>
+              </span>
+            </figcaption>
+            <div id="ratio-plot"></div>
+          </figure>
+          <figure class="view card view-wide">
+            <figcaption>
+              Correct vs incorrect accepted matches, over all thresholds
+              <span class="muted legend">
+                <span class="key" style="--key: var(--viz-points)">distance \(d_1\)</span>
+                <span class="key" style="--key: var(--accent)">ratio \(d_1 / d_2\)</span>
+                <span class="key dashed" style="--key: var(--fg-muted)">all correct matches possible</span>
+              </span>
+            </figcaption>
+            <div id="tradeoff-plot"></div>
+          </figure>
+        </div>
+        <aside id="controls" class="controls"></aside>
+      </section>
+
+      <section id="values" class="card values" aria-live="polite"></section>
+
+      <article class="explanation">
+        <h2>Matching by distance</h2>
+        <p>
+          After <a href="../scale-space/">detection</a> and <a href="../sift-descriptor/">description</a>, every
+          feature is a 128-dimensional vector. To find correspondences:
+        </p>
+        <ul>
+          <li>compute the distance in feature space, here the Euclidean distance between SIFT descriptors,</li>
+          <li>match each feature to the one with the lowest distance, its nearest neighbor,</li>
+          <li>ignore matches whose distance is above a threshold: no match.</li>
+        </ul>
+        <p>This has two problems:</p>
+        <ul>
+          <li>
+            The threshold is hard to pick. Distances of correct matches depend on how much the view changed, and
+            those of incorrect ones on the image content, so the two distributions overlap.
+          </li>
+          <li>
+            Features that are not distinctive, for example on repetitive structures, have many close neighbors, only
+            one of which is correct. A small distance says nothing about whether the right one was picked.
+          </li>
+        </ul>
+
+        <h2>Nearest neighbor distance ratio</h2>
+        <p>
+          The ratio test compares the distance \(d_1\) to the closest neighbor NN1 with the distance \(d_2\) to the
+          second closest NN2:
+        </p>
+        $$ \text{accept if } \frac{d_1}{d_2} \le \tau $$
+        <ul>
+          <li>If \(d_1 \approx d_2\), the ratio is close to 1: the match is too close to call.</li>
+          <li>If \(d_1 \ll d_2\), the ratio tends to 0: one neighbor clearly stands out.</li>
+        </ul>
+        <p>
+          Sorting by the ratio puts the matches in order of confidence. Lowe computed the distribution of the ratio
+          for 40,000 keypoints with hand-labeled ground truth: correct matches pile up at low ratios, incorrect ones
+          near 1. The second nearest neighbor serves as an estimate of how close an incorrect match can be in this
+          part of feature space.
+        </p>
+
+        <h2>Choosing the threshold</h2>
+        <p>
+          The threshold depends on the application's trade-off between false positives and true positives. With a
+          low threshold such as 0.5 there are few false positives but also fewer matches; a higher threshold such as
+          0.8 keeps more of the true positives and lets in more false positives. Lowe's choice of 0.8 removes about
+          90% of the incorrect matches while losing less than 5% of the correct ones. The large plot shows this
+          trade-off for both criteria: each curve starts at the strictest threshold and ends when every match is
+          accepted. A curve that climbs more steeply finds more correct matches for the same number of incorrect ones.
+        </p>
+        <p>
+          The ground truth here comes from the known transformation: a match is correct if the keypoint in \(B\) lies
+          within \(\varepsilon\) pixels of the mapped keypoint of \(A\). Only features in the region both images show
+          take part. A feature may have no partner at all, if the detector didn't find its point again in \(B\); the
+          dashed line shows how many correct matches are possible.
+        </p>
+
+        <h2>Try this</h2>
+        <ul class="try">
+          <li>Compare the two histograms: the distances of correct and incorrect matches overlap, while their ratios are clearly apart.</li>
+          <li>Follow the two curves from the left: before the first incorrect match is accepted, the ratio test has already found many correct ones, the distance threshold only a few.</li>
+          <li>Lower the ratio threshold to 0.5: no incorrect matches remain, but about a third of the correct ones are lost too.</li>
+          <li>Set the rotation to 0 and the scale to 1, and raise the noise to 0.05: both criteria keep about the same correct matches, but the distance threshold accepts several times more incorrect ones.</li>
+          <li>Rotate by 60°, scale to 0.7 and add noise: the distances of correct matches grow, and a fixed distance threshold loses more of them than the ratio test.</li>
+          <li>Switch to the shapes image: the squares of the checkerboard and the corners of the rectangles look alike, so even correct matches get ratios close to 1, and no threshold separates them well.</li>
+          <li>Set the noise to 0 as well: B is then the same image, every correct match has \(d_1 = 0\), and both criteria are perfect.</li>
+        </ul>
+      </article>
+    </main>
+    <script type="module" src="./main.ts"></script>
+  </body>
+</html>
