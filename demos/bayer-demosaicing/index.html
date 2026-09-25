@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Interactive Bayer filter demo: see the raw RGGB mosaic of a color camera sensor, why green is sampled twice, and compare nearest-neighbor and bilinear demosaicing and their artifacts." />
+    <title>Bayer filter &amp; demosaicing, interactive demo · Computer Vision Basics</title>
+  </head>
+  <body>
+    <main class="demo-page">
+      <section class="demo-intro">
+        <h1>Bayer pattern &amp; demosaicing</h1>
+        <p class="lead">
+          A sensor pixel only counts light; it cannot tell colors apart. Color cameras therefore place a tiny red,
+          green or blue filter on every pixel, so each pixel measures just <em>one</em> of the three channels.
+          <strong>Demosaicing</strong> estimates the two missing channels from the neighbors. Zoom in and compare what
+          the sensor records with what the camera reconstructs.
+        </p>
+      </section>
+
+      <section class="workspace">
+        <div class="views">
+          <figure class="view card">
+            <figcaption>Raw sensor mosaic <span class="muted">click to select a pixel (and zoom center)</span></figcaption>
+            <div id="raw-view" class="image-frame"></div>
+          </figure>
+          <figure class="view card">
+            <figcaption><span id="right-title">Demosaiced</span> <span class="muted">192 × 144 px</span></figcaption>
+            <div id="result-view" class="image-frame"></div>
+          </figure>
+        </div>
+        <aside id="controls" class="controls"></aside>
+      </section>
+
+      <section id="values" class="card values" aria-live="polite"></section>
+
+      <article class="explanation">
+        <h2>The Bayer pattern</h2>
+        <p>
+          The most common color filter array repeats a \(2 \times 2\) block with one red, two green and one blue
+          filter:
+        </p>
+        $$ \begin{bmatrix} \htmlClass{ch-r}{R} &amp; \htmlClass{ch-g}{G} \\ \htmlClass{ch-g}{G} &amp; \htmlClass{ch-b}{B} \end{bmatrix}
+           \quad \text{(RGGB)} $$
+        <p>
+          Half of all pixels measure green, a quarter red and a quarter blue. Green gets twice the samples because it
+          carries most of the brightness we perceive: the <em>M</em> and <em>L</em> cones of the eye are most
+          sensitive to green-yellow light, and in the luma
+          \(Y' = 0.299\,R + 0.587\,G + 0.114\,B\) green has the largest weight. Our visual system resolves fine detail
+          mainly in brightness and much less in color, so it makes sense to spend the samples there.
+        </p>
+        <p>
+          The raw image has a single value per pixel. Shown in gray it looks like a normal black-and-white image with a
+          fine checkerboard texture wherever the scene is colored.
+        </p>
+
+        <h2>Demosaicing</h2>
+        <p>
+          Every pixel knows one channel and has to estimate the other two. <strong>Nearest neighbor</strong> copies them
+          from the same \(2 \times 2\) block. <strong>Bilinear</strong> interpolation averages the closest samples of
+          the missing channel: the 4 direct neighbors for green, and 2 or 4 neighbors for red and blue. Written as a
+          convolution of each sparse channel (zero where it was not measured):
+        </p>
+        $$ K_G = \frac{1}{4} \begin{bmatrix} 0 &amp; 1 &amp; 0 \\ 1 &amp; 4 &amp; 1 \\ 0 &amp; 1 &amp; 0 \end{bmatrix}, \qquad
+           K_{R,B} = \frac{1}{4} \begin{bmatrix} 1 &amp; 2 &amp; 1 \\ 2 &amp; 4 &amp; 2 \\ 1 &amp; 2 &amp; 1 \end{bmatrix} $$
+        <p>
+          At a measured pixel only the center weight hits a sample, so the value is kept. Elsewhere the kernel picks up
+          exactly the neighbors described above. At the image border only the available samples are averaged.
+        </p>
+
+        <h2>Artifacts</h2>
+        <ul>
+          <li>
+            <strong>Zipper effect</strong>: along sharp edges, interpolation mixes values from both sides, in a pattern
+            that alternates from pixel to pixel.
+          </li>
+          <li>
+            <strong>False color</strong>: red and blue are sampled only at every other pixel in each direction. Fine
+            gray detail, such as thin lines, is then interpolated differently in each channel and shows up in color,
+            as colored moiré.
+          </li>
+        </ul>
+        <p>
+          Real cameras use edge-aware demosaicing that interpolates along edges instead of across them, and many place
+          a slightly blurring optical filter in front of the sensor to remove detail that the mosaic cannot capture.
+        </p>
+
+        <div class="callout">
+          <strong>Measuring the error.</strong> The values panel compares the reconstruction with the original using
+          the peak signal-to-noise ratio for values in \([0, 1]\):
+          $$ \mathrm{PSNR} = 10 \log_{10} \frac{1}{\mathrm{MSE}} \ \text{dB} $$
+          Higher is better; each extra 6 dB halves the typical error.
+        </div>
+
+        <h2>Try this</h2>
+        <ul class="try">
+          <li>Zoom to 8× on a color patch of the test chart. Each pixel is red, green or blue, and green forms a checkerboard.</li>
+          <li>Turn off “raw in color”. This is what the sensor actually stores: one number per pixel.</li>
+          <li>Select a pixel under a red filter and check the green formula: the average of its four neighbors.</li>
+          <li>Choose the zone plate, which is pure gray. The demosaiced image is full of colored rings, because red and blue alias before green does.</li>
+          <li>Look at the line groups of the test chart with nearest neighbor, then with bilinear, and compare the PSNR values.</li>
+          <li>Switch the right view to the error image and see where the errors are: at edges and fine detail, never in flat areas.</li>
+          <li>Pick the colored text. Red text on blue has almost no green, so its edges are rebuilt from only a quarter of the pixels.</li>
+        </ul>
+      </article>
+    </main>
+    <script type="module" src="./main.ts"></script>
+  </body>
+</html>

@@ -1,0 +1,9 @@
+.katex .ch-r {
+  color: var(--axis-x);
+}
+.katex .ch-g {
+  color: var(--axis-y);
+}
+.katex .ch-b {
+  color: var(--axis-z);
+}
