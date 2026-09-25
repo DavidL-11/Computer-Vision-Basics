@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Interactive deconvolution: blur an image with a known Gaussian or motion kernel, undo it by dividing in the frequency domain, watch a tiny amount of noise explode, and tame it with a truncated inverse or a Wiener filter." />
+    <title>Deconvolution, interactive demo · Computer Vision Basics</title>
+  </head>
+  <body>
+    <main class="demo-page">
+      <section class="demo-intro">
+        <h1>Deconvolution</h1>
+        <p class="lead">
+          Blurring is a convolution, so in the frequency domain it is a multiplication, and dividing should undo it.
+          It does, until you add a tiny amount of noise. Blur an image with a known kernel, restore it, and find out
+          what it takes to keep the noise under control.
+        </p>
+      </section>
+
+      <section class="workspace">
+        <div class="views">
+          <figure class="view card">
+            <figcaption>Original \(f\)</figcaption>
+            <div id="original-view" class="image-frame"></div>
+          </figure>
+          <figure class="view card">
+            <figcaption>Degraded \(g = h \ast f + n\) <span class="muted">what the camera records</span></figcaption>
+            <div id="degraded-view" class="image-frame"></div>
+          </figure>
+          <figure class="view card">
+            <figcaption>Restored \(\hat f = \mathcal{F}^{-1}\{R \cdot G\}\)</figcaption>
+            <div id="restored-view" class="image-frame"></div>
+          </figure>
+          <figure class="view card">
+            <figcaption>Error \(\hat f - f\) <span class="muted">amplified 4×, gray = 0</span></figcaption>
+            <div id="error-view" class="image-frame"></div>
+          </figure>
+          <figure class="view card view-wide">
+            <figcaption>
+              Filters along the \(u\) axis, \(v = 0\)
+              <span class="muted legend">
+                <span class="key" style="--key: var(--fg-muted)">blur \(|H|\)</span>
+                <span class="key" style="--key: var(--accent)">restoration \(|R|\)</span>
+                <span class="key dashed" style="--key: var(--viz-highlight)">together \(|R H|\)</span>
+                shaded: \(R = 0\)
+              </span>
+            </figcaption>
+            <div id="transfer-plot"></div>
+          </figure>
+        </div>
+        <aside id="controls" class="controls"></aside>
+      </section>
+
+      <section id="values" class="card values" aria-live="polite"></section>
+
+      <article class="explanation">
+        <h2>Blur as a multiplication</h2>
+        <p>
+          A blurred image is the sharp image convolved with a kernel \(h\), the <em>point spread function</em>, plus
+          some noise \(n\). By the <a href="../fourier-transform/">convolution theorem</a>, the Fourier transform turns
+          the convolution into a product of spectra:
+        </p>
+        $$ g = h \ast f + n \qquad \Longleftrightarrow \qquad G(u, v) = H(u, v) \, F(u, v) + N(u, v) $$
+        <p>
+          A Gaussian blur with \(\sigma\) pixels has the transfer function
+          \(H(u, v) = e^{-2\pi^2 \sigma^2 (u^2 + v^2) / N^2}\): it keeps the low frequencies and damps the high ones.
+          Horizontal motion blur, a box of \(L\) pixels along \(x\), has a transfer function with ripples that pass
+          close to zero near \(u = N / L, 2N / L, \dots\). Here the kernel is known; estimating it from the blurred
+          image as well is called <em>blind deconvolution</em>.
+        </p>
+
+        <h2>The inverse filter</h2>
+        <p>
+          If the blur is a multiplication, dividing by \(H\) undoes it:
+        </p>
+        $$ \hat F = \frac{G}{H} = F + \frac{N}{H} $$
+        <p>
+          Without noise this is exact. With noise, the second term is the problem. Noise such as sensor noise or
+          rounding is spread evenly over all frequencies, while \(H\) becomes tiny at high frequencies:
+          \(10^{-9}\) at the Nyquist frequency for \(\sigma = 2\). Dividing multiplies the noise there by a billion.
+          Where \(|H F|\) is smaller than \(|N|\), the recorded coefficient is mostly noise; the information about
+          \(F\) at that frequency is lost and no filter can bring it back. Even rounding the blurred image to 8 bits
+          is enough to destroy the result.
+        </p>
+
+        <h2>Taming the noise</h2>
+        <p>
+          The <strong>truncated inverse</strong> (pseudo-inverse) only divides where \(|H| \ge \varepsilon\) and sets
+          all other frequencies to zero. It gives up on frequencies that are too weak to recover, so the result stays
+          somewhat blurred, and the abrupt cut-off causes ringing next to edges, like an ideal low-pass filter.
+        </p>
+        <p>
+          <strong>Regularization</strong> trades fidelity to the data against the size of the result. Minimizing
+          \(\|h \ast \hat f - g\|^2 + K \|\hat f\|^2\) gives, frequency by frequency,
+        </p>
+        $$ \hat F = \frac{H^*}{|H|^2 + K} \, G, \qquad R = \frac{H}{H^2 + K} \text{ for a real } H. $$
+        <p>
+          Where \(H^2 \gg K\), \(R \approx 1 / H\) as before; where \(H^2 \ll K\), \(R \approx H / K\) goes smoothly
+          to zero instead of exploding. The largest gain is \(1 / (2\sqrt{K})\). This is the <strong>Wiener
+          filter</strong> for a constant noise-to-signal ratio \(K\); the full Wiener filter uses the ratio of the
+          noise power to the signal power at each frequency, which is optimal in the mean-squared-error sense. More
+          noise calls for a larger \(K\).
+        </p>
+        <p>
+          The blur in this demo wraps around the image borders, so that the model \(G = H F\) holds exactly. In real
+          photos, the content beyond the border is unknown; this mismatch causes ringing at the borders unless the
+          image is padded or its borders are tapered first.
+        </p>
+
+        <h2>Try this</h2>
+        <ul class="try">
+          <li>Start with the inverse filter and no noise: the restoration is perfect, even though \(|R|\) in the plot climbs to \(10^{8}\).</li>
+          <li>Set \(\sigma_n = 0.00001\): the degraded image looks exactly the same, but the restoration is destroyed.</li>
+          <li>Turn the noise off again and round to 8 bits instead: rounding alone is enough noise.</li>
+          <li>Switch to the truncated inverse and try \(\log_{10} \varepsilon = -2\): stable, but look for ringing in the error image.</li>
+          <li>Choose the Wiener filter and find the \(K\) with the best PSNR. Increase the noise and find it again: it moves up.</li>
+          <li>Try horizontal motion blur with \(L = 9\) and the Wiener filter: the dashed curve \(|RH|\) dips where \(H\) passes close to zero, and those frequencies stay missing as vertical stripes in the error image.</li>
+          <li>Raise \(\sigma\) to 4: \(H\) at the Nyquist frequency is now about \(10^{-34}\), and far more of the spectrum is out of reach.</li>
+        </ul>
+      </article>
+    </main>
+    <script type="module" src="./main.ts"></script>
+  </body>
+</html>
