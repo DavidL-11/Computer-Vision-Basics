@@ -1,0 +1,164 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Interactive local autocorrelation E(u,v) for corner detection: shift a window over flat regions, edges and corners, and compare the error surface with its quadratic approximation by the second moment matrix M and its eigenvalues." />
+    <title>Autocorrelation surface &amp; second moment matrix, interactive demo · Computer Vision Basics</title>
+  </head>
+  <body>
+    <main class="demo-page">
+      <section class="demo-intro">
+        <h1>Autocorrelation surface</h1>
+        <p class="lead">
+          Look at an image through a small window and shift it a little. In a flat region nothing changes, on an edge
+          only shifts across the edge change something, and at a corner every shift does. Pick a pixel and see how
+          the change \(E(u, v)\) depends on the shift, and how well the second moment matrix \(M\) predicts it.
+        </p>
+      </section>
+
+      <section class="workspace">
+        <div class="views">
+          <figure class="view card">
+            <figcaption>
+              Image \(I\) <span class="muted">click to select the window center</span>
+            </figcaption>
+            <div id="image-view" class="image-frame"></div>
+          </figure>
+          <figure class="view card">
+            <figcaption>
+              Neighborhood
+              <span class="muted legend">
+                <span class="key" style="--key: var(--viz-highlight)">window</span>
+                <span class="key dashed" style="--key: var(--viz-points)">shifted by (u, v)</span>
+              </span>
+            </figcaption>
+            <div id="patch-view" class="image-frame square-frame"></div>
+          </figure>
+          <figure class="view card">
+            <figcaption>
+              \(E(u, v)\) <span class="muted">black = 0, click to select a shift</span>
+            </figcaption>
+            <div id="e-view" class="image-frame square-frame"></div>
+          </figure>
+          <figure class="view card">
+            <figcaption>
+              Approximation \([u \;\, v] \, M \, [u \;\, v]^\top\)
+              <span class="muted legend"><span class="key" style="--key: var(--accent)">ellipse at half the white level</span></span>
+            </figcaption>
+            <div id="q-view" class="image-frame square-frame"></div>
+          </figure>
+          <figure class="view card view-wide">
+            <figcaption>
+              Sections through \((0, 0)\)
+              <span class="muted legend">
+                <span class="key" style="--key: var(--accent)">\(E(u, 0)\)</span>
+                <span class="key dashed" style="--key: var(--accent)">\(M_{11} u^2\)</span>
+                <span class="key" style="--key: var(--viz-points)">\(E(0, v)\)</span>
+                <span class="key dashed" style="--key: var(--viz-points)">\(M_{22} v^2\)</span>
+              </span>
+            </figcaption>
+            <div id="section-plot"></div>
+          </figure>
+        </div>
+        <aside id="controls" class="controls"></aside>
+      </section>
+
+      <section id="values" class="card values" aria-live="polite"></section>
+
+      <article class="explanation">
+        <h2>Interest points</h2>
+        <p>
+          Many tasks need points that can be found again in another image of the same scene: aligning images for a
+          panorama, 3D reconstruction from many photos, tracking motion, image retrieval and object recognition. They
+          all follow three steps: <strong>detect</strong> distinctive points, <strong>describe</strong> the
+          neighborhood of each one as a vector, and <strong>match</strong> the descriptors between images. Good
+          interest points are
+        </p>
+        <ul>
+          <li><strong>repeatable:</strong> the same point is found despite geometric and photometric changes,</li>
+          <li><strong>salient:</strong> each point is distinctive,</li>
+          <li><strong>compact and efficient:</strong> there are far fewer points than pixels,</li>
+          <li><strong>local:</strong> each point covers a small area, which makes it robust to clutter and occlusion.</li>
+        </ul>
+        <p>
+          The detector runs on each image independently, without knowing where the point will end up in the other
+          image. What it can check is how stable a location is: how much its neighborhood changes when it is shifted
+          slightly.
+        </p>
+
+        <h2>Change of appearance under a shift</h2>
+        <p>The change of the window \(w\) for a shift \((u, v)\) is the weighted sum of squared differences</p>
+        $$ E(u, v) = \sum_{x, y} w(x, y) \left[ I(x + u, y + v) - I(x, y) \right]^2 $$
+        <p>
+          The window function \(w\) is 1 inside the window and 0 outside (box), or a Gaussian that weights the center
+          more. Here its weights sum to 1, so the values don't depend on the window size. Small values mean that the
+          shifted window looks like the original one (high correlation, black), large values that it looks different
+          (white). The shape of \(E\) tells the three cases apart:
+        </p>
+        <ul>
+          <li><strong>Flat region:</strong> \(E\) is small for every shift, and the map is dark everywhere.</li>
+          <li><strong>Edge:</strong> \(E\) stays small along the edge, a dark line through the center.</li>
+          <li><strong>Corner:</strong> \(E\) grows in every direction, only a dark dot remains in the center.</li>
+        </ul>
+        <p>
+          A corner is a distinct minimum of \(E\). Computing \(E\) directly is slow, though: it costs the window size
+          times the number of shifts for every pixel of the image.
+        </p>
+
+        <h2>Quadratic approximation</h2>
+        <p>
+          For small shifts, a second-order Taylor expansion of \(E\) around \((0, 0)\) describes its shape:
+        </p>
+        $$ E(u, v) \approx E(0, 0) + \begin{bmatrix} u & v \end{bmatrix} \begin{bmatrix} E_u(0, 0) \\ E_v(0, 0) \end{bmatrix}
+           + \frac{1}{2} \begin{bmatrix} u & v \end{bmatrix}
+           \begin{bmatrix} E_{uu}(0, 0) & E_{uv}(0, 0) \\ E_{uv}(0, 0) & E_{vv}(0, 0) \end{bmatrix}
+           \begin{bmatrix} u \\ v \end{bmatrix} $$
+        <p>
+          \(E(0, 0) = 0\) and, since this is a minimum, the first derivatives vanish as well. Only the quadratic term
+          remains. The same result follows from the first-order expansion of the image,
+          \(I(x + u, y + v) \approx I(x, y) + I_x u + I_y v\):
+        </p>
+        $$ E(u, v) \approx \sum_{x, y} w(x, y) \left[ I_x u + I_y v \right]^2 = \begin{bmatrix} u & v \end{bmatrix} M \begin{bmatrix} u \\ v \end{bmatrix},
+           \qquad M = \sum_{x, y} w(x, y) \begin{bmatrix} I_x^2 & I_x I_y \\ I_x I_y & I_y^2 \end{bmatrix} $$
+        <p>
+          The <strong>second moment matrix</strong> \(M\) only needs the image derivatives, here central differences,
+          and no shifted copies of the window. Compare the two maps: near the center they agree, further out
+          \(E\) levels off while the parabola keeps growing, because the derivatives only describe the image close to
+          the pixel.
+        </p>
+
+        <h2>Eigenvalues and the ellipse</h2>
+        <p>
+          The lines of constant \([u \;\, v] \, M \, [u \;\, v]^\top\) are ellipses. Their axes point along the
+          eigenvectors of \(M\), and their lengths are proportional to \(\lambda^{-1/2}\): the short axis
+          \((\lambda_\text{max})^{-1/2}\) points in the direction of the fastest change, the long axis
+          \((\lambda_\text{min})^{-1/2}\) in the direction of the slowest change. The eigenvalues therefore classify the
+          window:
+        </p>
+        <ul>
+          <li>both eigenvalues small: <strong>flat</strong>, a huge ellipse,</li>
+          <li>one large and one small eigenvalue: <strong>edge</strong>, a long, thin ellipse along the edge,</li>
+          <li>both eigenvalues large: <strong>corner</strong>, a small ellipse.</li>
+        </ul>
+        <p>
+          How large is large depends on the contrast of the image. The
+          <a href="../harris/">Harris detector</a> avoids choosing two eigenvalue thresholds and combines both into a
+          single cornerness score.
+        </p>
+
+        <h2>Try this</h2>
+        <ul class="try">
+          <li>Click in the flat background, on the straight side of a shape and on a corner of a rectangle, and compare the three \(E\) maps with the classification.</li>
+          <li>On an edge, the dark line in \(E\) runs along the edge, and the ellipse becomes a long, thin band. Try the diagonal sides of the triangle and the star, too.</li>
+          <li>Select a shift further away from the center: \(E\) grows more slowly than the approximation, and the two sections separate from their parabolas.</li>
+          <li>Click on the border of the circle: every window along it sees an almost straight edge, so a circle has no corners.</li>
+          <li>Click on a rounded corner of the blue rectangle and increase the window radius from 2 to 8: the more of the curve fits into the window, the larger \(\lambda_2 / \lambda_1\) becomes.</li>
+          <li>Add a little noise, \(\sigma_n = 0.03\), and select a flat pixel: \(E\) is no longer zero for any shift, but both eigenvalues stay small.</li>
+          <li>Switch between the Gaussian and the box window while a corner lies near the border of the window: the box counts it fully, the Gaussian hardly at all.</li>
+        </ul>
+      </article>
+    </main>
+    <script type="module" src="./main.ts"></script>
+  </body>
+</html>

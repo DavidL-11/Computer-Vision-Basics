@@ -3,12 +3,13 @@
 
 import { type RGBImage, createImage } from './image';
 
-export type TestImage = 'scene' | 'chart' | 'text' | 'zone-plate' | 'gradients' | 'lights';
+export type TestImage = 'scene' | 'chart' | 'text' | 'shapes' | 'zone-plate' | 'gradients' | 'lights';
 
 export const TEST_IMAGE_LABELS: Record<TestImage, string> = {
   scene: 'Landscape',
   chart: 'Test chart',
   text: 'Colored text',
+  shapes: 'Shapes',
   'zone-plate': 'Zone plate',
   gradients: 'Gradients',
   lights: 'Colored lights',
@@ -31,6 +32,8 @@ export function testImage(name: TestImage, width: number, height: number): RGBIm
       return drawn(width, height, drawChart);
     case 'text':
       return drawn(width, height, drawText);
+    case 'shapes':
+      return drawn(width, height, drawShapes);
   }
 }
 
@@ -269,6 +272,44 @@ function drawText(ctx: CanvasRenderingContext2D): void {
     ctx.strokeStyle = fg;
     ctx.stroke();
   });
+}
+
+/** Flat shapes with sharp and rounded corners, junctions, a circle without corners and a checkerboard. */
+function drawShapes(ctx: CanvasRenderingContext2D): void {
+  ctx.fillStyle = '#d8d4c8';
+  ctx.fillRect(0, 0, 640, 480);
+
+  ctx.fillStyle = '#2d3140';
+  ctx.fillRect(50, 50, 150, 110);
+  ctx.fillStyle = '#c0661e';
+  ctx.fillRect(140, 110, 110, 90);
+
+  ctx.fillStyle = '#3d6fae';
+  ctx.beginPath();
+  ctx.roundRect(300, 45, 150, 120, 36);
+  ctx.fill();
+
+  polygon(ctx, [490, 170, 555, 45, 615, 170], '#b3322a');
+
+  ctx.fillStyle = '#2f6b2a';
+  ctx.beginPath();
+  ctx.arc(130, 330, 80, 0, Math.PI * 2);
+  ctx.fill();
+
+  const size = 30;
+  for (let j = 0; j < 5; j++)
+    for (let i = 0; i < 5; i++) {
+      ctx.fillStyle = (i + j) % 2 ? '#f4f1ea' : '#1d1f23';
+      ctx.fillRect(270 + i * size, 250 + j * size, size, size);
+    }
+
+  const star: number[] = [];
+  for (let k = 0; k < 10; k++) {
+    const r = k % 2 ? 32 : 78;
+    const a = -Math.PI / 2 + (k * Math.PI) / 5;
+    star.push(530 + r * Math.cos(a), 330 + r * Math.sin(a));
+  }
+  polygon(ctx, star, '#7a4fd6');
 }
 
 /** Lets the user pick an image file and scales it to fit into width × height (cropped to 4:3). */

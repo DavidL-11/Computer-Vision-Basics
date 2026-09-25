@@ -1,0 +1,7 @@
+/* The neighborhood and the two E maps are square; keep them from growing taller than the image. */
+.square-frame {
+  justify-content: center;
+}
+.square-frame .pixel-canvas {
+  width: min(100%, 420px);
+}
