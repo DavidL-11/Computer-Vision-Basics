@@ -1,0 +1,158 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Interactive Canny edge detector step by step: derivatives of Gaussian, gradient magnitude and orientation, non-maximum suppression and hysteresis thresholding, with adjustable σ, noise and thresholds." />
+    <title>Canny edge detector step by step, interactive demo · Computer Vision Basics</title>
+  </head>
+  <body>
+    <main class="demo-page">
+      <section class="demo-intro">
+        <h1>Canny edge detector</h1>
+        <p class="lead">
+          The most widely used edge detector turns the image gradient into thin, connected edge curves in four steps.
+          Change the scale and the thresholds, and follow a single pixel through every step.
+        </p>
+      </section>
+
+      <section class="workspace">
+        <div class="views steps">
+          <figure class="view card">
+            <figcaption>Image \(I\) <span class="muted">click any view to select a pixel</span></figcaption>
+            <div id="input-view" class="image-frame"></div>
+          </figure>
+          <figure class="view card">
+            <figcaption>1 · \(I_x\) <span class="muted">derivative of Gaussian in x</span></figcaption>
+            <div id="ix-view" class="image-frame"></div>
+          </figure>
+          <figure class="view card">
+            <figcaption>1 · \(I_y\) <span class="muted">derivative of Gaussian in y</span></figcaption>
+            <div id="iy-view" class="image-frame"></div>
+          </figure>
+          <figure class="view card">
+            <figcaption>2 · Magnitude \(\|\nabla I\|\) <span class="muted">edge strength</span></figcaption>
+            <div id="magnitude-view" class="image-frame"></div>
+          </figure>
+          <figure class="view card">
+            <figcaption>2 · Orientation \(\theta\) <span class="muted">hue, brightness from magnitude</span></figcaption>
+            <div id="angle-view" class="image-frame"></div>
+          </figure>
+          <figure class="view card">
+            <figcaption>3 · Non-maximum suppression <span class="muted">thinned to one pixel</span></figcaption>
+            <div id="nms-view" class="image-frame"></div>
+          </figure>
+          <figure class="view card">
+            <figcaption>
+              4 · Thresholds
+              <span class="muted legend">
+                <span class="key" style="--key: var(--fg)">strong</span>
+                <span class="key" style="--key: var(--accent)">weak kept</span>
+                <span class="key" style="--key: var(--viz-highlight)">dropped</span>
+              </span>
+            </figcaption>
+            <div id="classes-view" class="image-frame"></div>
+          </figure>
+          <figure class="view card">
+            <figcaption>4 · Edges <span class="muted">after hysteresis</span></figcaption>
+            <div id="edges-view" class="image-frame"></div>
+          </figure>
+        </div>
+        <aside id="controls" class="controls"></aside>
+      </section>
+
+      <section id="values" class="card values" aria-live="polite"></section>
+
+      <article class="explanation">
+        <h2>What makes a good edge detector</h2>
+        <ul>
+          <li>
+            <strong>Good detection:</strong> it finds all real edges and ignores noise and other artifacts.
+          </li>
+          <li>
+            <strong>Good localization:</strong> the detected edges are as close as possible to the true edges, and
+            the detector returns only one point for each true edge point.
+          </li>
+        </ul>
+        <p>
+          Canny modeled edges as ideal steps corrupted by additive Gaussian noise and looked for the linear filter that
+          optimizes the product of the signal-to-noise ratio and the localization. The first derivative of a Gaussian
+          approximates this optimal operator closely. Filtering alone still gives thick, broken responses, so three more
+          steps turn them into thin, connected curves.
+        </p>
+
+        <h2>Step 1: derivatives of Gaussian</h2>
+        <p>
+          The image is filtered with the \(x\) and \(y\) derivatives of a Gaussian, which smooths and differentiates at
+          the same time, as explained in <a href="../edge-derivatives/">Derivatives &amp; noise</a>:
+        </p>
+        $$ I_x = I * \frac{\partial G_\sigma}{\partial x}, \qquad I_y = I * \frac{\partial G_\sigma}{\partial y} $$
+        <p>
+          \(I_x\) responds to vertical edges, \(I_y\) to horizontal ones. Positive values (bright) mean the intensity
+          increases to the right or downwards.
+        </p>
+
+        <h2>Step 2: magnitude and orientation</h2>
+        <p>
+          Together, the two derivatives form the gradient \(\nabla I = (I_x, I_y)\). It points in the direction of the
+          steepest increase in intensity, across the edge, and its length measures the edge strength:
+        </p>
+        $$ \|\nabla I\| = \sqrt{I_x^2 + I_y^2}, \qquad \theta = \operatorname{atan2}(I_y, I_x) $$
+        <p>
+          Because \(y\) points down in images, \(\theta\) turns clockwise on the screen. The two sides of a thin line
+          have opposite gradients, so they show up in opposite colors in the orientation view.
+        </p>
+
+        <h2>Step 3: non-maximum suppression</h2>
+        <p>
+          The magnitude forms ridges that are several pixels wide, and wider for larger \(\sigma\). To get one point per
+          edge, a pixel \(q\) is kept only if its magnitude is a maximum along the gradient direction. It is compared
+          with the points one pixel ahead and one pixel behind,
+        </p>
+        $$ p = q + \frac{\nabla I}{\|\nabla I\|}, \qquad r = q - \frac{\nabla I}{\|\nabla I\|}, $$
+        <p>
+          which usually fall between pixel centers, so their magnitudes are interpolated from the four surrounding
+          pixels. The pixel survives if \(\|\nabla I\|(q) &gt; \|\nabla I\|(p)\) and
+          \(\|\nabla I\|(q) \ge \|\nabla I\|(r)\); the asymmetric comparison keeps exactly one pixel of a ridge with two
+          equal values. Select a pixel and zoom in to see \(p\) and \(r\) drawn on the magnitude views.
+        </p>
+
+        <h2>Step 4: hysteresis thresholding</h2>
+        <p>
+          The thinned magnitude still contains small responses from noise and texture. A single threshold either lets
+          them through or breaks real edges into dashes wherever their contrast dips. Hysteresis uses two thresholds:
+        </p>
+        <ul>
+          <li>magnitude above the high threshold: <strong>strong</strong> edge pixel,</li>
+          <li>magnitude below the low threshold: noise, discarded,</li>
+          <li>magnitude in between: <strong>weak</strong> edge pixel.</li>
+        </ul>
+        <p>
+          Starting from the strong pixels, edges are followed into connected weak pixels, which is a connected
+          components search over the 8 neighbors of each pixel. A curve has to be strong in one place only, and it is
+          then kept as long as it stays above the low threshold. Here both thresholds are given as fractions of the
+          largest magnitude in the image.
+        </p>
+
+        <h2>Choosing σ</h2>
+        <p>
+          The choice of \(\sigma\) depends on the desired behavior: a large \(\sigma\) detects large-scale edges and
+          suppresses noise, a small \(\sigma\) detects fine features. Canny finds every intensity edge at the chosen
+          scale, including texture and shadow boundaries. Which of them are useful is left to the application, which
+          can only choose if all edges were found in the first place.
+        </p>
+
+        <h2>Try this</h2>
+        <ul class="try">
+          <li>Select a pixel on an edge and zoom to 8×: the magnitude ridge is several pixels wide, and only its center survives non-maximum suppression.</li>
+          <li>Set both thresholds to the same value, so that there is no hysteresis. Lower it until the edges are closed, and look at how much noise comes with them.</li>
+          <li>Now raise only the high threshold: noise disappears, while real edges stay connected through their weak parts.</li>
+          <li>Add noise with \(\sigma_n = 0.05\) and compare \(\sigma = 0.8\) with \(\sigma = 3\): small scales find noise and fine texture, large scales only the main outlines.</li>
+          <li>Choose the test chart and increase \(\sigma\): the finest line groups vanish first, and corners get rounded.</li>
+          <li>Look at the orientation view of the colored text: letters on dark and on bright backgrounds have opposite colors, because their gradients point the other way.</li>
+        </ul>
+      </article>
+    </main>
+    <script type="module" src="./main.ts"></script>
+  </body>
+</html>

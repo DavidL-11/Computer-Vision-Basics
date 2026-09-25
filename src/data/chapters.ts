@@ -175,7 +175,20 @@ export const chapters: Chapter[] = [
     summary:
       'Finding rapid changes in intensity: image gradients, why noise calls for smoothing, and the steps of the Canny edge detector.',
     concepts: ['Image gradients', 'Noise & smoothing', 'Derivative of Gaussian', 'Non-maximum suppression', 'Hysteresis', 'Canny'],
-    demos: [],
+    demos: [
+      {
+        title: 'Derivatives & noise',
+        description:
+          'Plot a row of an image with its first and second derivative, add noise until the edges drown, then smooth first and see that this equals filtering with a derivative of Gaussian.',
+        slug: 'edge-derivatives',
+      },
+      {
+        title: 'Canny edge detector',
+        description:
+          'Follow a pixel through derivatives of Gaussian, gradient magnitude and orientation, non-maximum suppression and hysteresis thresholding, with adjustable σ and thresholds.',
+        slug: 'canny',
+      },
+    ],
   },
   {
     id: 'corners',

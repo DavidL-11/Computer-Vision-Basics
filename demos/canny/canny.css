@@ -1,0 +1,27 @@
+.views.steps {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+.views.steps .view figcaption .muted {
+  display: block;
+  margin-left: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.views.steps .legend .key {
+  margin-left: 0.6rem;
+}
+.views.steps .legend .key:first-child {
+  margin-left: 0;
+}
+
+@media (max-width: 1500px) {
+  .views.steps {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+@media (max-width: 560px) {
+  .views.steps {
+    grid-template-columns: 1fr;
+  }
+}
