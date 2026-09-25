@@ -35,6 +35,8 @@ npm run preview   # serve dist/ at http://localhost:4173/Computer-Vision-Basics/
   - `pixelView.ts`: `PixelView` shows an `RGBImage` with visible pixels, zoom, picking and overlays; `perFrame()`.
   - `testImages.ts` / `imagePicker.ts`: procedural test images and a Tweakpane image list with "Open image…".
   - `fft.ts`: radix-2 FFT, `fft2`/`ifft2` of a `Plane` (power-of-2 sizes, DC at index 0), `fftShift()` for display.
+  - `harris.ts`: image `derivatives()`, Gaussian-windowed `secondMoment()`, 2×2 `eigen()`, Harris `cornerness()` /
+    `harris()` and `localMaxima()` (non-maximum suppression).
   - `plot.ts`: `Plot` canvas for function graphs, stems and bars with axes; colors given as CSS tokens.
   - `tex.ts`: TeX helpers (`renderTex`, `eq`, `fmt`, `texMatrix`, `texVector`, `texTuple`) for panels with live values.
   - `styles/base.css`: design tokens and the Tweakpane theme.
@@ -55,6 +57,8 @@ Conventions for demos:
 - Keep the math in pure functions in their own module, with a `*.test.ts` next to it (see `camera.ts` and
   `camera.test.ts`). Implement the math visibly rather than hiding it behind library calls, since showing it is the
   point of the site.
+- If a library function (e.g. from OpenCV.js) would give a real performance gain over the hand-written math, say so
+  explicitly and ask the user before using it; never switch on your own.
 - Colors come from CSS tokens in `base.css` (`--viz-*`, `--axis-*`, etc.). Demo-specific tokens use `light-dark()`
   in the demo's CSS. Canvas/WebGL code reads colors with `cssColor('--token')` and redraws in `onThemeChange()`.
 - Controls use Tweakpane, which is already themed through `base.css`.

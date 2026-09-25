@@ -197,7 +197,26 @@ export const chapters: Chapter[] = [
     summary:
       'Distinctive, repeatable interest points: local autocorrelation, the second moment matrix, the Harris detector and its invariance properties.',
     concepts: ['Interest points', 'Autocorrelation E(u,v)', 'Second moment matrix M', 'Harris response', 'Invariance & covariance'],
-    demos: [],
+    demos: [
+      {
+        title: 'Autocorrelation surface',
+        description:
+          'Shift a window over flat regions, edges and corners, and compare the change E(u,v) with its quadratic approximation by the second moment matrix M, its ellipse and its eigenvalues.',
+        slug: 'autocorrelation',
+      },
+      {
+        title: 'Harris corner detector',
+        description:
+          'Follow a pixel through derivatives, the windowed second moment matrix, the cornerness det(M) − α trace(M)², thresholding and non-maximum suppression, and see all pixels in the λ₁/λ₂ plane.',
+        slug: 'harris',
+      },
+      {
+        title: 'Harris invariance',
+        description:
+          'Change brightness and contrast, shift, rotate and scale an image, detect corners again and measure how many come back: covariant with rotation, not with scale.',
+        slug: 'harris-invariance',
+      },
+    ],
   },
   {
     id: 'features',

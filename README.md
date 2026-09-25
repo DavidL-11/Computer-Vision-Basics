@@ -41,6 +41,12 @@ If you found this repository useful, please consider starring it on GitHub.
 - [Derivatives & noise](https://davidl-11.github.io/Computer-Vision-Basics/demos/edge-derivatives/)
 - [Canny edge detector](https://davidl-11.github.io/Computer-Vision-Basics/demos/canny/)
 
+### 5. Corner Detection
+
+- [Autocorrelation surface](https://davidl-11.github.io/Computer-Vision-Basics/demos/autocorrelation/)
+- [Harris corner detector](https://davidl-11.github.io/Computer-Vision-Basics/demos/harris/)
+- [Harris invariance](https://davidl-11.github.io/Computer-Vision-Basics/demos/harris-invariance/)
+
 ### 7. Cameras and Optics
 
 - [Homogeneous coordinates](https://davidl-11.github.io/Computer-Vision-Basics/demos/homogeneous-coordinates/)

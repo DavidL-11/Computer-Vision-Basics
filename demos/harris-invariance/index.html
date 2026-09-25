@@ -1,0 +1,146 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Interactive invariance and covariance of Harris corners: change brightness and contrast, shift, rotate and scale an image, detect corners again and measure how many are repeated. Rotation works, scale does not." />
+    <title>Harris corners: invariance &amp; covariance, interactive demo · Computer Vision Basics</title>
+  </head>
+  <body>
+    <main class="demo-page">
+      <section class="demo-intro">
+        <h1>Harris invariance</h1>
+        <p class="lead">
+          Good interest points are repeatable: they are found again when the same scene is seen with different
+          lighting or from a different viewpoint. Transform an image, run the Harris detector on both versions
+          independently, and count how many corners come back.
+        </p>
+      </section>
+
+      <section class="workspace">
+        <div class="views">
+          <figure class="view card">
+            <figcaption>
+              Original \(A\)
+              <span class="muted legend">
+                <span class="key" style="--key: var(--axis-y)">found again</span>
+                <span class="key" style="--key: var(--viz-highlight)">lost</span>
+              </span>
+            </figcaption>
+            <div id="a-view" class="image-frame"></div>
+          </figure>
+          <figure class="view card">
+            <figcaption>
+              Transformed \(B\)
+              <span class="muted legend">
+                <span class="key" style="--key: var(--viz-points)">corners of B</span>
+                <span class="key" style="--key: var(--axis-y)">rings: corners of A, mapped</span>
+              </span>
+            </figcaption>
+            <div id="b-view" class="image-frame"></div>
+          </figure>
+          <figure class="view card">
+            <figcaption>
+              Rotation θ
+              <span class="muted legend">
+                <span class="key" style="--key: var(--accent)">found again</span>
+                <span class="key dashed" style="--key: var(--viz-points)">corners of B with a partner</span>
+              </span>
+            </figcaption>
+            <div id="rotation-plot"></div>
+          </figure>
+          <figure class="view card">
+            <figcaption>Scale s <span class="muted">each curve changes one parameter only</span></figcaption>
+            <div id="scale-plot"></div>
+          </figure>
+          <figure class="view card">
+            <figcaption>Contrast a</figcaption>
+            <div id="contrast-plot"></div>
+          </figure>
+          <figure class="view card">
+            <figcaption>Brightness b</figcaption>
+            <div id="brightness-plot"></div>
+          </figure>
+        </div>
+        <aside id="controls" class="controls"></aside>
+      </section>
+
+      <section id="values" class="card values" aria-live="polite"></section>
+
+      <article class="explanation">
+        <h2>Invariance and covariance</h2>
+        <p>
+          Two different properties are wanted from a detector, depending on the kind of change:
+        </p>
+        <ul>
+          <li>
+            <strong>Invariance</strong> to photometric changes such as brightness and contrast: the image is
+            transformed, and the corner locations do not change.
+          </li>
+          <li>
+            <strong>Covariance</strong> with geometric changes such as translation, rotation and scale: in two
+            transformed versions of the same image, features are detected at corresponding locations, so they move
+            along with the image.
+          </li>
+        </ul>
+
+        <h2>Affine intensity change</h2>
+        <p>An affine intensity change adjusts the contrast with a gain \(a\) and the brightness with an offset \(b\):</p>
+        $$ I'(x, y) = a \, I(x, y) + b $$
+        <p>
+          The <a href="../harris/">Harris detector</a> only uses derivatives, so the offset disappears:
+          \(I \to I + b\) leaves every corner in place. The gain scales the derivatives by \(a\), the second moment
+          matrix \(M\) by \(a^2\) and the cornerness \(C = \det(M) - \alpha \operatorname{trace}(M)^2\) by \(a^4\).
+          The maxima of \(C\) stay where they are, but a fixed threshold now cuts at a different level: with lower
+          contrast the weaker corners are lost, with higher contrast new ones get through. The detector is therefore only
+          <strong>partially invariant</strong> to affine intensity changes. In practice, values are also clipped at
+          black and white, and in saturated regions the image content itself is gone.
+        </p>
+
+        <h2>Translation and rotation</h2>
+        <p>
+          Derivatives and the window function are shift-invariant, so the corner locations are
+          <strong>covariant with translation</strong>. When the image rotates, the second moment ellipse rotates with
+          it, but its shape, and so the eigenvalues, stay the same. The cornerness depends only on the eigenvalues,
+          so the corner locations are <strong>covariant with rotation</strong> as well. The small losses at angles
+          between multiples of 90° come from resampling the image on the rotated pixel grid.
+        </p>
+
+        <h2>Scaling</h2>
+        <p>
+          Imagine a rounded corner that fits inside the window. Scale the image up and the corner spills out of the
+          window: every window along it now sees an almost straight edge, and all points are classified as edges. The
+          corner is lost. Scaling down merges fine structures, such as small squares, into one blob with different
+          corners. And where a corner survives, the detector places it relative to its window, so its position no
+          longer maps exactly onto the corner in the other image. The Harris corner locations are
+          <strong>not covariant with scaling</strong>, because the window
+          has a fixed size in pixels. Detectors for matching between images of different scale also have to choose
+          the size of the window per point, by searching in scale space as well, for example with the Difference of
+          Gaussians.
+        </p>
+
+        <h2>Measuring repeatability</h2>
+        <p>
+          Both images are processed independently with the same detector settings. Only corners in the region that
+          both images show count, at a distance from the borders where the filters would see pixels outside the image.
+          Each corner of \(A\) is mapped into \(B\) with the known transformation and paired with a corner of
+          \(B\) at most \(\varepsilon\) pixels away, closest pairs first and each corner at most once. The share of
+          corners of \(A\) that are found again is the repeatability; the dashed curves show which share of the
+          corners of \(B\) has a partner in \(A\). The four plots change one parameter at a time, the others staying
+          at the identity.
+        </p>
+
+        <h2>Try this</h2>
+        <ul class="try">
+          <li>Shift the image by whole and by half pixels: every corner is found again, within \(\varepsilon\) of where it should be.</li>
+          <li>Rotate by 90°: all corners are found again. Try 30° and 45°: nearly all, apart from interpolation effects. The rotation curve stays high.</li>
+          <li>Scale up to \(s = 2\): only about half of the corners come back. Scale down to 0.5, where the checkerboard squares shrink to a few pixels, and it gets even worse.</li>
+          <li>Lower the contrast to \(a = 0.5\): \(C\) shrinks by a factor of 16, and a third of the corners fall below the fixed threshold. Above 1, \(C\) grows instead, and at about 1.2 the bright background starts to clip to white.</li>
+          <li>Now turn on the relative threshold: the contrast curve stays at 100% below 1, and only clipping at high contrast loses corners.</li>
+          <li>Change the brightness: corners stay until parts of the image are clipped to black or white.</li>
+        </ul>
+      </article>
+    </main>
+    <script type="module" src="./main.ts"></script>
+  </body>
+</html>
