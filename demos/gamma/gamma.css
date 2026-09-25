@@ -1,0 +1,36 @@
+.curve-view {
+  flex: 1;
+  background: var(--bg-elev);
+}
+.curve-canvas {
+  display: block;
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  max-height: 360px;
+}
+.gray-view {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg-sunken);
+  overflow: hidden;
+}
+.gray-canvas {
+  display: block;
+}
+
+.mix-table {
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+.mix-table th,
+.mix-table td {
+  padding: 0.25rem 1rem 0.25rem 0;
+  text-align: left;
+  white-space: nowrap;
+}
+.mix-table th {
+  font-weight: 600;
+  color: var(--fg-muted);
+}

@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Interactive gamma correction: the sRGB transfer curve, what medium gray really is, blurring in linear light versus gamma-encoded values, and gamma per channel versus on luminance." />
+    <title>Gamma correction &amp; sRGB, interactive demo · Computer Vision Basics</title>
+  </head>
+  <body>
+    <main class="demo-page">
+      <section class="demo-intro">
+        <h1>Gamma</h1>
+        <p class="lead">
+          Pixel values are not proportional to light. A value of 128 is not half as bright as 255; it emits only about
+          a fifth of the light. Images are stored <strong>gamma-encoded</strong>, and every operation that models light
+          has to decode them first. See how much this matters.
+        </p>
+      </section>
+
+      <section class="workspace">
+        <div class="views">
+          <figure class="view card">
+            <figcaption>Pixel value → light <span class="muted">the decoding curve</span></figcaption>
+            <div id="curve-view" class="curve-view"></div>
+          </figure>
+          <figure class="view card">
+            <figcaption>Medium gray <span class="muted">step back or squint: which center matches its surround?</span></figcaption>
+            <div id="gray-view" class="gray-view"></div>
+          </figure>
+          <figure class="view card">
+            <figcaption>Blur <span class="muted">the same Gaussian, applied to encoded values and to linear light</span></figcaption>
+            <div class="image-row">
+              <figure><div id="blur-original"></div><figcaption>original</figcaption></figure>
+              <figure><div id="blur-encoded"></div><figcaption>blurred encoded values</figcaption></figure>
+              <figure><div id="blur-linear"></div><figcaption>blurred linear light</figcaption></figure>
+            </div>
+          </figure>
+          <figure class="view card">
+            <figcaption>Gamma adjustment \(v \to v^\gamma\) <span class="muted">applied per channel and to luma only</span></figcaption>
+            <div class="image-row">
+              <figure><div id="adjust-original"></div><figcaption>original</figcaption></figure>
+              <figure><div id="adjust-channels"></div><figcaption>per channel</figcaption></figure>
+              <figure><div id="adjust-luma"></div><figcaption>luma only</figcaption></figure>
+            </div>
+          </figure>
+        </div>
+        <aside id="controls" class="controls"></aside>
+      </section>
+
+      <section id="values" class="card values" aria-live="polite"></section>
+
+      <article class="explanation">
+        <h2>Encoded values and light</h2>
+        <p>
+          The relation between a pixel value \(v \in [0, 1]\) and the light intensity \(I\) it stands for is roughly a
+          power law, with an exponent called <em>gamma</em>:
+        </p>
+        $$ I = v^{\gamma}, \qquad v = I^{1/\gamma}, \qquad \gamma \approx 2.2 $$
+        <p>
+          The sRGB standard, used by nearly all images and displays, replaces the power law with a short linear
+          segment near black and an exponent of 2.4 elsewhere. Overall it is very close to \(\gamma = 2.2\):
+        </p>
+        $$ I = \begin{cases} \dfrac{v}{12.92} &amp; v \le 0.04045 \\[1ex] \left( \dfrac{v + 0.055}{1.055} \right)^{2.4} &amp; \text{otherwise} \end{cases} $$
+
+        <h2>Why encode?</h2>
+        <p>
+          Our perception of brightness is far from linear: we notice small differences between dark tones much more
+          easily than between bright ones. Encoding with \(v = I^{1/2.2}\) spreads the 256 levels of an 8-bit image
+          roughly evenly in <em>perceived</em> brightness, with many levels for dark tones and fewer for bright ones.
+          With 8 bits of linear intensity, dark gradients would show visible bands, while many of the bright levels
+          would be wasted. Historically the curve also matched the response of CRT displays.
+        </p>
+
+        <h2>Medium gray</h2>
+        <p>
+          Alternating black and white lines emit exactly half the light of white. The gray value that looks the same
+          is not 128, but
+        </p>
+        $$ v = 0.5^{1/2.2} \cdot 255 \approx 186 \qquad (\text{with the exact sRGB curve: } 188). $$
+        <p>
+          Conversely, 128 is only \((128/255)^{2.2} \approx 22\,\%\) of the light. The comparison only works if the
+          lines are displayed at one line per screen pixel and your display follows sRGB; if you see moiré, set the page
+          zoom to 100 %.
+        </p>
+
+        <h2>Linear vs encoded</h2>
+        <p>
+          Light adds up linearly. Any operation that mixes light (blurring, resizing, anti-aliasing, blending two
+          images, computing a camera's exposure) must therefore work on linear intensities:
+        </p>
+        $$ \text{decode} \;\to\; \text{process} \;\to\; \text{encode} $$
+        <p>
+          Averaging encoded values is too dark: black and white give 128 instead of 188. Between red and green the
+          mix gets a dark, muddy band, and small bright lights lose most of their energy when blurred. The table in the
+          values panel shows these averages.
+        </p>
+
+        <h2>Adjusting gamma</h2>
+        <p>
+          Raising values to a power \(\gamma\) is also a common tone adjustment: \(\gamma &lt; 1\) brightens the
+          shadows, \(\gamma &gt; 1\) darkens them. Applied to each channel separately, it changes the ratios between R,
+          G and B, so colors shift and saturation changes. Applied to the luma only, the three channels are scaled by
+          the same factor and the colors keep their hue:
+        </p>
+        $$ (R, G, B) \;\to\; \frac{Y'^{\,\gamma}}{Y'} \, (R, G, B), \qquad Y' = 0.299\,R + 0.587\,G + 0.114\,B $$
+        <p>Channels that would exceed 1 are clipped.</p>
+
+        <h2>Try this</h2>
+        <ul class="try">
+          <li>Move the pixel value until its square matches the surround. You will likely end up near 186, which the curve maps to about 0.5.</li>
+          <li>Set \(v = 128\) and read the light intensity from the curve: about 0.22.</li>
+          <li>Blur the colored lights. In encoded values, red and green stripes blend into a dark band and the white lines almost vanish; in linear light the average is a bright yellow and the lines stay visible as a glow.</li>
+          <li>Look at the blue and yellow checkerboard: encoded blurring makes it a dull gray, linear blurring a lighter gray.</li>
+          <li>Blur the landscape with a small σ. Both versions look similar in smooth areas; the differences appear at high-contrast edges such as the fence.</li>
+          <li>Set \(\gamma = 0.3\) and compare the gamma adjustments: per channel washes out the colors, luma only keeps them saturated.</li>
+          <li>Try \(\gamma = 2.5\) on the landscape. Per channel makes the colors more saturated, because the weaker channels drop faster than the strongest one.</li>
+        </ul>
+      </article>
+    </main>
+    <script type="module" src="./main.ts"></script>
+  </body>
+</html>
