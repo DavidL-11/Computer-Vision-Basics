@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Interactive median filter vs mean filter: add salt-and-pepper or Gaussian noise to an image and compare how both filters remove it, how they treat edges, and their PSNR." />
+    <title>Median vs mean filter, interactive demo · Computer Vision Basics</title>
+  </head>
+  <body>
+    <main class="demo-page">
+      <section class="demo-intro">
+        <h1>Median vs mean filter</h1>
+        <p class="lead">
+          Averaging the neighborhood reduces noise, but it also blurs edges, and a single extreme pixel spreads into a
+          blotch. The <strong>median</strong> takes the middle value instead. Add noise and compare the two filters.
+        </p>
+      </section>
+
+      <section class="workspace">
+        <div class="views">
+          <figure class="view card">
+            <figcaption>Noisy <span class="muted">click to select a pixel and row</span></figcaption>
+            <div id="noisy-view" class="image-frame"></div>
+          </figure>
+          <figure class="view card">
+            <figcaption>Original <span class="muted">without noise</span></figcaption>
+            <div id="original-view" class="image-frame"></div>
+          </figure>
+          <figure class="view card">
+            <figcaption>Mean filter <span id="mean-caption" class="muted"></span></figcaption>
+            <div id="mean-view" class="image-frame"></div>
+          </figure>
+          <figure class="view card">
+            <figcaption>Median filter <span id="median-caption" class="muted"></span></figcaption>
+            <div id="median-view" class="image-frame"></div>
+          </figure>
+          <figure class="view card view-wide">
+            <figcaption>Intensity along the selected row</figcaption>
+            <div id="profile-view"></div>
+          </figure>
+        </div>
+        <aside id="controls" class="controls"></aside>
+      </section>
+
+      <section id="values" class="card values" aria-live="polite"></section>
+
+      <article class="explanation">
+        <h2>Two kinds of noise</h2>
+        <ul>
+          <li>
+            <strong>Gaussian noise</strong> adds a small random value to every pixel, \(I = I_0 + \eta\) with
+            \(\eta \sim \mathcal{N}(0, \sigma^2)\), like the electronic noise of a sensor.
+          </li>
+          <li>
+            <strong>Salt-and-pepper noise</strong> leaves most pixels intact but sets a fraction of them to black or
+            white, like dead pixels or transmission errors. These <em>outliers</em> have nothing to do with the true
+            value.
+          </li>
+        </ul>
+
+        <h2>Mean filter</h2>
+        <p>
+          The box filter, or mean filter, replaces each pixel by the average of the \(N\) pixel values \(I_i\) in its
+          window, here \(N = n \times n\):
+        </p>
+        $$ B = \frac{1}{N} \sum_{i=1}^{N} I_i $$
+        <p>
+          Averaging \(N\) independent noise values reduces their standard deviation by a factor \(\sqrt{N} = n\),
+          which works well for Gaussian noise. But the mean is sensitive to outliers: a single white pixel on black
+          contributes \(1/N\) to every output pixel of its window and leaves a gray square. The mean also mixes the two
+          sides of every edge, so edges get blurred.
+        </p>
+
+        <h2>Median filter</h2>
+        <p>
+          The median filter selects the median intensity in the window: it sorts the values and takes the middle one.
+          Because it is based on the ordering of the gray levels, it is a <em>rank filter</em>, like the min, max and
+          range filters.
+        </p>
+        $$ M = \operatorname{median} \{ I_1, \dots, I_N \} $$
+        <p>
+          As long as fewer than half of the values in the window are outliers, they end up at the ends of the sorted
+          list and do not affect the result at all. At a straight edge, more than half of the window lies on one side,
+          so the output takes a value from that side: the edge stays sharp. The price is that thin lines and corners,
+          which cover less than half of the window, are removed, and sorting makes it more expensive than the mean.
+        </p>
+        <p>
+          The median is not a weighted sum of the inputs, so it is a <em>non-linear</em> filter: it cannot be written
+          as a convolution, and the median of a sum of two images is not the sum of their medians.
+        </p>
+
+        <div class="callout">
+          <strong>Measuring the result.</strong> The values panel compares every image with the original using the
+          peak signal-to-noise ratio \(\mathrm{PSNR} = 10 \log_{10} (1 / \mathrm{MSE})\) dB. Higher is better.
+        </div>
+
+        <h2>Try this</h2>
+        <ul class="try">
+          <li>With salt-and-pepper noise, compare the two filters at size 3: the median removes nearly all dots, the mean turns each into a gray blotch.</li>
+          <li>Select a noisy pixel and look at the sorted window in the values panel: the black and white values sit at the ends, far from the median.</li>
+          <li>Raise the density to 0.3: size 3 is no longer enough for the median, because windows now often contain many outliers. Try size 5.</li>
+          <li>Switch to Gaussian noise: now the mean holds up much better, and the PSNR values of the two filters are close.</li>
+          <li>Follow an edge in the row profile: the median follows the step, the mean turns it into a ramp as wide as the window.</li>
+          <li>Choose the test chart and filter size 7: the median rounds off corners and removes the finest lines completely.</li>
+        </ul>
+      </article>
+    </main>
+    <script type="module" src="./main.ts"></script>
+  </body>
+</html>
