@@ -1,0 +1,158 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Interactive SIFT descriptor step by step: gradients around a keypoint, the orientation histogram and dominant orientation, 4 × 4 histograms of 8 orientations, normalization and clamping at 0.2, tested under rotation, scaling and illumination changes." />
+    <title>SIFT descriptor step by step, interactive demo · Computer Vision Basics</title>
+  </head>
+  <body>
+    <main class="demo-page">
+      <section class="demo-intro">
+        <h1>SIFT descriptor</h1>
+        <p class="lead">
+          A keypoint comes with a position and a scale. The SIFT descriptor turns the patch around it into 128 numbers
+          that should stay the same when the image is rotated, scaled or lit differently. Pick a keypoint, follow it
+          through the steps, and transform the image to see how well the numbers hold.
+        </p>
+      </section>
+
+      <section class="workspace">
+        <div class="views">
+          <figure class="view card">
+            <figcaption>
+              Transformed image and keypoints
+              <span class="muted legend">
+                <span class="key" style="--key: var(--viz-points)">keypoints and orientation</span>
+                <span class="key" style="--key: var(--viz-highlight)">selected</span>
+              </span>
+            </figcaption>
+            <div id="image-view" class="image-frame"></div>
+          </figure>
+          <figure class="view card">
+            <figcaption>
+              1 · Gradients around the keypoint
+              <span class="muted legend">
+                <span class="key" style="--key: var(--viz-points)">gradients, weighted</span>
+                <span class="key" style="--key: var(--accent)">4 × 4 cells</span>
+                <span class="key dashed" style="--key: var(--fg-muted)">orientation window</span>
+              </span>
+            </figcaption>
+            <div id="patch-view" class="image-frame square-frame"></div>
+          </figure>
+          <figure class="view card">
+            <figcaption>
+              2 · Orientation histogram
+              <span class="muted legend">
+                <span class="key dashed" style="--key: var(--fg-muted)">80% of the peak</span>
+                <span class="key" style="--key: var(--viz-highlight)">θ</span>
+              </span>
+            </figcaption>
+            <div id="orientation-plot"></div>
+          </figure>
+          <figure class="view card">
+            <figcaption>
+              3 · 4 × 4 histograms of 8 orientations
+              <span class="muted legend">
+                <span class="key" style="--key: var(--accent)">transformed</span>
+                <span class="key" style="--key: var(--fg-faint)">original</span>
+              </span>
+            </figcaption>
+            <div id="cells-plot"></div>
+          </figure>
+          <figure class="view card view-wide">
+            <figcaption>
+              4 · The 128 values
+              <span class="muted legend">
+                <span class="key" style="--key: var(--fg-faint)">normalized</span>
+                <span class="key dashed" style="--key: var(--viz-highlight)">clamp limit</span>
+                <span class="key" style="--key: var(--accent)">clamped and renormalized</span>
+                <span class="key" style="--key: var(--viz-points)">original image</span>
+              </span>
+            </figcaption>
+            <div id="vector-plot"></div>
+          </figure>
+        </div>
+        <aside id="controls" class="controls"></aside>
+      </section>
+
+      <section id="values" class="card values" aria-live="polite"></section>
+
+      <article class="explanation">
+        <h2>What a descriptor should do</h2>
+        <p>
+          Detection gives each keypoint a position and a scale, for example from the
+          <a href="../scale-space/">Difference of Gaussians</a>. The descriptor extracts a vector from the patch around
+          it that is <strong>robust</strong>: it stays nearly the same when the patch is seen again under a different
+          viewpoint or light, and <strong>distinctive</strong>: different patches give different vectors. It should
+          also be <strong>compact</strong> and fast to compute and compare. Most descriptors are templates,
+          histograms, or combinations of both, and most use edge and gradient information, which captures texture;
+          color is rarely used. SIFT is a set of local histograms of oriented gradients.
+        </p>
+
+        <h2>The steps</h2>
+        <ol>
+          <li>
+            <strong>Gradients.</strong> The gradient magnitude and orientation are computed on the Gaussian image
+            \(L\) closest to the keypoint's scale:
+            \(m = \sqrt{L_x^2 + L_y^2}\), \(\phi = \operatorname{atan2}(L_y, L_x)\).
+          </li>
+          <li>
+            <strong>Orientation estimation.</strong> A histogram of 36 bins of 10° collects the orientations within a
+            radius of \(3 \cdot 1.5\sigma\), each weighted by its magnitude and a Gaussian of \(1.5\sigma\). The highest
+            peak gives the dominant orientation \(\theta\), refined with a parabola through three bins. Every other
+            peak of at least 80% of the highest creates an extra keypoint with its own orientation.
+          </li>
+          <li>
+            <strong>Normalize the orientation.</strong> The patch is rotated so that \(\theta\) points along the
+            x axis: a grid of 16 × 16 samples is laid out in the keypoint's frame, rotated by \(\theta\), with a
+            spacing proportional to \(\sigma\). Every orientation is measured relative to \(\theta\).
+          </li>
+          <li>
+            <strong>Histograms.</strong> The grid is divided into 4 × 4 subregions of 4 × 4 samples. Each subregion
+            gets a histogram of 8 orientations, 45° each. Each sample votes with its gradient magnitude, weighted by a
+            Gaussian over the window, so gradients near the center count more. Votes are split between neighboring
+            subregions and bins, so a small shift or rotation changes the histograms gradually.
+          </li>
+          <li>
+            <strong>Vector.</strong> The 4 × 4 × 8 = 128 values are lined up into one vector.
+          </li>
+        </ol>
+
+        <h2>Illumination</h2>
+        <p>Two steps make the descriptor robust to changes of brightness \(I + b\) and contrast \(\alpha I\):</p>
+        <ul>
+          <li>It works in gradient space, where the offset \(b\) disappears.</li>
+          <li>The vector is normalized to unit length (L2), which removes the factor \(\alpha\).</li>
+        </ul>
+        <p>
+          Non-linear illumination effects, such as saturation or specular highlights, can make a few gradients very
+          large, and those would then dominate the whole descriptor. So all values above 0.2 are clamped to 0.2, and
+          the vector is normalized again. The descriptor then depends less on the exact magnitudes and more on the
+          distribution of orientations.
+        </p>
+
+        <h2>In practice</h2>
+        <p>
+          The same keypoint in the transformed image is described at the mapped position and scale, which is known
+          here, so only the descriptor is tested and not the detector. Efficient implementations compute the oriented
+          histograms with steerable filters, filters whose orientation can be set to that of each histogram bin. SURF
+          is a fast approximation of the same idea with box filters on integral images, about six times faster at
+          similar quality. How the vectors are compared is the topic of
+          <a href="../feature-matching/">matching and the ratio test</a>.
+        </p>
+
+        <h2>Try this</h2>
+        <ul class="try">
+          <li>Rotate the image by 90°: the arrows in the gradient view turn with it, the orientation histogram shifts by 9 bins, and the descriptor stays almost the same.</li>
+          <li>Rotate by 30° and turn off the orientation assignment: without the normalization, the histograms of the cells no longer line up, and the distance grows several times.</li>
+          <li>Scale the image by 1.5: the window grows with the keypoint's scale, and the descriptor still fits, as long as the window stays inside the image.</li>
+          <li>Change contrast and brightness moderately: the distance stays at 0. Raise the contrast to 2: bright regions clip at white, their gradients vanish, and the distance jumps.</li>
+          <li>Set γ to 0.5 or 2: a non-linear change alters the relative gradient magnitudes, and unlike an affine change it is not undone by the normalization. The distance grows to about 0.1 to 0.2: much less than without orientation assignment or with clipping.</li>
+          <li>Pick a keypoint on the checkerboard of the shapes image or on the picket fence of the landscape: its orientation histogram often has more than one peak above 80%, so it gets several descriptors.</li>
+        </ul>
+      </article>
+    </main>
+    <script type="module" src="./main.ts"></script>
+  </body>
+</html>

@@ -1,0 +1,7 @@
+/* The patch is square; keep it from growing taller than the image next to it. */
+.square-frame {
+  justify-content: center;
+}
+.square-frame .pixel-canvas {
+  width: min(100%, 360px);
+}
