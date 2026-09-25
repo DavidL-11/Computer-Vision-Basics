@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Interactive image sampling and quantization: reduce the resolution and bit depth of a digital image and watch pixelation and banding appear, with the intensity profile and storage size." />
+    <title>Image sampling &amp; quantization, interactive demo · Computer Vision Basics</title>
+  </head>
+  <body>
+    <main class="demo-page">
+      <section class="demo-intro">
+        <h1>Sampling &amp; quantization</h1>
+        <p class="lead">
+          A digital image is a continuous distribution of light reduced to finitely many numbers in two ways.
+          <strong>Sampling</strong> keeps values only on a grid of pixels, and <strong>quantization</strong> rounds
+          each value to one of a few levels. Lower the resolution and the number of bits and watch blocks and bands
+          appear.
+        </p>
+      </section>
+
+      <section class="workspace">
+        <div class="views">
+          <figure class="view card">
+            <figcaption>Original <span class="muted">320 × 240 px, click to select a pixel and row</span></figcaption>
+            <div id="original-view" class="image-frame"></div>
+          </figure>
+          <figure class="view card">
+            <figcaption>Sampled &amp; quantized <span class="muted">each sample is drawn as an \(s \times s\) block</span></figcaption>
+            <div id="result-view" class="image-frame"></div>
+          </figure>
+          <figure class="view card view-wide">
+            <figcaption>Intensity along the selected row <span class="muted">thin: original, thick: sampled &amp; quantized, grid: quantization levels</span></figcaption>
+            <div id="profile-view"></div>
+          </figure>
+        </div>
+        <aside id="controls" class="controls"></aside>
+      </section>
+
+      <section id="values" class="card values" aria-live="polite"></section>
+
+      <article class="explanation">
+        <h2>Images as sampled signals</h2>
+        <p>
+          The light arriving at the sensor is a continuous function \(f(x, y)\) of the position on the image plane,
+          with one value for gray images or three for color. A digital image stores this function only on a regular
+          grid, and only with a finite set of values:
+        </p>
+        $$ I[i, j] = Q\big(f(i \cdot s, \; j \cdot s)\big) $$
+        <p>
+          Here \(s\) is the distance between samples and \(Q\) is the quantizer. The image is then a matrix of
+          integers: row \(j\), column \(i\), with the origin in the top-left corner.
+        </p>
+
+        <h2>Sampling</h2>
+        <p>
+          The <em>spatial resolution</em> is the number of samples. Using a cell size \(s\) keeps one value per
+          \(s \times s\) cell of the original, so the image shrinks to \(\lfloor W/s \rfloor \times \lfloor H/s \rfloor\)
+          pixels. Enlarged back to the original size, every sample becomes a visible block.
+        </p>
+        <p>
+          The value of a sample can be taken at the cell center (an ideal point sample), or averaged over the cell. The
+          average is closer to a real sensor pixel, which collects all light falling onto its area. Detail finer than
+          the grid cannot be represented either way: point samples turn it into false coarse patterns
+          (<em>aliasing</em>, clearly visible in the zone plate), while averaging blurs it away first.
+        </p>
+
+        <h2>Quantization</h2>
+        <p>With \(b\) bits per value there are \(L = 2^b\) levels. For values \(v \in [0, 1]\):</p>
+        $$ q(v) = \frac{\operatorname{round}\big(v \cdot (L - 1)\big)}{L - 1}, \qquad
+           \Delta = \frac{1}{L - 1}, \qquad |q(v) - v| \le \frac{\Delta}{2} $$
+        <p>
+          In smooth gradients, neighboring pixels round to the same level for a while and then jump to the next one.
+          This creates visible steps called <em>banding</em> or <em>false contours</em>. With 8 bits (256 levels) the
+          steps are usually too small to see, which is why 8 bits per channel is the standard for images. Camera
+          sensors often record 10 to 14 bits, which leaves room for later processing such as brightening dark areas.
+        </p>
+
+        <div class="callout">
+          <strong>Storage.</strong> An image with \(w \times h\) pixels, \(c\) channels and \(b\) bits per channel
+          needs \(w \cdot h \cdot c \cdot b\) bits without compression. Halving the resolution in both directions saves
+          75 %; dropping from 8 to 4 bits saves 50 %.
+        </div>
+
+        <h2>Try this</h2>
+        <ul class="try">
+          <li>Set the bits to 1. Every channel is either 0 or 1, so a color image has only \(2^3 = 8\) colors.</li>
+          <li>Pick the gradients image and increase the bits one at a time. From which bit depth on do the bands in the dark ramp disappear for you?</li>
+          <li>Click on the sky of the landscape at 4 bits and look at the row plot: the thick staircase only takes values on the grid lines.</li>
+          <li>Switch on grayscale and compare with color at the same bit depth. Color images with 3 bits per channel still have 512 colors, gray images only 8 levels.</li>
+          <li>Choose the zone plate with cell size 4 and “cell center”. Rings appear where there are none; switch to “cell average” and most of them fade to gray.</li>
+          <li>Look at the fence of the landscape with a large cell size. The pickets merge, split or disappear depending on where the grid happens to hit them.</li>
+          <li>Compare two settings with the same storage: 2 × 2 cells at 8 bits and 1 × 1 cells at 2 bits. Which loss is more visible?</li>
+        </ul>
+      </article>
+    </main>
+    <script type="module" src="./main.ts"></script>
+  </body>
+</html>
