@@ -1,0 +1,23 @@
+:root {
+  --layer-near: light-dark(#2e9e4f, #5fd07f);
+  --layer-subject: light-dark(#e0892b, #ffac4d);
+  --layer-far: light-dark(#7a4fd6, #b28cff);
+}
+
+.diagram-view {
+  background: var(--bg-elev);
+}
+.diagram-canvas {
+  display: block;
+  width: 100%;
+}
+
+.katex .layer-near {
+  color: var(--layer-near);
+}
+.katex .layer-subject {
+  color: var(--layer-subject);
+}
+.katex .layer-far {
+  color: var(--layer-far);
+}

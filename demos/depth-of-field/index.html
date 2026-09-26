@@ -1,0 +1,140 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Interactive thin lens and depth of field: change focal length, aperture and focus distance, watch the circle of confusion of near and far objects, and compare a smartphone with a full-frame portrait lens." />
+    <title>Thin lens &amp; depth of field: circle of confusion, interactive demo · Computer Vision Basics</title>
+  </head>
+  <body>
+    <main class="demo-page">
+      <section class="demo-intro">
+        <h1>Thin lens &amp; depth of field</h1>
+        <p class="lead">
+          A lens brings exactly one distance into focus on the sensor. Points nearer or farther away are spread into a
+          small disk, the <em>circle of confusion</em>. As long as that disk is small enough, it still looks sharp,
+          and the range of distances where it is small enough is the <em>depth of field</em>. Change the lens, the
+          aperture and the focus, and see why a smartphone photo is sharp everywhere while a portrait lens blurs the
+          background.
+        </p>
+      </section>
+
+      <section class="workspace">
+        <div class="views">
+          <figure class="view card view-wide">
+            <figcaption>
+              Side view <span class="muted">schematic, distances on a log scale</span>
+              <span class="muted legend">
+                <span class="key" style="--key: var(--layer-near)">foreground</span>
+                <span class="key" style="--key: var(--layer-subject)">subject</span>
+                <span class="key" style="--key: var(--layer-far)">background</span>
+              </span>
+            </figcaption>
+            <div id="lens-diagram" class="diagram-view"></div>
+          </figure>
+          <figure class="view card">
+            <figcaption>Simulated photo <span class="muted">each layer blurred by its circle of confusion</span></figcaption>
+            <div id="image-view" class="image-frame"></div>
+          </figure>
+          <figure class="view card">
+            <figcaption>
+              Circle of confusion
+              <span class="muted legend">
+                <span class="key" style="--key: var(--fg)">\(c(D)\) [mm]</span>
+                <span class="key dashed" style="--key: var(--accent)">acceptable \(c\)</span>
+                shaded: depth of field
+              </span>
+            </figcaption>
+            <div id="coc-plot"></div>
+          </figure>
+        </div>
+        <aside id="controls" class="controls"></aside>
+      </section>
+
+      <section id="values" class="card values" aria-live="polite"></section>
+
+      <article class="explanation">
+        <h2>The thin lens</h2>
+        <p>
+          A pinhole has to be tiny to give a sharp image, so it collects very little
+          light. A lens can have a large aperture of diameter \(A\) and still be sharp, because it bends all rays from
+          a scene point that pass through it onto one image point. For an ideal thin lens with focal length \(f\), a
+          point at distance \(z_o\) in front of the lens is imaged at distance \(z_i\) behind it, with
+        </p>
+        $$ \frac{1}{f} = \frac{1}{z_o} + \frac{1}{z_i} $$
+        <p>
+          A point at infinity is imaged at \(z_i = f\), closer points a bit farther behind the lens. The sensor is at a
+          fixed distance \(z_S\) behind the lens, so only points at one distance, the <em>focus distance</em> \(S\),
+          are imaged exactly on it. Focusing a camera means moving the lens to change \(z_S\). The aperture is usually
+          given as the <em>f-number</em> \(N = f / A\), written as f/1.8, f/8 and so on.
+        </p>
+
+        <h2>Circle of confusion</h2>
+        <p>
+          A point at another distance \(D\) comes into focus at \(z_D \ne z_S\): in front of the sensor if it is
+          farther away than \(S\), behind the sensor if it is closer. Its light forms a cone with the aperture as the
+          base and the tip at \(z_D\), and the sensor cuts this cone in a disk. By similar triangles, the disk's
+          diameter is \(A \, |z_S - z_D| / z_D\). With the thin lens equation this becomes
+        </p>
+        $$ c(D) = \frac{A \, f \, |D - S|}{D \, (S - f)} $$
+        <ul>
+          <li>It is zero at \(D = S\) and grows on both sides, faster in front of the focus distance than behind it.</li>
+          <li>It is proportional to the aperture \(A\): half the aperture, half the blur (but also a quarter of the light).</li>
+          <li>For a very distant background it approaches \(A f / (S - f)\), so background blur has an upper limit.</li>
+        </ul>
+
+        <h2>Depth of field</h2>
+        <p>
+          No real image is perfectly sharp, so a small blur is acceptable. A common choice for the largest acceptable
+          circle of confusion is \(c = \text{sensor diagonal} / 1500\), about 0.03 mm for a full-frame sensor. The
+          range of distances where \(c(D) \le c\) is the <strong>depth of field</strong> (also called depth of
+          focus). Solving \(c(D) = c\) gives its limits:
+        </p>
+        $$ D_\text{near} = \frac{A f S}{A f + c \, (S - f)}, \qquad D_\text{far} = \frac{A f S}{A f - c \, (S - f)} $$
+        <p>
+          When the denominator of \(D_\text{far}\) is zero or negative, everything behind the focus distance is sharp
+          enough. This first happens at the <em>hyperfocal distance</em> \(H = f + A f / c\): focused there, the depth
+          of field reaches from \(H / 2\) to infinity. A smaller aperture (larger f-number) increases the depth of field,
+          and a larger one makes it shallower.
+        </p>
+
+        <h2>Smartphone vs large sensor</h2>
+        <p>
+          A smartphone camera and a full-frame portrait lens can have the same f-number, f/1.8, and thus collect the
+          same light per area. But the phone's lens has \(f = 4.3\) mm, so its aperture is only \(A = 2.4\) mm across,
+          while an 85 mm lens at f/1.8 has \(A = 47\) mm. Focused at 2 m, the phone keeps everything from about 1 m to
+          21 m sharp, and the portrait lens only about 5 cm around the subject:
+        </p>
+        <ul>
+          <li><strong>Smartphone:</strong> small aperture, large depth of field. Near and far objects appear in focus at the same time.</li>
+          <li><strong>Large-sensor camera (DSLR) with a wide aperture:</strong> shallow depth of field. The subject is isolated from a blurred background (<em>bokeh</em>).</li>
+        </ul>
+        <p>
+          The portrait modes of phones imitate the second look in software: they estimate a depth map and blur each
+          pixel according to its depth, much like the layers in this demo.
+        </p>
+
+        <div class="callout">
+          <strong>About the simulation.</strong> The scene is made of three flat layers, each at a single distance.
+          Each layer is blurred with a disk the size of its circle of confusion, with 240 pixels across the sensor
+          width, and the layers are then combined from back to front in linear light. Real scenes have continuously
+          varying depth, and the light that a blurred foreground edge would let through from the hidden part of the
+          background is missing. The view stays the same for every lens and sensor, although a real camera would see
+          more or less of the scene (see <a href="../field-of-view/">focal length &amp; field of view</a>).
+        </div>
+
+        <h2>Try this</h2>
+        <ul class="try">
+          <li>Start at 50 mm, f/2, focused on the subject: its circle of confusion is zero, while the foreground and the background are blurred.</li>
+          <li>Stop down from f/2 to f/8. The aperture shrinks 4×, and so do all circles of confusion, while the depth of field grows from 18 cm to 74 cm.</li>
+          <li>Focus on the background at 10 m. The foreground is now much blurrier than the background was before: the curve rises faster in front of \(S\).</li>
+          <li>Press the smartphone preset: everything is sharp. Then press the full-frame portrait preset. Both are f/1.8.</li>
+          <li>At f/8, press “Focus at the hyperfocal distance” and check that \(D_\text{far} = \infty\) and \(D_\text{near} = H / 2\).</li>
+          <li>Move the background from 10 m to 100 m. Its blur hardly changes: it approaches \(A f / (S - f)\).</li>
+          <li>Keep the lens and switch to a smaller sensor. The acceptable \(c\) shrinks with the diagonal, and so does the depth of field.</li>
+        </ul>
+      </article>
+    </main>
+    <script type="module" src="./main.ts"></script>
+  </body>
+</html>
