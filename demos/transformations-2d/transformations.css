@@ -1,0 +1,43 @@
+:root {
+  --line-1: light-dark(#7a4fd6, #b28cff);
+  --line-2: light-dark(#1f9a8a, #4fd1bd);
+  --ok: light-dark(#2e9e4f, #5fd07f);
+}
+
+.plane-view {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  background: var(--bg-sunken);
+}
+.plane-canvas {
+  display: block;
+  width: 100%;
+  height: auto;
+  cursor: crosshair;
+  touch-action: none;
+}
+
+.props {
+  list-style: none;
+  padding: 0;
+  margin: 0.3rem 0;
+}
+.props li {
+  margin: 0.4rem 0;
+}
+.props .mark {
+  display: inline-block;
+  width: 1.4em;
+  font-weight: 700;
+}
+.props .ok .mark {
+  color: var(--ok);
+}
+.props .bad .mark {
+  color: var(--viz-highlight);
+}
+.props .muted {
+  font-size: 0.88rem;
+  margin-left: 0.3rem;
+}

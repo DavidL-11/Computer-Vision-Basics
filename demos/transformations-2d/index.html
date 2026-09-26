@@ -1,0 +1,138 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Interactive 2D transformations: compose translation, rotation, scaling, mirror, shear and perspective as 3×3 matrices, and see the degrees of freedom and which properties affine and projective maps preserve." />
+    <title>2D transformations: affine &amp; projective, interactive demo · Computer Vision Basics</title>
+  </head>
+  <body>
+    <main class="demo-page">
+      <section class="demo-intro">
+        <h1>2D transformations</h1>
+        <p class="lead">
+          Translation, rotation, scaling, mirroring, shear and perspective all fit into one 3 × 3 matrix acting on
+          homogeneous coordinates. Combine them, watch a grid and an image deform, and see which properties survive:
+          straight lines, parallel lines, ratios and orientation.
+        </p>
+      </section>
+
+      <section class="workspace">
+        <div class="views">
+          <figure class="view card">
+            <figcaption>
+              Plane \(p' = H p\)
+              <span class="muted">click to pick a point; faint: before the transformation</span>
+            </figcaption>
+            <div id="plane-view" class="plane-view"></div>
+          </figure>
+          <figure class="view card">
+            <figcaption>Transformed image <span class="muted">gray: no part of the original image</span></figcaption>
+            <div id="image-view" class="image-frame"></div>
+          </figure>
+        </div>
+        <aside id="controls" class="controls"></aside>
+      </section>
+
+      <section id="values" class="card values" aria-live="polite"></section>
+
+      <article class="explanation">
+        <h2>Parametric transformations</h2>
+        <p>
+          A transformation \(T\) is a machine that changes coordinates: every point \(p\) goes to \(p' = T(p)\). It is
+          <em>global</em> (or parametric) when the same rule applies to every point and a few parameters describe it:
+          2 for a translation, 1 for a rotation, 2 for a scaling. Aligning two images, for example from matched
+          features, means finding these parameters. The plane here uses image coordinates, with \(x\) to the right and
+          \(y\) down; the image covers \([-1, 1]^2\) with its center at the origin. The faint grid and "F" are the
+          original, the solid ones their image under the transformation. The two colored segments start out
+          parallel; on the teal one, the dot is the image of its midpoint and the ring is the midpoint of its image.
+        </p>
+
+        <h2>Linear transformations</h2>
+        <p>Scaling, rotation, mirroring and shear are <em>linear</em>: a 2 × 2 matrix times the point.</p>
+        $$ \underbrace{\begin{bmatrix} s_x & 0 \\ 0 & s_y \end{bmatrix}}_{\text{scaling}} \quad
+           \underbrace{\begin{bmatrix} \cos\theta & -\sin\theta \\ \sin\theta & \cos\theta \end{bmatrix}}_{\text{rotation}} \quad
+           \underbrace{\begin{bmatrix} -1 & 0 \\ 0 & 1 \end{bmatrix}}_{\text{mirror at the } y\text{-axis}} \quad
+           \underbrace{\begin{bmatrix} 1 & a_x \\ a_y & 1 \end{bmatrix}}_{\text{shear}} $$
+        <p>
+          Because \(y\) points down, a positive angle \(\theta\) turns clockwise on the screen. Mirroring over the
+          origin, \(x' = -x\), \(y' = -y\), is the same as a rotation by 180°. Every combination of these maps is
+          linear again, and linear maps share a set of properties:
+        </p>
+        <ul>
+          <li>the origin maps to the origin,</li>
+          <li>lines map to lines,</li>
+          <li>parallel lines remain parallel,</li>
+          <li>ratios along a line are preserved, e.g. the midpoint stays the midpoint,</li>
+          <li>they are closed under composition.</li>
+        </ul>
+        <p>
+          The determinant tells how areas change: a rotation has \(\det = 1\), a scaling \(s_x s_y\), a shear
+          \(1 - a_x a_y\). A negative determinant means the plane is flipped over, as by the mirror at the \(y\)-axis:
+          the "F" then reads backwards.
+        </p>
+
+        <h2>Translation and homogeneous coordinates</h2>
+        <p>
+          A translation \(x' = x + t_x\), \(y' = y + t_y\) is <em>not</em> linear: it moves the origin, and no 2 × 2
+          matrix can do that. <a href="../homogeneous-coordinates/">Homogeneous coordinates</a> solve this with a third
+          coordinate 1, which turns the translation into a matrix product as well:
+        </p>
+        $$ \begin{bmatrix} x' \\ y' \\ 1 \end{bmatrix} = \begin{bmatrix} 1 & 0 & t_x \\ 0 & 1 & t_y \\ 0 & 0 & 1 \end{bmatrix} \begin{bmatrix} x \\ y \\ 1 \end{bmatrix} $$
+        <p>
+          All other maps get the 2 × 2 matrix in the top left corner of a 3 × 3 matrix, and a sequence of
+          transformations becomes a single product. The order matters: in \(H = T\,R\,\mathit{Sh}\,S\,\mathit{Mi}\,P\)
+          the rightmost factor acts first. Here the point is mirrored and scaled first, then sheared, rotated about the
+          origin and finally translated.
+        </p>
+
+        <h2>Affine transformations</h2>
+        <p>Linear maps followed by a translation are <em>affine</em>, with six free entries:</p>
+        $$ \begin{bmatrix} x' \\ y' \\ 1 \end{bmatrix} = \begin{bmatrix} a & b & c \\ d & e & f \\ 0 & 0 & 1 \end{bmatrix} \begin{bmatrix} x \\ y \\ 1 \end{bmatrix} $$
+        <p>
+          They keep all the properties of linear maps except that the origin may move: lines stay lines, parallel
+          lines stay parallel and ratios along a line are preserved.
+        </p>
+
+        <h2>Projective transformations</h2>
+        <p>
+          A <em>projective</em> transformation, or homography, combines an affine map with a perspective part that
+          fills the last row:
+        </p>
+        $$ M_\text{affine} \cdot M_\text{perspective} = \begin{bmatrix} a & b & c \\ d & e & f \\ 0 & 0 & 1 \end{bmatrix} \begin{bmatrix} 1 & 0 & 0 \\ 0 & 1 & 0 \\ g & h & 1 \end{bmatrix}, \qquad
+           \begin{bmatrix} x' \\ y' \\ w' \end{bmatrix} = \begin{bmatrix} a' & b' & c' \\ d' & e' & f' \\ g & h & 1 \end{bmatrix} \begin{bmatrix} x \\ y \\ 1 \end{bmatrix} $$
+        <p>
+          Now \(w' = g x + h y + 1\) is no longer 1, and the point is \((x'/w', y'/w')\). Points with a larger
+          \(w'\) are pulled towards the origin, so the image looks like a plane seen at an angle. Multiplying the
+          whole matrix by a factor \(k \ne 0\) multiplies \(x'\), \(y'\) and \(w'\) alike and gives the same points,
+          so \(H\) is only defined up to scale: 9 entries, but 8 degrees of freedom.
+        </p>
+        <ul>
+          <li>Lines still map to lines, and projective maps are closed under composition.</li>
+          <li>
+            Parallel lines do not necessarily remain parallel. All lines with direction \(d\) contain the point at
+            infinity \((d_x, d_y, 0)^\top\), so their images meet at \(H (d_x, d_y, 0)^\top\). Its \(w' = g d_x + h d_y\)
+            is 0 for affine maps, but otherwise it is a finite point: the
+            <a href="../vanishing-points/">vanishing point</a> of that direction.
+          </li>
+          <li>Ratios are not preserved: the image of the midpoint is no longer the midpoint of the image segment.</li>
+        </ul>
+        <p>
+          A photo of a flat object, such as a document or a facade, is related to its front view by such a
+          transformation. Knowing \(H\), the photo can be unwarped (rectified) into the front view.
+        </p>
+
+        <h2>Try this</h2>
+        <ul class="try">
+          <li>Choose the identity, then set \(\theta = 90^\circ\) and \(t_x = 0.5\), and pick the point \((1, 0)\). \(T\,R\) rotates it to \((0, 1)\) and then moves it to \((0.5, 1)\). In the order \(R\,T\) it would be moved to \((1.5, 0)\) first and land at \((0, 1.5)\): the order of composition matters.</li>
+          <li>Choose the mirror at the \(y\)-axis: the "F" reads backwards and \(\det H\) turns negative. The mirror over the origin only turns the "F" upside down without flipping it, because it is a rotation by 180°.</li>
+          <li>Set only \(a_x\): the square becomes a parallelogram, but \(\det H = 1\), so its area is unchanged. Add \(a_y\) and the determinant becomes \(1 - a_x a_y\).</li>
+          <li>Starting from the identity, set only \(g = 0.45\): the vertical grid lines stay parallel, since their direction \((0, 1)\) gives \(w' = g \cdot 0 + h \cdot 1 = 0\), while the horizontal ones now point at \(H (1, 0, 0)^\top\), i.e. \((1/g, 0) \approx (2.2, 0)\) on the \(x\)-axis. Then try only \(h\).</li>
+          <li>In the projective preset, compare the dot (image of the midpoint) and the ring (midpoint of the image segment) on the teal line: they separate, so ratios are not preserved.</li>
+          <li>Pick a point and follow the panel: \(H\) turns \((x, y, 1)\) into \((x', y', w')\), and only the division by \(w'\) gives the point. Scaling all of \(H\) would scale \(x', y', w'\) together and change nothing.</li>
+        </ul>
+      </article>
+    </main>
+    <script type="module" src="./main.ts"></script>
+  </body>
+</html>

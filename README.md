@@ -57,6 +57,13 @@ If you found this repository useful, please consider starring it on GitHub.
 
 - [Homogeneous coordinates](https://davidl-11.github.io/Computer-Vision-Basics/demos/homogeneous-coordinates/)
 - [Pinhole camera: intrinsics & extrinsics](https://davidl-11.github.io/Computer-Vision-Basics/demos/camera-model/)
+- [Thin lens & depth of field](https://davidl-11.github.io/Computer-Vision-Basics/demos/depth-of-field/)
+- [Vanishing points & horizon](https://davidl-11.github.io/Computer-Vision-Basics/demos/vanishing-points/)
+- [Focal length, FOV & orthographic projection](https://davidl-11.github.io/Computer-Vision-Basics/demos/field-of-view/)
+
+### 8. Transformations and Calibration
+
+- [2D transformations](https://davidl-11.github.io/Computer-Vision-Basics/demos/transformations-2d/)
 
 ## Read the code, too
 

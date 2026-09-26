@@ -285,6 +285,24 @@ export const chapters: Chapter[] = [
           'Move a virtual camera through a 3D scene, change focal length, principal point and skew, and watch K, [R | t] and P = K[R | t] update together with the image.',
         slug: 'camera-model',
       },
+      {
+        title: 'Thin lens & depth of field',
+        description:
+          'Change focal length, aperture and focus distance, follow the circle of confusion of near and far objects, and compare a smartphone with a portrait lens.',
+        slug: 'depth-of-field',
+      },
+      {
+        title: 'Vanishing points & horizon',
+        description:
+          'Turn a camera in a 3D scene and follow where parallel lines meet: v = K R d, the horizon as the vanishing line of the ground, and one-, two- and three-point perspective.',
+        slug: 'vanishing-points',
+      },
+      {
+        title: 'Focal length, FOV & orthographic projection',
+        description:
+          'Relate AFOV = 2·arctan(H / 2f) to the image, compare perspective, weak perspective and orthographic projection, and try the dolly zoom.',
+        slug: 'field-of-view',
+      },
     ],
   },
   {
@@ -302,7 +320,14 @@ export const chapters: Chapter[] = [
       'DLT',
       'Factorizing M into K[R | t]',
     ],
-    demos: [],
+    demos: [
+      {
+        title: '2D transformations',
+        description:
+          'Compose translation, rotation, scaling, mirror, shear and perspective into one 3 × 3 matrix and see its degrees of freedom and which properties survive.',
+        slug: 'transformations-2d',
+      },
+    ],
   },
   {
     id: 'epipolar-geometry',
