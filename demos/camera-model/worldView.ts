@@ -6,7 +6,7 @@ import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { CSS2DObject, CSS2DRenderer } from 'three/examples/jsm/renderers/CSS2DRenderer.js';
 import { type Vec3, add, scale, transpose3 } from '../../src/shared/linalg';
 import { cssColor, onThemeChange } from '../../src/shared/theme';
-import { type CameraSnapshot, backproject, project } from './camera';
+import { type CameraSnapshot, backproject, project } from '../../src/shared/camera';
 import { IMAGE_HEIGHT, IMAGE_WIDTH, boardSquares, cubeEdges, cubePoints, sceneCenter, worldAxes } from './scene';
 
 /** Scale for drawing the image plane at distance f: fixed sensor size, f moves the plane. */

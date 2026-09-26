@@ -1,5 +1,5 @@
 import { eq, fmt, renderTex, texMatrix, texTuple, texVector } from '../../src/shared/tex';
-import { type CameraSnapshot, fieldOfView, project } from './camera';
+import { type CameraSnapshot, fieldOfView, project } from '../../src/shared/camera';
 import { IMAGE_HEIGHT, IMAGE_WIDTH, cubePoints } from './scene';
 
 export class MatrixView {

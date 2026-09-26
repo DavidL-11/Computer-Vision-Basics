@@ -75,3 +75,20 @@ export function psnr(a: RGBImage | Plane, b: RGBImage | Plane): number {
   const mse = sum / a.data.length;
   return mse === 0 ? Infinity : 10 * Math.log10(1 / mse);
 }
+
+/** The R, G and B channels as separate planes. */
+export function splitChannels(img: RGBImage): [Plane, Plane, Plane] {
+  const planes = [0, 1, 2].map(() => createPlane(img.width, img.height)) as [Plane, Plane, Plane];
+  for (let i = 0; i < img.width * img.height; i++) for (let c = 0; c < 3; c++) planes[c].data[i] = img.data[i * 3 + c];
+  return planes;
+}
+
+export function mergeChannels([r, g, b]: readonly [Plane, Plane, Plane]): RGBImage {
+  const out = createImage(r.width, r.height);
+  for (let i = 0; i < r.data.length; i++) {
+    out.data[i * 3] = r.data[i];
+    out.data[i * 3 + 1] = g.data[i];
+    out.data[i * 3 + 2] = b.data[i];
+  }
+  return out;
+}

@@ -121,3 +121,74 @@ export function gaussianKernel(sigma: number): Float32Array {
 }
 
 export const boxKernel1D = (size: number) => new Float32Array(size).fill(1 / size);
+
+/**
+ * A uniform disk of the given diameter in pixels, normalized to sum 1: the blur spot of a pinhole or of a point out
+ * of focus. Each tap is weighted by the fraction of its pixel that the disk covers (sampled on a 16 × 16 grid), so
+ * the spot grows smoothly instead of in whole pixels. Diameters ≤ 1 give the single tap [1].
+ */
+export function diskKernel(diameter: number): Plane {
+  const r = diameter / 2;
+  if (r <= 0.5) return kernelFromRows([[1]]);
+  const radius = Math.ceil(r - 0.5);
+  const size = 2 * radius + 1;
+  const k = createPlane(size, size);
+  const S = 16;
+  let sum = 0;
+  for (let l = -radius; l <= radius; l++)
+    for (let m = -radius; m <= radius; m++) {
+      let inside = 0;
+      for (let j = 0; j < S; j++)
+        for (let i = 0; i < S; i++) {
+          const x = m - 0.5 + (i + 0.5) / S;
+          const y = l - 0.5 + (j + 0.5) / S;
+          if (x * x + y * y <= r * r) inside++;
+        }
+      k.data[(l + radius) * size + m + radius] = inside;
+      sum += inside;
+    }
+  return { ...k, data: k.data.map((v) => v / sum) };
+}
+
+/**
+ * The same result as correlate(I, diskKernel(diameter), border), in O(diameter) instead of O(diameter²) operations
+ * per pixel, which matters for large defocus blur. In each kernel row, the taps whose pixel lies fully inside the disk
+ * share one weight, so their sum comes in one step from running sums along the image row. Only the partly covered
+ * taps along the rim are added one by one.
+ */
+export function correlateDisk(I: Plane, diameter: number, border: Border): Plane {
+  const f = diskKernel(diameter);
+  const r = (f.width - 1) / 2;
+  if (r === 0) return { ...I, data: I.data.slice() };
+  const tap = (k: number, l: number) => f.data[(l + r) * f.width + k + r];
+  const full = tap(0, 0);
+  // Per kernel row l: the run −a ≤ k ≤ a of fully covered taps (a = −1 if none) and the remaining taps.
+  const kernelRows = Array.from({ length: 2 * r + 1 }, (_, i) => {
+    const l = i - r;
+    let a = -1;
+    while (a < r && tap(a + 1, l) === full) a++;
+    const rim: [number, number][] = [];
+    for (let k = -r; k <= r; k++) if (Math.abs(k) > a && tap(k, l) > 0) rim.push([k, tap(k, l)]);
+    return { l, a, rim };
+  });
+
+  const P = padPlane(I, r, border);
+  // S[y][x] = Σ_{i < x} P[y][i], so the run from x0 to x1 sums to S[y][x1 + 1] − S[y][x0].
+  const S = new Float64Array((P.width + 1) * P.height);
+  for (let y = 0; y < P.height; y++)
+    for (let x = 0; x < P.width; x++) S[y * (P.width + 1) + x + 1] = S[y * (P.width + 1) + x] + P.data[y * P.width + x];
+
+  const h = createPlane(I.width, I.height);
+  for (let n = 0; n < I.height; n++)
+    for (let m = 0; m < I.width; m++) {
+      let sum = 0;
+      for (const { l, a, rim } of kernelRows) {
+        const y = n + l + r;
+        const x = m + r;
+        if (a >= 0) sum += full * (S[y * (P.width + 1) + x + a + 1] - S[y * (P.width + 1) + x - a]);
+        for (const [k, w] of rim) sum += w * P.data[y * P.width + x + k];
+      }
+      h.data[n * I.width + m] = sum;
+    }
+  return h;
+}

@@ -1,6 +1,6 @@
 import { Pane } from 'tweakpane';
 import { initPage } from '../../src/shared/page';
-import { lookAtAngles, snapshot } from './camera';
+import { lookAtAngles, snapshot } from '../../src/shared/camera';
 import { ImageView } from './imageView';
 import { MatrixView } from './matrixView';
 import { IMAGE_HEIGHT, IMAGE_WIDTH, cubePoints, sceneCenter } from './scene';

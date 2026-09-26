@@ -4,7 +4,9 @@ import {
   boxKernel1D,
   convolve,
   correlate,
+  correlateDisk,
   correlateSeparable,
+  diskKernel,
   flipKernel,
   gaussianKernel,
   kernelFromRows,
@@ -91,5 +93,43 @@ describe('Gaussian kernel', () => {
     expect(k.reduce((a, b) => a + b, 0)).toBeCloseTo(1, 6);
     expect(k[0]).toBeCloseTo(k[k.length - 1], 9);
     expect(k.length).toBe(11);
+  });
+});
+
+describe('disk kernel', () => {
+  it('sums to 1 and is symmetric', () => {
+    const k = diskKernel(6.3);
+    expect(k.data.reduce((a, b) => a + b, 0)).toBeCloseTo(1, 6);
+    expect(k.width).toBe(7);
+    expect(Array.from(flipKernel(k).data)).toEqual(Array.from(k.data));
+    const transposed = k.data.map((_, i) => k.data[(i % k.width) * k.width + Math.floor(i / k.width)]);
+    expect(Array.from(transposed)).toEqual(Array.from(k.data));
+  });
+
+  it('is a single tap for diameters up to one pixel', () => {
+    for (const d of [0, 0.5, 1]) expect(Array.from(diskKernel(d).data)).toEqual([1]);
+  });
+
+  it('weights each tap by the covered area', () => {
+    // Fully covered pixels get 1 / (area of the disk) = 1 / (π r²); pixels outside get 0.
+    const k = diskKernel(9);
+    expect(k.data[4 * 9 + 4]).toBeCloseTo(1 / (Math.PI * 4.5 ** 2), 4);
+    expect(k.data[0]).toBe(0);
+    // The circle passes through pixel (−3, −3), whose center is 4.24 px from the origin.
+    const edge = k.data[1 * 9 + 1] / k.data[4 * 9 + 4];
+    expect(edge).toBeGreaterThan(0.3);
+    expect(edge).toBeLessThan(0.9);
+  });
+});
+
+describe('disk blur with running sums', () => {
+  it('equals correlation with the disk kernel', () => {
+    const img = ramp(23, 17);
+    for (const d of [0.8, 2.5, 5, 7.7])
+      for (const border of ['zero', 'clamp', 'reflect'] as const) {
+        const fast = correlateDisk(img, d, border);
+        const direct = correlate(img, diskKernel(d), border);
+        fast.data.forEach((v, i) => expect(v).toBeCloseTo(direct.data[i], 5));
+      }
   });
 });

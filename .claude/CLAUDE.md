@@ -26,10 +26,14 @@ npm run preview   # serve dist/ at http://localhost:4173/Computer-Vision-Basics/
   - `page.ts`: `initPage()` adds the header, breadcrumb, theme toggle and footer.
   - `theme.ts`: light/dark handling plus `cssColor()`.
   - `linalg.ts`: small row-major Vec3/Mat3 helpers.
+  - `camera.ts`: pinhole camera math: `buildK`, `buildR` (yaw/pitch/roll), `buildT`, `snapshot()` → K, R, t, C, P,
+    `project`, `backproject`, `lookAtAngles`, `fieldOfView`, `clipSegmentNear`.
   - `opencv.ts`: lazy `loadOpenCV()`.
-  - `image.ts`: `RGBImage`/`Plane` as plain Float32Arrays in [0, 1], `mapPixels()`, `toGray()`, `centerCrop()`, `psnr()`.
+  - `image.ts`: `RGBImage`/`Plane` as plain Float32Arrays in [0, 1], `mapPixels()`, `toGray()`,
+    `splitChannels()`/`mergeChannels()`, `centerCrop()`, `psnr()`.
   - `filter.ts`: linear filtering of a `Plane`: `correlate`/`convolve` with border modes, separable passes,
-    `gaussianKernel`, `boxKernel1D`, `padPlane`.
+    `gaussianKernel`, `boxKernel1D`, `diskKernel` (area-weighted, for defocus and pinhole blur) with the fast
+    `correlateDisk`, `padPlane`.
   - `color.ts`: sRGB decode/encode, BT.601 luma, YCbCr, hex helpers.
   - `noise.ts`: seeded `random()` and `gaussianNoise()` for a `Plane`.
   - `pixelView.ts`: `PixelView` shows an `RGBImage` with visible pixels, zoom, picking and overlays; `perFrame()`.

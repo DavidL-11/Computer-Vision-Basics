@@ -3,7 +3,7 @@
 
 import { type Vec3, mulMat3Vec } from '../../src/shared/linalg';
 import { cssColor, onThemeChange } from '../../src/shared/theme';
-import { type CameraSnapshot, clipSegmentNear, project } from './camera';
+import { type CameraSnapshot, clipSegmentNear, project } from '../../src/shared/camera';
 import { IMAGE_HEIGHT, IMAGE_WIDTH, boardSquares, cubeEdges, cubePoints, worldAxes } from './scene';
 
 const MARGIN = 80;

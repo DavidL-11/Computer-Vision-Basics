@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import type { Vec3 } from '../../src/shared/linalg';
-import { det3, mulMat3, transpose3 } from '../../src/shared/linalg';
+import type { Vec3 } from './linalg';
+import { det3, mulMat3, transpose3 } from './linalg';
 import {
   backproject,
   buildK,

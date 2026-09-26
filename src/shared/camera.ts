@@ -24,7 +24,7 @@ import {
   scale,
   sub,
   transpose3,
-} from '../../src/shared/linalg';
+} from './linalg';
 
 export interface Intrinsics {
   fx: number;
