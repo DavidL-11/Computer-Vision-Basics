@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Interactive focal length and field of view: AFOV = 2·arctan(H/2f), perspective vs weak perspective vs orthographic projection matrices, and the dolly zoom that keeps the subject size while the background changes." />
+    <title>Focal length, field of view &amp; orthographic projection, interactive demo · Computer Vision Basics</title>
+  </head>
+  <body>
+    <main class="demo-page">
+      <section class="demo-intro">
+        <h1>Focal length, FOV &amp; orthographic projection</h1>
+        <p class="lead">
+          The focal length decides how much of the scene a camera sees. Change it, compare perspective projection
+          with its two simplifications, weak perspective and orthographic projection, and try the dolly zoom: the
+          subject keeps its size while the background seems to move.
+        </p>
+      </section>
+
+      <section class="workspace">
+        <div class="views">
+          <figure class="view card">
+            <figcaption>Side view <span class="muted">true scale; wedge: vertical field of view, red: projection rays</span></figcaption>
+            <div id="side-view" class="diagram-view"></div>
+          </figure>
+          <figure class="view card">
+            <figcaption>Camera image <span class="muted">640 × 480 px; dashed: the model under “compare with”</span></figcaption>
+            <div id="image-view" class="image-view"></div>
+          </figure>
+        </div>
+        <aside id="controls" class="controls"></aside>
+      </section>
+
+      <section id="values" class="card values" aria-live="polite"></section>
+
+      <article class="explanation">
+        <h2>Focal length and field of view</h2>
+        <p>
+          The sensor has a fixed size \(H\). The farther it is behind the center of projection, the narrower the cone
+          of rays that reaches it. The angular field of view is
+        </p>
+        $$ \mathrm{AFOV} = 2 \arctan \frac{H}{2f} $$
+        <p>
+          with \(H\) and \(f\) in the same units. For a given sensor size, a shorter focal length gives a wider field
+          of view: a 24 mm high sensor sees 27° vertically with \(f = 50\) mm and 90° with \(f = 12\) mm. The
+          horizontal field of view uses the sensor width instead. In the camera matrix \(K\), \(f\) is measured in
+          pixels: the focal length in mm divided by the pixel size, as in the
+          <a href="../camera-model/">pinhole camera</a> demo.
+        </p>
+
+        <h2>Perspective projection</h2>
+        <p>With the camera at the origin and the principal point at \((0, 0)\), perspective projection is</p>
+        $$
+          w \begin{bmatrix} u \\ v \\ 1 \end{bmatrix} =
+          \begin{bmatrix} f &amp; 0 &amp; 0 &amp; 0 \\ 0 &amp; f &amp; 0 &amp; 0 \\ 0 &amp; 0 &amp; 1 &amp; 0 \end{bmatrix}
+          \begin{bmatrix} X_c \\ Y_c \\ Z_c \\ 1 \end{bmatrix}, \qquad w = Z_c
+        $$
+        <p>
+          Every point is divided by its own depth: far objects look small, and parallel lines meet at
+          <a href="../vanishing-points/">vanishing points</a>. In the side view, every projection ray passes
+          through the camera center. On the real sensor behind the center the image is upside down,
+          \(U = -X \cdot f / Z\); as in the <a href="../camera-model/">pinhole camera</a> demo, the matrices here
+          describe the upright image on a virtual plane in front of it.
+        </p>
+
+        <h2>Weak perspective (scaled orthographic)</h2>
+        <p>
+          If the object's dimensions are small compared to its distance from the camera, all its points have about
+          the same depth. Weak perspective replaces every depth by one reference depth \(s = Z_0\), here the distance
+          \(D\) of the subject:
+        </p>
+        $$
+          w \begin{bmatrix} u \\ v \\ 1 \end{bmatrix} =
+          \begin{bmatrix} f &amp; 0 &amp; 0 &amp; 0 \\ 0 &amp; f &amp; 0 &amp; 0 \\ 0 &amp; 0 &amp; 0 &amp; s \end{bmatrix}
+          \begin{bmatrix} X_c \\ Y_c \\ Z_c \\ 1 \end{bmatrix}, \qquad w = s
+        $$
+        <p>
+          Now \((u, v) = \frac{f}{s} (X_c, Y_c)\): the object is projected parallel to the optical axis onto the
+          plane \(Z_c = s\) and then scaled as a whole. The mapping is linear, parallel lines stay parallel, and a
+          point at depth \(Z_0 + \Delta Z\) is placed with a relative error of about \(\Delta Z / Z_0\). The object as a
+          whole still gets smaller when it moves away, because \(s\) grows with its distance.
+        </p>
+
+        <h2>Orthographic projection</h2>
+        <p>
+          Orthographic or <em>parallel</em> projection is the limit where the center of projection is infinitely far
+          from the image plane. All projection rays are parallel to the optical axis:
+        </p>
+        $$
+          w \begin{bmatrix} u \\ v \\ 1 \end{bmatrix} =
+          \begin{bmatrix} 1 &amp; 0 &amp; 0 &amp; 0 \\ 0 &amp; 1 &amp; 0 &amp; 0 \\ 0 &amp; 0 &amp; 0 &amp; 1 \end{bmatrix}
+          \begin{bmatrix} X_c \\ Y_c \\ Z_c \\ 1 \end{bmatrix}, \qquad w = 1
+        $$
+        <p>
+          so \((u, v) = (X_c, Y_c)\), and the depth has no effect at all, not even the depth of the object as a whole.
+          The last row must be \([0\ 0\ 0\ 1]\): with \([0\ 0\ 1\ 0]\), \(w\) would be \(Z_c\) again, which is
+          perspective projection with \(f = 1\). Weak perspective is orthographic projection followed by a uniform
+          scaling by \(f / s\).
+        </p>
+
+        <h2>The dolly zoom</h2>
+        <p>
+          An object of size \(S\) at distance \(D\) appears \(f\,S / D\) pixels tall. Moving the camera away while
+          zooming in with \(f \propto D\) keeps the subject the same size, but everything behind it changes: the
+          background grows and seems to move closer, a trick known from film. As \(D\) grows, the depth differences
+          within the scene become small compared to \(D\), and perspective projection turns into weak perspective. This
+          is why long telephoto shots from far away look “flat”.
+        </p>
+
+        <div class="callout">
+          <strong>About this demo.</strong> The camera looks at the center of the purple cube from distance \(D\),
+          turned by 20° and tilted down by 10°, and moves along its viewing direction. The sensor has an aspect ratio of
+          4:3 and is \(H\) high. The orthographic image, whose \((u, v)\) are in meters, is drawn at a fixed 125 px per
+          meter.
+        </div>
+
+        <h2>Try this</h2>
+        <ul class="try">
+          <li>Halve \(f\) from 50 mm to 25 mm. The vertical AFOV grows from 27° to 51°, not to 54°, because of the arctangent.</li>
+          <li>Set \(f = 12\) mm: \(H / 2f = 1\), and the AFOV is exactly 90°.</li>
+          <li>Switch on the dolly zoom and increase \(D\) from 8 m to 40 m. The cube keeps its size, and the rows of pillars look compressed.</li>
+          <li>Now compare with weak perspective at \(D = 8\) m and at \(D = 40\) m. Far away, the dashed image is much closer to the solid one, and it matches best near the subject, where \(\Delta Z / Z_0\) is small.</li>
+          <li>Dolly in to 3 m: the wide angle stretches the rows of pillars far into the distance.</li>
+          <li>Choose weak perspective: the rows of pillars no longer converge, and all pillars have the same size. The panel shows \(w = Z_0\) for every point.</li>
+          <li>Choose orthographic and change \(D\) and \(f\): the image does not change at all.</li>
+          <li>Pick the farthest pillar as the point and compare \(w\) and \((u, v)\) for the three models.</li>
+        </ul>
+      </article>
+    </main>
+    <script type="module" src="./main.ts"></script>
+  </body>
+</html>
