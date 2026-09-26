@@ -1,0 +1,27 @@
+.world-view {
+  aspect-ratio: 4 / 3;
+}
+
+.image-view {
+  display: flex;
+  align-items: center;
+  flex: 1;
+  background: var(--bg-sunken);
+}
+.image-canvas {
+  display: block;
+  width: 100%;
+}
+
+.katex .family-x {
+  color: var(--axis-x);
+}
+.katex .family-y {
+  color: var(--axis-y);
+}
+.katex .family-z {
+  color: var(--axis-z);
+}
+.katex .family-ramp {
+  color: var(--viz-object);
+}

@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Interactive vanishing points and horizon: turn a camera in a 3D scene and watch parallel lines meet at v = K R d, the horizon as the vanishing line of the ground, and one-, two- and three-point perspective." />
+    <title>Vanishing points &amp; the horizon, interactive demo · Computer Vision Basics</title>
+  </head>
+  <body>
+    <main class="demo-page">
+      <section class="demo-intro">
+        <h1>Vanishing points &amp; horizon</h1>
+        <p class="lead">
+          Parallel lines in the world are generally not parallel in the image: they meet in a <em>vanishing
+          point</em>. Parallel lines on the same plane meet on a <em>vanishing line</em>, and for the ground plane
+          that line is the horizon. Turn the camera and follow the vanishing points, including those far outside the
+          image.
+        </p>
+      </section>
+
+      <section class="workspace">
+        <div class="views">
+          <figure class="view card">
+            <figcaption>3D world <span class="muted">drag to orbit, scroll to zoom</span></figcaption>
+            <div id="world-view" class="view-3d world-view"></div>
+          </figure>
+          <figure class="view card">
+            <figcaption>Camera image <span class="muted">zoomed out: the light rectangle is the image</span></figcaption>
+            <div id="image-view" class="image-view"></div>
+          </figure>
+        </div>
+        <aside id="controls" class="controls"></aside>
+      </section>
+
+      <section id="values" class="card values" aria-live="polite"></section>
+
+      <article class="explanation">
+        <h2>Where parallel lines meet</h2>
+        <p>
+          Take a 3D line through the point \(\mathbf{X}\) with direction \(\mathbf{d}\). Its points
+          \(\mathbf{X} + s\,\mathbf{d}\) project to
+        </p>
+        $$ w \begin{bmatrix} u \\ v \\ 1 \end{bmatrix} = K \left( R\,(\mathbf{X} + s\,\mathbf{d}) + t \right) = K (R\,\mathbf{X} + t) + s\, K R\, \mathbf{d} $$
+        <p>
+          As the point moves away (\(s \to \infty\)), the second term dominates, and the image point approaches the
+          <strong>vanishing point</strong>
+        </p>
+        $$ \mathbf{v} = K R\, \mathbf{d} $$
+        <p>
+          Neither \(\mathbf{X}\) nor \(t\) appears in it, so all lines with the same direction share the same vanishing
+          point, and moving the camera without turning it does not move it. In the 3D view, the dashed ray from the
+          camera center \(C\) parallel to the lines hits the image plane exactly at \(\mathbf{v}\): the vanishing point
+          is the image of the point at infinity in direction \(\mathbf{d}\). As in
+          <a href="../homogeneous-coordinates/">homogeneous coordinates</a>, it can be computed as the intersection
+          \(l_1 \times l_2\) of two image lines \(l_i = p_i \times q_i\).
+        </p>
+        <p>
+          If \(\mathbf{d}\) is parallel to the image plane, the third coordinate of \(K R\,\mathbf{d}\) is \(w = 0\).
+          Then the vanishing point is itself at infinity, and the image lines stay parallel. This is why vertical walls
+          stay vertical in a photo taken with a level camera.
+        </p>
+
+        <h2>Vanishing lines and the horizon</h2>
+        <p>
+          All directions within a plane have their vanishing points on one line, the <strong>vanishing line</strong>
+          of the plane (and of all planes parallel to it). It passes through any two of these vanishing points. For the
+          ground plane, spanned by \(X\) and \(Y\), this is the <strong>horizon</strong>:
+        </p>
+        $$ l = \mathbf{v}_X \times \mathbf{v}_Y, \qquad \mathbf{v} \cdot l = 0 \text{ for every horizontal direction} $$
+        <p>
+          The horizon is the image of the plane through the camera center parallel to the ground, so everything at
+          the height of the camera lies on it. The ramp in the scene is tilted: its edges vanish above the horizon, on
+          the vanishing line of the ramp's own surface (dashed purple).
+        </p>
+
+        <h2>One-, two- and three-point perspective</h2>
+        <ul>
+          <li><strong>One-point:</strong> the camera looks straight along \(Y\). Only the depth lines converge, to the principal point; \(X\) and \(Z\) lines stay parallel.</li>
+          <li><strong>Two-point:</strong> the camera turns (yaw) but stays level. \(X\) and \(Y\) lines converge to two points on the horizon, vertical lines stay parallel.</li>
+          <li><strong>Three-point:</strong> the camera also tilts (pitch). Vertical lines converge as well, above the image when looking up, below it when looking down.</li>
+        </ul>
+
+        <div class="callout">
+          <strong>Conventions.</strong> The world frame is right-handed with \(Z\) up; the camera frame has \(x\)
+          right, \(y\) down and \(z\) forward. The pose is set with yaw, pitch and roll as in the
+          <a href="../camera-model/">pinhole camera</a> demo, with the camera at height \(h\) above the ground.
+        </div>
+
+        <h2>Try this</h2>
+        <ul class="try">
+          <li>Set pitch to 0. The vertical lines become parallel: \(\mathbf{v}_Z\) has \(w = 0\) and moves to infinity.</li>
+          <li>Press “One-point perspective”. \(\mathbf{v}_Y\) sits at the principal point, and \(\mathbf{v}_X\) is at infinity as well.</li>
+          <li>Change the camera height. The horizon and all vanishing points stay where they are, since \(K R\,\mathbf{d}\) does not depend on the position.</li>
+          <li>Set the height to 3 m: the top of the left building is at camera height and lies exactly on the horizon. Try 2 m for the right one.</li>
+          <li>Turn the yaw. \(\mathbf{v}_X\) and \(\mathbf{v}_Y\) slide along the horizon in opposite directions. Zoom out to follow them.</li>
+          <li>Roll the camera. The horizon tilts, but it still passes through \(\mathbf{v}_X\) and \(\mathbf{v}_Y\).</li>
+          <li>Pitch the camera up and down. The horizon moves down and up, and \(\mathbf{v}_Z\) jumps from far above the image to far below it when it passes through infinity.</li>
+          <li>Pick a family under “check family” and compare \(l_1 \times l_2\) with \(K R\,\mathbf{d}\) in the panel.</li>
+        </ul>
+      </article>
+    </main>
+    <script type="module" src="./main.ts"></script>
+  </body>
+</html>
