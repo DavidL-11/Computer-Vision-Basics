@@ -3,9 +3,10 @@
 
 import { type CameraSnapshot, clipSegmentNear } from '../../src/shared/camera';
 import { type Vec3, add, mulMat3Vec } from '../../src/shared/linalg';
+import { clipLine } from '../../src/shared/lines';
 import { cssColor, onThemeChange } from '../../src/shared/theme';
 import { EDGES, FAMILIES, type FamilyKey, GRID, IMAGE_HEIGHT, IMAGE_WIDTH } from './scene';
-import { type Vec2, clipLine, toCartesian } from './vanishing';
+import { type Vec2, toCartesian } from './vanishing';
 
 const WIDTH = 800;
 const HEIGHT = 600;

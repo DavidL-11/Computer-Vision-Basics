@@ -1,12 +1,13 @@
 import { Pane } from 'tweakpane';
 import { type CameraSnapshot, project, snapshot } from '../../src/shared/camera';
 import { type Vec3, dot, norm } from '../../src/shared/linalg';
+import { normalizeLine } from '../../src/shared/lines';
 import { initPage } from '../../src/shared/page';
 import { perFrame } from '../../src/shared/pixelView';
 import { eq, fmt, renderTex, texTuple, texVector } from '../../src/shared/tex';
 import { ImageView } from './imageView';
 import { EDGES, FAMILIES, type FamilyKey, IMAGE_HEIGHT, IMAGE_WIDTH } from './scene';
-import { horizon, intersect, lineThrough, normalizeLine, toCartesian, vanishingLine, vanishingPoint } from './vanishing';
+import { horizon, intersect, lineThrough, toCartesian, vanishingLine, vanishingPoint } from './vanishing';
 import { WorldView } from './worldView';
 import '../../src/shared/styles/demo.css';
 import './vanishing-points.css';
