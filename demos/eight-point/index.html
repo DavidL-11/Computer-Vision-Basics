@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Interactive 8-point algorithm: estimate the fundamental matrix F from noisy point correspondences with the SVD, and see why normalizing the coordinates and enforcing rank 2 matter." />
+    <title>8-point algorithm: estimating the fundamental matrix · Computer Vision Basics</title>
+  </head>
+  <body>
+    <main class="demo-page">
+      <section class="demo-intro">
+        <h1>8-point algorithm</h1>
+        <p class="lead">
+          The fundamental matrix \(F\) can be estimated from matching points alone, without knowing anything about the
+          cameras. Every correspondence gives one linear equation, and eight of them determine \(F\). Add noise, turn
+          normalization and the rank-2 constraint on and off, and compare the estimated epipolar lines with the true
+          ones.
+        </p>
+      </section>
+
+      <section class="workspace">
+        <div class="views">
+          <figure class="view card">
+            <figcaption>
+              Image 0 <span class="muted">click a point to select it</span>
+            </figcaption>
+            <div id="image0-view" class="image-view"></div>
+          </figure>
+          <figure class="view card">
+            <figcaption>
+              Image 1
+              <span class="muted legend">
+                <span class="key" style="--key: var(--accent)">epipolar lines of \(\hat F\)</span>
+                <span class="key dashed" style="--key: var(--fg-faint)">true lines</span>
+                <span class="key" style="--key: var(--viz-object)">epipole: dot \(\hat e\), ring \(e\)</span>
+              </span>
+            </figcaption>
+            <div id="image1-view" class="image-view"></div>
+          </figure>
+          <figure class="view card view-wide">
+            <figcaption>
+              Singular values \(\sigma_k\) of \(A\)
+              <span class="muted legend">(log scale; the red one belongs to the solution \(f\))</span>
+            </figcaption>
+            <div id="sigma-plot"></div>
+          </figure>
+        </div>
+        <aside id="controls" class="controls"></aside>
+      </section>
+
+      <section id="values" class="card values" aria-live="polite"></section>
+
+      <article class="explanation">
+        <h2>One equation per correspondence</h2>
+        <p>
+          Corresponding points \(x_0 = (u_0, v_0, 1)^\top\) and \(x_1 = (u_1, v_1, 1)^\top\) satisfy the
+          <a href="../epipolar-geometry/">epipolar constraint</a> \(x_1^\top F x_0 = 0\). Written out, this is a linear
+          equation in the nine entries of \(F\):
+        </p>
+        $$ u_1 u_0 f_{11} + u_1 v_0 f_{12} + u_1 f_{13} + v_1 u_0 f_{21} + v_1 v_0 f_{22} + v_1 f_{23} + u_0 f_{31} + v_0 f_{32} + f_{33} = 0 $$
+        <p>Each of the \(n\) correspondences adds one row to a homogeneous system:</p>
+        $$ \underbrace{\begin{bmatrix} u_1 u_0 & u_1 v_0 & u_1 & v_1 u_0 & v_1 v_0 & v_1 & u_0 & v_0 & 1 \\ \vdots & & & & & & & & \vdots \end{bmatrix}}_{A \;(n \times 9)} \underbrace{\begin{bmatrix} f_{11} \\ f_{12} \\ \vdots \\ f_{33} \end{bmatrix}}_{f} = 0 $$
+        <p>
+          \(F\) has 9 entries but is only defined up to scale, which leaves 8 unknowns. So at least 8 correspondences
+          are needed, with linearly independent rows. With more points and noise there is no exact solution, and the
+          unit vector \(f\) that makes \(|Af|\) smallest is the right singular vector of the smallest singular value,
+          the last column of \(V\) in the <a href="../svd/">SVD</a> \(A = U \Sigma V^\top\). This is the same step as
+          for a <a href="../homography/">homography</a> and for the projection matrix in
+          <a href="../dlt-calibration/">DLT calibration</a>.
+        </p>
+
+        <h2>Normalize the coordinates first</h2>
+        <p>
+          In pixel coordinates the columns of \(A\) have very different sizes: \(u_1 u_0\) is around \(10^5\), while the
+          last column is 1. The least-squares solution minimizes an algebraic error in which the large terms dominate,
+          and the small singular values of \(A\) that decide the solution get lost next to the large ones. The result
+          is very sensitive to noise.
+        </p>
+        <p>
+          The fix is to change the coordinate system of each image before building \(A\): move the origin to the
+          centroid of the points and scale them so that their mean distance from it is \(\sqrt 2\). Coordinates are
+          then of the order of 1:
+        </p>
+        $$ \hat x_0 = T_0 x_0, \quad \hat x_1 = T_1 x_1, \qquad T = \begin{bmatrix} s & 0 & -s\,\bar u \\ 0 & s & -s\,\bar v \\ 0 & 0 & 1 \end{bmatrix}, \quad s = \frac{\sqrt 2}{\text{mean distance from } (\bar u, \bar v)} $$
+        <p>
+          The 8-point algorithm on \(\hat x_0, \hat x_1\) gives \(\hat F\). Since
+          \(\hat x_1^\top \hat F \hat x_0 = x_1^\top T_1^\top \hat F T_0 x_0\), the matrix for the pixel coordinates is
+          \(F = T_1^\top \hat F T_0\).
+        </p>
+
+        <h2>Enforce rank 2</h2>
+        <p>
+          A true fundamental matrix is singular, it has rank 2, and all epipolar lines of an image meet in the epipole.
+          The solution of \(Af = 0\) does not know this, and with noise it comes out with full rank: its epipolar lines
+          no longer pass through a common point. The repair takes the SVD of the estimate, sets the smallest singular
+          value to zero and multiplies it back together:
+        </p>
+        $$ \hat F = U \operatorname{diag}(\sigma_1, \sigma_2, \sigma_3) V^\top \;\rightarrow\; U \operatorname{diag}(\sigma_1, \sigma_2, 0) V^\top $$
+        <p>
+          This is the rank-2 matrix closest to the estimate in the Frobenius norm, the
+          <a href="../svd/">rank approximation</a> of the SVD. It is applied to \(\hat F\) before the normalization is
+          undone.
+        </p>
+
+        <h2>Algebraic and geometric error</h2>
+        <p>
+          The 8-point algorithm minimizes \(|Af|\), an algebraic quantity without a direct meaning in the image. The
+          panel measures the error that matters: the distance in pixels of each \(x_1\) from its epipolar line
+          \(\hat F x_0\), for the points used and for other points that played no part in the estimate. Like linear
+          calibration, the 8-point algorithm is fast and needs no initial guess, and its result is usually refined by a
+          non-linear method that minimizes a geometric error.
+        </p>
+
+        <h2>Try this</h2>
+        <ul class="try">
+          <li>Set the noise to 0 and the points to 8: \(\sigma_9 = 0\), \(\hat F\) equals \(F\), and the estimated lines cover the true ones.</li>
+          <li>Set the noise back to 1 px and turn normalization off. The column sizes of \(A\) range over five orders of magnitude, \(\sigma_1 / \sigma_8\) jumps, and the error on the other points grows several times.</li>
+          <li>Without normalization, compare <em>enforce rank 2</em> on and off: forcing rank 2 in pixel coordinates makes the error even larger. With normalization it hardly costs anything.</li>
+          <li>Turn off <em>enforce rank 2</em> and zoom out until you reach an epipole: the epipolar lines no longer meet in one point but cross in a cloud. The panel shows \(\sigma_3 \ne 0\).</li>
+          <li>Increase the number of points with 1 px noise: the error on the other points shrinks, while the error on the used points stays near the noise level.</li>
+          <li>Press <em>New noise</em> a few times with only 8 points: the estimated epipoles jump around. Exactly determined systems fit the noise perfectly, and more points average it out.</li>
+        </ul>
+      </article>
+    </main>
+    <script type="module" src="./main.ts"></script>
+  </body>
+</html>

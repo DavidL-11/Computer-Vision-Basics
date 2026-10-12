@@ -1,13 +1,12 @@
 import { describe, expect, it } from 'vitest';
 import { project, snapshot } from '../../src/shared/camera';
 import { type Vec3, add, dot, norm, scale } from '../../src/shared/linalg';
+import { normalizeLine } from '../../src/shared/lines';
 import {
-  clipLine,
   horizon,
   intersect,
   isAtInfinity,
   lineThrough,
-  normalizeLine,
   toCartesian,
   vanishingLine,
   vanishingPoint,
@@ -107,22 +106,5 @@ describe('horizon', () => {
     const ramp = vanishingLine(cam.K, cam.R, [1, 0, 0], [0, 2, 1]);
     const v = vanishingPoint(cam.K, cam.R, [0, 4, 2]);
     expect(dot(normalizeLine(ramp), v) / v[2]).toBeCloseTo(0, 6);
-  });
-});
-
-describe('clipping a line to a rectangle', () => {
-  it('returns the chord through the rectangle', () => {
-    // v = u / 2 + 10
-    const seg = clipLine([1, -2, 20], 0, 100, 0, 100)!;
-    const us = seg.map((p) => p[0]).sort((a, b) => a - b);
-    expect(us[0]).toBeCloseTo(0, 9);
-    expect(us[1]).toBeCloseTo(100, 9);
-    seg.forEach(([u, v]) => expect(v).toBeCloseTo(u / 2 + 10, 9));
-  });
-
-  it('handles horizontal lines and misses', () => {
-    expect(clipLine([0, 1, -30], 0, 100, 0, 50)!.map((p) => p[1])).toEqual([30, 30]);
-    expect(clipLine([0, 1, -80], 0, 100, 0, 50)).toBeNull();
-    expect(clipLine([1, 1, 500], 0, 100, 0, 100)).toBeNull();
   });
 });

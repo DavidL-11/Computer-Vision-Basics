@@ -1,0 +1,32 @@
+.metric-table {
+  border-collapse: collapse;
+  font-size: 0.9rem;
+  font-variant-numeric: tabular-nums;
+}
+.metric-table th,
+.metric-table td {
+  padding: 0.15rem 1.1rem 0.15rem 0;
+  text-align: left;
+  white-space: nowrap;
+}
+.metric-table th {
+  font-weight: 600;
+  color: var(--fg-muted);
+}
+.metric-table tr.current td {
+  font-weight: 600;
+}
+.metric-table .ok {
+  color: var(--axis-y);
+}
+.metric-table .bad {
+  color: var(--viz-highlight);
+}
+
+/* The cost surface and the residuals are square; keep them from growing taller than the images. */
+.square-frame {
+  justify-content: center;
+}
+.square-frame .pixel-canvas {
+  width: min(100%, 420px);
+}
