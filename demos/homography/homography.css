@@ -1,0 +1,10 @@
+.front-frame {
+  justify-content: center;
+}
+.front-frame > div {
+  width: 100%;
+  margin: 0 auto;
+}
+.photo-frame .pixel-canvas {
+  touch-action: none;
+}

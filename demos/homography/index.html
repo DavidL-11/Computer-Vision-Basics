@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Interactive homography estimation: drag four corners of a planar object, solve Ah = 0 with the SVD for the 3×3 projective transformation H and rectify the photo into a fronto-parallel view." />
+    <title>Homography &amp; rectification: estimate H from 4 points · Computer Vision Basics</title>
+  </head>
+  <body>
+    <main class="demo-page">
+      <section class="demo-intro">
+        <h1>Homography &amp; rectification</h1>
+        <p class="lead">
+          A photo of a flat object, such as a sheet of paper or a facade, is a projective transformation of its front
+          view. Mark the four corners, and the homography \(H\) follows from a small homogeneous linear system solved
+          with the SVD. With \(H\), the photo can be unwarped into the front view.
+        </p>
+      </section>
+
+      <section class="workspace">
+        <div class="views">
+          <figure class="view card">
+            <figcaption>Photo <span class="muted">drag the corners 1–4; click elsewhere to pick a point</span></figcaption>
+            <div id="photo-view" class="image-frame photo-frame"></div>
+          </figure>
+          <figure class="view card">
+            <figcaption>Rectified front view <span id="front-caption" class="muted"></span></figcaption>
+            <div class="image-frame front-frame"><div id="front-view"></div></div>
+          </figure>
+        </div>
+        <aside id="controls" class="controls"></aside>
+      </section>
+
+      <section id="values" class="card values" aria-live="polite"></section>
+
+      <article class="explanation">
+        <h2>A plane seen at an angle</h2>
+        <p>
+          All points of a plane in the scene are related to their pixels in a photo by one projective transformation,
+          a <em>homography</em>:
+        </p>
+        $$ \begin{bmatrix} x' \\ y' \\ w' \end{bmatrix} = \begin{bmatrix} a & b & c \\ d & e & f \\ g & h & 1 \end{bmatrix} \begin{bmatrix} x \\ y \\ 1 \end{bmatrix}, \qquad p' = \left(\frac{x'}{w'}, \frac{y'}{w'}\right) $$
+        <p>
+          \(H\) is only defined up to scale, so it has 8 degrees of freedom. Lines stay lines, but parallel lines may
+          meet and ratios change; the <a href="../transformations-2d/">2D transformations</a> demo shows these
+          properties one by one. Here \(H\) maps the photo (\(p\), in pixels) to the front view (\(p'\), in pixels of the
+          output rectangle). The four corners of the object go to the four corners of the rectangle.
+        </p>
+
+        <h2>Two equations per point</h2>
+        <p>Write the last entry as a ninth unknown \(i\) and multiply out the division by \(w'\):</p>
+        $$ x' = \frac{a x + b y + c}{g x + h y + i} \;\Rightarrow\; a x + b y + c - g x x' - h y x' - i x' = 0 $$
+        <p>
+          and likewise for \(y'\). Both equations are linear in the entries of \(H\). Stacking them for all
+          correspondences gives a homogeneous system, set up the same way as the one for
+          <a href="../dlt-calibration/">camera calibration</a>:
+        </p>
+        $$ \begin{bmatrix} x_1 & y_1 & 1 & 0 & 0 & 0 & -x'_1 x_1 & -x'_1 y_1 & -x'_1 \\ 0 & 0 & 0 & x_1 & y_1 & 1 & -y'_1 x_1 & -y'_1 y_1 & -y'_1 \\ \vdots & & & & & & & & \vdots \\ x_n & y_n & 1 & 0 & 0 & 0 & -x'_n x_n & -x'_n y_n & -x'_n \\ 0 & 0 & 0 & x_n & y_n & 1 & -y'_n x_n & -y'_n y_n & -y'_n \end{bmatrix} \begin{bmatrix} a \\ b \\ c \\ d \\ e \\ f \\ g \\ h \\ i \end{bmatrix} = 0 $$
+
+        <h2>Solving \(Ah = 0\) with the SVD</h2>
+        <p>
+          \(h = 0\) always solves the system, so we look for the unit vector \(h\) that makes \(|Ah|\) smallest: the
+          right singular vector of the smallest singular value (see the <a href="../svd/">SVD</a> and
+          <a href="../line-fitting/">total least squares</a>). Four points give 8 equations for 9 unknowns, so \(A\) is
+          8 × 9 and there is always a direction with \(Ah = 0\) exactly: the ninth column of \(V\). It fixes \(H\) up to
+          its scale, and dividing by the last entry gives the form \([a\ b\ c;\ d\ e\ f;\ g\ h\ 1]\). With more than four
+          correspondences the system is overdetermined; the same vector is then the least-squares solution, and its
+          singular value tells how well all points agree.
+        </p>
+        <p>
+          Not every set of four points works. If three of the corners lie on one line, no invertible projective map can
+          send them to three corners of a rectangle. The best \(h\) is then a singular \(H\), which squashes the plane.
+        </p>
+
+        <h2>Rectification by inverse mapping</h2>
+        <p>
+          To fill the front view, go backwards: for every output pixel \(p'\), compute \(p = H^{-1} p'\) (again with the
+          division by \(w\)), and interpolate the photo bilinearly at \(p\). Mapping the photo forward instead would
+          leave holes where the front view is stretched. The four corners only fix where the object's corners go, not
+          the object's true proportions; the width-to-height ratio of the rectangle has to come from knowing the object,
+          e.g. √2 for an A4 sheet.
+        </p>
+
+        <h2>Try this</h2>
+        <ul class="try">
+          <li>At the start, the corners sit exactly on the sheet, and the front view shows the test image undistorted. The grid shows how the evenly spaced lines of the front view are compressed towards the far edge of the photo.</li>
+          <li>Pick a point near the far edge of the sheet and one near the near edge, and compare \(w'\) in the panel: the division by \(w'\) is what makes equal steps in the front view unequal in the photo.</li>
+          <li>Drag corner 3 by a few pixels: the text in the front view leans and bends into a trapezoid. Straight lines stay straight, but the result is no longer the true front view.</li>
+          <li>Switch the ratio to 1 : 1 or 3 : 4: the text gets squashed. \(H\) maps any four corners onto any rectangle, so the proportions have to be known from outside.</li>
+          <li>Drag corner 4 onto the line through corners 1 and 2: \(\det H\) drops towards 0, the front view goes blank and the panel warns that \(H\) is singular.</li>
+          <li>Swap the corners left and right (1 ↔ 2 and 4 ↔ 3): the front view is mirrored, and \(\det H\) changes sign.</li>
+          <li>Open a photo of your own, such as a document on a desk, a facade or a tiled floor, and drag the corners onto a rectangle in it.</li>
+        </ul>
+      </article>
+    </main>
+    <script type="module" src="./main.ts"></script>
+  </body>
+</html>
