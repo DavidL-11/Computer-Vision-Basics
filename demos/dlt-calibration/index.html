@@ -1,0 +1,155 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Interactive DLT camera calibration: estimate the projection matrix M from a 3D target with Ax = b or Ax = 0 (SVD), factor it with the RQ decomposition into K and R, recover t = K⁻¹m₄ and the camera center C = −Q⁻¹m₄." />
+    <title>DLT camera calibration: estimate M, K, R, t and C · Computer Vision Basics</title>
+  </head>
+  <body>
+    <main class="demo-page">
+      <section class="demo-intro">
+        <h1>DLT camera calibration</h1>
+        <p class="lead">
+          Calibrating a camera means estimating its intrinsics \(K\) and pose \([R \mid t]\). Photograph a target with
+          known 3D geometry, find its corners in the image, and the projection matrix \(M = K[R \mid t]\) follows from a
+          linear system. Add noise, drop points and switch methods, and compare the recovered camera with the true one.
+        </p>
+      </section>
+
+      <section class="workspace">
+        <div class="views">
+          <figure class="view card">
+            <figcaption>
+              Camera image
+              <span class="muted legend">
+                <span class="key" style="--key: var(--viz-points)">measured corners</span>
+                <span class="key" style="--key: var(--accent)">reprojected with \(\hat M\)</span>
+                <span class="key" style="--key: var(--viz-highlight)">error, magnified</span>
+              </span>
+              <span id="image-caption" class="muted"></span>
+            </figcaption>
+            <div id="image-view" class="image-view"></div>
+          </figure>
+          <figure class="view card">
+            <figcaption>
+              Calibration target and cameras
+              <span class="muted legend">
+                <span class="key" style="--key: var(--viz-frustum)">true camera \(C\)</span>
+                <span class="key" style="--key: var(--viz-highlight)">estimated \(\hat C\)</span>
+                · drag to orbit, scroll to zoom
+              </span>
+            </figcaption>
+            <div id="world-view" class="view-3d world-view"></div>
+          </figure>
+          <figure class="view card view-wide">
+            <figcaption>
+              Singular values \(\sigma_k\) of \(A\)
+              <span class="muted legend">(log scale; for \(Ax = 0\) the red one belongs to the solution)</span>
+            </figcaption>
+            <div id="sigma-plot"></div>
+          </figure>
+        </div>
+        <aside id="controls" class="controls"></aside>
+      </section>
+
+      <section id="values" class="card values" aria-live="polite"></section>
+
+      <article class="explanation">
+        <h2>Calibration with a known target</h2>
+        <p>
+          A <a href="../camera-model/">pinhole camera</a> maps a world point to a pixel with one 3 × 4 matrix:
+        </p>
+        $$ w \begin{bmatrix} u \\ v \\ 1 \end{bmatrix} = \underbrace{\begin{bmatrix} m_{11} & m_{12} & m_{13} & m_{14} \\ m_{21} & m_{22} & m_{23} & m_{24} \\ m_{31} & m_{32} & m_{33} & m_{34} \end{bmatrix}}_{M \,=\, K[R \mid t]} \begin{bmatrix} X \\ Y \\ Z \\ 1 \end{bmatrix}, \qquad K = \begin{bmatrix} \alpha & s & u_0 \\ 0 & \beta & v_0 \\ 0 & 0 & 1 \end{bmatrix} $$
+        <p>
+          The target here is the classic calibration rig: two perpendicular checkerboards, 5 cm squares, in the
+          planes \(Y = 0\) and \(X = 0\) of a world frame with \(Z\) up. Its inner corners have known coordinates
+          \((X, Y, Z)\), and their pixels \((u, v)\) are measured in the image, here with Gaussian noise of
+          \(\sigma\) pixels.
+        </p>
+
+        <h2>Two equations per point</h2>
+        <p>Dividing by \(w\) gives the pixel, and multiplying the denominator out gives equations linear in \(M\):</p>
+        $$ u = \frac{m_{11} X + m_{12} Y + m_{13} Z + m_{14}}{m_{31} X + m_{32} Y + m_{33} Z + m_{34}} \;\Rightarrow\; m_{11} X + m_{12} Y + m_{13} Z + m_{14} - m_{31} u X - m_{32} u Y - m_{33} u Z - m_{34} u = 0 $$
+        <p>
+          and likewise for \(v\). \(M\) has 12 entries, but like every projective matrix it is only defined up to
+          scale, which leaves 11 unknowns. Each point gives two equations, so 5.5 points determine \(M\): at least 6
+          are needed. More points make the system overdetermined, and least squares finds the \(M\) that fits them best,
+          which makes the result robust to errors in the measured corners.
+        </p>
+
+        <h2>Method 1: \(Ax = b\)</h2>
+        <p>
+          Fix the scale by setting \(m_{34} = 1\). The terms with \(m_{34}\) move to the right-hand side, and the
+          system has 11 unknowns:
+        </p>
+        $$ \begin{bmatrix} X_1 & Y_1 & Z_1 & 1 & 0 & 0 & 0 & 0 & -u_1 X_1 & -u_1 Y_1 & -u_1 Z_1 \\ 0 & 0 & 0 & 0 & X_1 & Y_1 & Z_1 & 1 & -v_1 X_1 & -v_1 Y_1 & -v_1 Z_1 \\ \vdots & & & & & & & & & & \vdots \end{bmatrix} \begin{bmatrix} m_{11} \\ m_{12} \\ \vdots \\ m_{33} \end{bmatrix} = \begin{bmatrix} u_1 \\ v_1 \\ \vdots \end{bmatrix} $$
+        <p>
+          \(A\) is \(2n \times 11\), and the least-squares solution is \(x = (A^\top A)^{-1} A^\top b\), as for
+          <a href="../line-fitting/">vertical least squares</a>. The catch is \(m_{34}\): it equals \(t_z\), the depth
+          of the world origin in front of the camera. If the world origin lies near the plane through the camera center
+          parallel to the image, \(m_{34} \approx 0\), and forcing it to 1 needs an enormous scale for all other entries.
+          Here the origin, the inner corner of the rig, is well in front of the camera.
+        </p>
+
+        <h2>Method 2: \(Ax = 0\)</h2>
+        <p>
+          Keep all 12 entries, with the last column \(-u_i\), \(-v_i\), and look for the unit vector \(x\) that makes
+          \(|Ax|\) smallest: the right singular vector of the smallest singular value of the \(2n \times 12\) matrix
+          \(A\), the last column of \(V\) in the <a href="../svd/">SVD</a>, as in
+          <a href="../line-fitting/">total least squares</a> and for a <a href="../homography/">homography</a>. Without
+          noise, \(\sigma_{12} = 0\); with noise it measures how well the points agree with a single \(M\).
+        </p>
+        <p>
+          The target must not be flat. All points of one plane satisfy a linear equation, so adding any multiple of that
+          equation to a row of \(M\) changes nothing for them: three extra directions besides the scale. Four singular
+          values drop to zero, and the solution is an arbitrary vector of this four-dimensional null space rather than
+          \(K[R \mid t]\). For the board in the plane \(Y = 0\), the columns of \(m_{12}\), \(m_{22}\) and \(m_{32}\)
+          are all zero, and a vector with only \(m_{32} = 1\) satisfies every equation as \(0 = 0\), while sending every
+          point to \(w = 0\). That is why the rig has two boards.
+        </p>
+
+        <h2>Factorizing \(M\) back into \(K[R \mid t]\)</h2>
+        <p>
+          The left 3 × 3 block of \(M\) is \(Q = KR\): an upper triangular matrix times a rotation. The RQ
+          decomposition splits a matrix exactly into these two factors: the upper triangular one is \(K\), the orthogonal
+          one is \(R\). Here it is computed with three Givens rotations that zero the entries below the diagonal. The
+          decomposition leaves signs open, so it needs post-processing to give valid matrices: the diagonal of \(K\) is
+          made positive, \(M\) is negated if \(R\) comes out as a reflection (the SVD can return \(-M\) just as well as
+          \(M\)), and \(K\) is scaled to \(K_{33} = 1\). The last column of \(M\) is \(m_4 = Kt\), so
+        </p>
+        $$ t = K^{-1} m_4 $$
+
+        <h2>Recovering the camera center</h2>
+        <p>
+          The camera center is not \(t\): the point is rotated before the translation is added. The center is the point
+          that \(M\) maps to 0, \(R C + t = 0\), so
+        </p>
+        $$ C = -R^{-1} t = -R^{-1} K^{-1} m_4 = -Q^{-1} m_4 $$
+        <p>which needs neither the RQ decomposition nor the scale of \(M\).</p>
+
+        <h2>Linear calibration and beyond</h2>
+        <p>
+          The linear method is easy to set up and solve, and it needs no initial guess. But it only gives \(M\), and the
+          camera parameters have to be extracted from it. It does not model radial lens distortion, and it cannot impose
+          constraints such as zero skew or square pixels: \(\hat s\) comes out as whatever fits the noise best. It also
+          minimizes an algebraic error \(|Ax|\), not the distance in pixels. In practice the linear result is the
+          starting point for a non-linear method, which defines the error as the difference between the projected and
+          the measured points and minimizes it with Newton's method or a similar optimizer.
+        </p>
+
+        <h2>Try this</h2>
+        <ul class="try">
+          <li>Set the noise to 0: \(\hat K\), \(\hat R\), \(\hat t\) and \(\hat C\) equal the true values, the reprojection error is 0, and the last singular value drops to about \(10^{-15}\).</li>
+          <li>Still without noise, reduce the points to 6: the result stays exact, since 6 points give 12 equations for 11 unknowns. Now add 0.5 px of noise and press <em>New noise</em> a few times: \(\hat K\) and \(\hat C\) jump by tens of pixels and centimeters. Increase the number of points and they settle down.</li>
+          <li>Look at where \(\hat C\) lands in the 3D view: with noise it moves mostly along the viewing direction, and \(\hat\alpha\), \(\hat\beta\) change with it. A camera a bit closer with a slightly wider view sees almost the same image.</li>
+          <li>Increase the distance to 3 m with 1 px of noise: the rig covers only a small part of the image, and the estimates of \(\alpha\), \(\beta\) and \(C\) fall apart, even though the reprojection error stays small.</li>
+          <li>Turn on <em>one plane only</em>: with \(Ax = 0\), four singular values drop to (almost) zero, three of them exactly. \(\hat M\) has a single nonzero entry \(m_{32}\), the panel reports that \(Q\) is singular, and no reprojections are drawn. With \(Ax = b\), \(A^\top A\) is singular and there is no solution at all.</li>
+          <li>Set a skew \(s = 20\): the RQ decomposition recovers it. Then set \(s = 0\) and add 2 px of noise: \(\hat s\) is no longer 0, because the linear method cannot enforce it.</li>
+          <li>Switch between Method 1 and Method 2 with noise: the two estimates are close but not identical, because they minimize different algebraic errors.</li>
+        </ul>
+      </article>
+    </main>
+    <script type="module" src="./main.ts"></script>
+  </body>
+</html>

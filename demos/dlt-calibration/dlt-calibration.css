@@ -1,0 +1,23 @@
+:root {
+  --board-dark: light-dark(#b9bcc4, #3a3f48);
+  --board-light: light-dark(#eef0f3, #252930);
+}
+
+.world-view {
+  aspect-ratio: 4 / 3;
+}
+.scene-label.estimate-label {
+  color: var(--viz-highlight);
+}
+
+.image-view {
+  display: flex;
+  align-items: center;
+  flex: 1;
+  background: var(--bg-sunken);
+}
+.image-canvas {
+  display: block;
+  width: 100%;
+  height: auto;
+}
