@@ -1,0 +1,16 @@
+:root {
+  --vls: light-dark(#e0892b, #ffac4d);
+  --tls: light-dark(#1f9a8a, #4fd1bd);
+}
+
+.fit-view {
+  background: var(--bg-elev);
+}
+.fit-canvas {
+  display: block;
+  width: 100%;
+  height: auto;
+  cursor: crosshair;
+  touch-action: none;
+  user-select: none;
+}

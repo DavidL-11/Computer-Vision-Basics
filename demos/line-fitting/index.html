@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Interactive line fitting: drag points and compare vertical least squares, p = (AᵀA)⁻¹Aᵀy, with total least squares via the smallest eigenvector of AᵀA, including vertical lines, rotation and outliers." />
+    <title>Line fitting: vertical vs total least squares, interactive demo · Computer Vision Basics</title>
+  </head>
+  <body>
+    <main class="demo-page">
+      <section class="demo-intro">
+        <h1>Line fitting: vertical vs total least squares</h1>
+        <p class="lead">
+          Two ways to fit a line to points: minimize the vertical distances, which is the linear system \(Ap = y\), or
+          the perpendicular distances, which is the homogeneous system \(Ap = 0\). Drag the points, turn them and add an
+          outlier to see where the two differ.
+        </p>
+      </section>
+
+      <section class="workspace">
+        <div class="views">
+          <figure class="view card">
+            <figcaption>
+              Points and fitted lines
+              <span class="muted legend">
+                <span class="key" style="--key: var(--vls)">vertical LS</span>
+                <span class="key" style="--key: var(--tls)">total LS</span>
+                · click to add, drag to move, double-click or shift-click to remove
+              </span>
+            </figcaption>
+            <div id="fit-view" class="fit-view"></div>
+          </figure>
+          <figure class="view card">
+            <figcaption>
+              Squared residual per point
+              <span class="muted legend">
+                <span class="key" style="--key: var(--vls)">\((y_i - (m x_i + b))^2\)</span>
+                <span class="key" style="--key: var(--tls)">\((a x_i + b y_i + c)^2\)</span>
+              </span>
+            </figcaption>
+            <div id="residual-plot"></div>
+          </figure>
+        </div>
+        <aside id="controls" class="controls"></aside>
+      </section>
+
+      <section id="values" class="card values" aria-live="polite"></section>
+
+      <article class="explanation">
+        <h2>Least squares</h2>
+        <p>
+          Least squares picks the model that minimizes the sum of squared differences between the data and the model.
+          The objective is clearly specified and the optimum has a closed form, which makes it the standard first tool
+          for fitting. It has two weaknesses: it is sensitive to outliers, because a squared error lets one bad point
+          dominate, and it can only return a single fit even when the data contain several lines.
+        </p>
+
+        <h2>Vertical least squares</h2>
+        <p>
+          Given points \((x_i, y_i)\), find \(m\) and \(b\) of the line \(y = mx + b\) that minimize the squared
+          <em>vertical</em> distances:
+        </p>
+        $$ E = \sum_{i=1}^{n} \big(y_i - (m x_i + b)\big)^2 = \left\| \begin{bmatrix} x_1 & 1 \\ \vdots & \vdots \\ x_n & 1 \end{bmatrix} \begin{bmatrix} m \\ b \end{bmatrix} - \begin{bmatrix} y_1 \\ \vdots \\ y_n \end{bmatrix} \right\|^2 = \|Ap - y\|^2 $$
+        <p>Setting the derivative to zero gives the normal equations and their closed-form solution:</p>
+        $$ A^\top A\, p = A^\top y \;\Rightarrow\; p = (A^\top A)^{-1} A^\top y $$
+        <p>
+          It is cheap and exact, but it measures errors along \(y\) only. The result depends on how the points lie in
+          the coordinate frame: it is <em>not rotation-invariant</em>. And it fails completely for a vertical line:
+          \(m \to \infty\), and with all \(x_i\) equal, \(A^\top A\) is singular.
+        </p>
+
+        <h2>Total least squares</h2>
+        <p>
+          Write the line as \(ax + by + c = 0\) with \(a^2 + b^2 = 1\). Then \(|a x_i + b y_i + c|\) is the
+          <em>perpendicular</em> distance of a point to the line, and total least squares minimizes
+        </p>
+        $$ E = \sum_{i=1}^{n} (a x_i + b y_i + c)^2 $$
+        <p>
+          The optimal line passes through the centroid \((\bar x, \bar y)\), so \(c = -a\bar x - b\bar y\).
+          Substituting it leaves only the normal \(p = (a, b)\):
+        </p>
+        $$ E = \sum_{i=1}^{n} \big(a (x_i - \bar x) + b (y_i - \bar y)\big)^2 = \left\| \begin{bmatrix} x_1 - \bar x & y_1 - \bar y \\ \vdots & \vdots \\ x_n - \bar x & y_n - \bar y \end{bmatrix} \begin{bmatrix} a \\ b \end{bmatrix} \right\|^2 = \|Ap\|^2 = p^\top A^\top A\, p $$
+        <p>
+          Minimizing \(p^\top A^\top A\, p\) subject to \(p^\top p = 1\) gives the eigenvector of the smallest
+          eigenvalue \(\lambda_2\) of the 2 × 2 matrix \(A^\top A\), which is the same as the right singular vector of
+          the smallest singular value of \(A\) (see the <a href="../svd/">SVD</a>). The minimal error is
+          \(E = \lambda_2\). The other eigenvector, of \(\lambda_1\), points along the line. Nothing here prefers the
+          \(x\) or \(y\) axis, so rotating the points rotates the fitted line with them, and vertical lines are no
+          special case.
+        </p>
+
+        <h2>Recap: two common optimization problems</h2>
+        <ul>
+          <li>
+            Minimize \(\|Ax - b\|^2\), the least-squares solution of \(Ax = b\): \(x = (A^\top A)^{-1} A^\top b\), in
+            MATLAB <code>x = A \ b</code>.
+          </li>
+          <li>
+            Minimize \(x^\top A^\top A\, x\) subject to \(x^\top x = 1\), the non-trivial least-squares solution of
+            \(Ax = 0\): the eigenvector of \(A^\top A\) with the smallest eigenvalue.
+          </li>
+        </ul>
+        <p>
+          Both come back when estimating a <a href="../homography/">homography</a> and when
+          <a href="../dlt-calibration/">calibrating a camera</a>, where they are called Method 1 and Method 2.
+        </p>
+
+        <h2>Try this</h2>
+        <ul class="try">
+          <li>With the noisy line, compare the dashed residuals: the orange ones are vertical, the teal ones meet the line at a right angle. The two lines are almost the same here.</li>
+          <li>Choose <em>Steep line</em>: the vertical residuals get long, and the orange line comes out flatter than the points (about 75° instead of 78°), while the teal one follows them.</li>
+          <li>Choose <em>Vertical line</em>: vertical least squares returns a line tilted by only about 19°, far from the points. Set the noise to 0: all \(x_i\) are equal, \(A^\top A\) is singular and there is no solution at all, while total least squares finds \(x = 1.5\).</li>
+          <li>Go back to the noisy line and drag <em>rotate</em>: the teal line turns with the points and its \(E\) stays exactly the same. The orange \(E\) grows, and around 60° to 65° the orange line breaks away from the points.</li>
+          <li>Choose <em>One outlier</em>: its bar dwarfs the others and both lines tilt towards it. A point three times as far away counts nine times as much.</li>
+          <li>Choose <em>Two clusters</em>: the points would be better described by two short lines, but least squares only returns one, running between the clusters.</li>
+          <li>Delete points until only two are left: both fits pass through them exactly and \(E = 0\).</li>
+        </ul>
+      </article>
+    </main>
+    <script type="module" src="./main.ts"></script>
+  </body>
+</html>

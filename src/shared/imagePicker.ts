@@ -10,8 +10,15 @@ export interface ImagePickerOptions {
   label?: string;
 }
 
-/** A list of test images plus "Open image…". Returns the initial image; later changes go to onChange. */
-export function addImagePicker(parent: FolderApi, opts: ImagePickerOptions, onChange: (img: RGBImage) => void): RGBImage {
+/**
+ * A list of test images plus "Open image…". Returns the initial image; later changes go to onChange, together with the
+ * chosen test image or 'file' for the user's image.
+ */
+export function addImagePicker(
+  parent: FolderApi,
+  opts: ImagePickerOptions,
+  onChange: (img: RGBImage, source: TestImage | 'file') => void,
+): RGBImage {
   const state = { image: opts.value as string };
   let previous = state.image;
   let file: RGBImage | null = null;
@@ -25,7 +32,7 @@ export function addImagePicker(parent: FolderApi, opts: ImagePickerOptions, onCh
     if (img) {
       file = img;
       state.image = previous = 'file';
-      onChange(img);
+      onChange(img, 'file');
     } else {
       state.image = previous;
     }
@@ -37,14 +44,14 @@ export function addImagePicker(parent: FolderApi, opts: ImagePickerOptions, onCh
     if (value === 'file') {
       if (file) {
         previous = value;
-        onChange(file);
+        onChange(file, 'file');
       } else {
         void load();
       }
       return;
     }
     previous = value;
-    onChange(testImage(value as TestImage, opts.width, opts.height));
+    onChange(testImage(value as TestImage, opts.width, opts.height), value as TestImage);
   });
   parent.addButton({ title: 'Open image…' }).on('click', () => void load());
   return testImage(opts.value, opts.width, opts.height);
