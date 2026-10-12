@@ -1,0 +1,21 @@
+.world-view {
+  aspect-ratio: 2 / 1;
+}
+.scene-label.point-label {
+  color: var(--viz-highlight);
+}
+
+.image-view {
+  display: flex;
+  align-items: center;
+  flex: 1;
+  background: var(--bg-sunken);
+}
+.image-canvas {
+  display: block;
+  width: 100%;
+}
+.image-canvas.pickable {
+  cursor: crosshair;
+  touch-action: none;
+}

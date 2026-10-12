@@ -1,0 +1,154 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Interactive epipolar geometry: pick a point in one image and see its epipolar line in the other, move the cameras and follow the epipoles, the epipolar plane and the fundamental matrix F = [e₁]× P₁ P₀⁺." />
+    <title>Epipolar geometry: epipolar lines, epipoles &amp; the fundamental matrix · Computer Vision Basics</title>
+  </head>
+  <body>
+    <main class="demo-page">
+      <section class="demo-intro">
+        <h1>Two-view geometry &amp; epipolar lines</h1>
+        <p class="lead">
+          A point in one image fixes only a ray in space, not a 3D point. Seen from a second camera, that ray is a line,
+          and the matching point has to lie on it. Click a point in image 0, slide the 3D point along its ray, and move
+          the second camera to see how the epipolar lines, the epipoles and the fundamental matrix \(F\) change.
+        </p>
+      </section>
+
+      <section class="workspace">
+        <div class="views">
+          <figure class="view card">
+            <figcaption>
+              Image 0 <span class="muted">click to select \(x_0\); near a corner it snaps to it</span>
+              <span id="image0-caption" class="muted"></span>
+            </figcaption>
+            <div id="image0-view" class="image-view"></div>
+          </figure>
+          <figure class="view card">
+            <figcaption>
+              Image 1
+              <span class="muted legend">
+                <span class="key" style="--key: var(--accent)">epipolar line \(l_1 = F x_0\)</span>
+                <span class="key" style="--key: var(--viz-object)">epipole</span>
+              </span>
+              <span id="image1-caption" class="muted"></span>
+            </figcaption>
+            <div id="image1-view" class="image-view"></div>
+          </figure>
+          <figure class="view card view-wide">
+            <figcaption>
+              Scene and cameras
+              <span class="muted legend">
+                <span class="key" style="--key: var(--viz-object)">baseline \(C_0 C_1\)</span>
+                <span class="key" style="--key: var(--viz-ray)">rays through \(X\)</span>
+                <span class="key" style="--key: var(--accent)">epipolar plane and lines</span>
+                · drag to orbit, scroll to zoom
+              </span>
+            </figcaption>
+            <div id="world-view" class="view-3d world-view"></div>
+          </figure>
+        </div>
+        <aside id="controls" class="controls"></aside>
+      </section>
+
+      <section id="values" class="card values" aria-live="polite"></section>
+
+      <article class="explanation">
+        <h2>Two cameras, one point</h2>
+        <p>
+          Two cameras with centers \(C_0\) and \(C_1\) look at the same scene. A 3D point \(X\) appears in image 0 at
+          \(x_0\) and in image 1 at \(x_1\). The construction is symmetric, and all its parts lie in one plane, the
+          <strong>epipolar plane</strong> through \(C_0\), \(C_1\) and \(X\):
+        </p>
+        <ul>
+          <li>The <strong>baseline</strong> \(B\) is the line through the two camera centers. It lies in every epipolar plane.</li>
+          <li>The <strong>epipoles</strong> \(e_0\) and \(e_1\) are where the baseline meets the image planes. \(e_0\) is the image of \(C_1\) in camera 0, and \(e_1\) is the image of \(C_0\) in camera 1.</li>
+          <li>The <strong>epipolar lines</strong> \(l_0\) and \(l_1\) are where the epipolar plane cuts the image planes. They contain \(x_0\) and \(x_1\) and the epipoles.</li>
+        </ul>
+        <p>
+          Every point \(X\) has its own epipolar plane, but they all contain the baseline: they rotate about it like the
+          pages of a book. So all epipolar lines of an image pass through its epipole, and together they form a
+          <em>pencil</em> of lines.
+        </p>
+
+        <h2>Why the match has to lie on a line</h2>
+        <p>
+          The camera center is the right null space of the projection matrix, \(P C = 0\). If \(X\) is on the ray through
+          \(C\), so is every point \(X + \lambda C\), and they all project to the same pixel:
+        </p>
+        $$ x \cong P (X + \lambda C) = P X + \lambda P C = P X $$
+        <p>
+          A pixel \(x_0\) therefore only tells us the ray from \(C_0\) through \(x_0\), not where \(X\) is on it. Camera 1
+          sees this ray from the side, as a line: the epipolar line \(l_1\). Whatever depth \(X\) has, \(x_1\) lies on
+          \(l_1\), so the search for the corresponding point shrinks from the whole image to a line. Once it is found, the
+          two rays can be intersected, which gives the depth of \(X\).
+        </p>
+
+        <h2>Backprojection with the pseudo-inverse</h2>
+        <p>
+          \(P_0\) is a 3 × 4 matrix and has no inverse, but its pseudo-inverse \(P_0^+ = P_0^\top (P_0 P_0^\top)^{-1}\)
+          gives a point with the same projection:
+        </p>
+        $$ X^+ = P_0^+ x_0, \qquad P_0 X^+ = P_0 P_0^+ x_0 = x_0 $$
+        <p>
+          \(X^+\) lies on the ray, and together with the camera center it defines it: the ray is
+          \(\operatorname{join}(X^+, C_0)\).
+        </p>
+
+        <h2>The fundamental matrix</h2>
+        <p>
+          Project both points of the ray into camera 1. \(C_0\) goes to the epipole \(e_1 = P_1 C_0\), and \(X^+\) goes to
+          \(P_1 P_0^+ x_0\). In <a href="../homogeneous-coordinates/">homogeneous coordinates</a> the line through two
+          points is their cross product, and the cross product with \(e_1\) is a matrix product with the anti-symmetric
+          matrix \([e_1]_\times\):
+        </p>
+        $$ l_1 = e_1 \times P_1 P_0^+ x_0 = \underbrace{[e_1]_\times P_1 P_0^+}_{F}\, x_0, \qquad [e]_\times = \begin{bmatrix} 0 & -e_2 & e_1 \\ e_2 & 0 & -e_0 \\ -e_1 & e_0 & 0 \end{bmatrix} $$
+        <p>
+          (here \(e = (e_0, e_1, e_2)^\top\) are the three components of one epipole). The
+          <strong>fundamental matrix</strong> \(F\) is a linear map from points in image 0 to lines in image 1, and it
+          contains the intrinsic and extrinsic parameters of both cameras. Since \(x_1\) lies on \(l_1\):
+        </p>
+        $$ l_1 = F x_0, \qquad x_1^\top F x_0 = 0, \qquad l_0 = F^\top x_1 $$
+        <p>
+          This is the <strong>epipolar constraint</strong>. It holds for every pair of corresponding points, and it
+          involves only pixels and \(F\), not the 3D point. That is what makes it possible to estimate \(F\) from
+          correspondences alone, with the <a href="../eight-point/">8-point algorithm</a>.
+        </p>
+
+        <h2>\(F\) is singular</h2>
+        <p>
+          \([e_1]_\times\) has rank 2, because \([e_1]_\times e_1 = e_1 \times e_1 = 0\). So \(F\) has rank 2 too, and
+          \(\det F = 0\). Geometrically, \(F\) maps a 2D family of points to a 1D family of lines, the pencil through
+          \(e_1\): every line \(F x_0\) contains \(e_1\), i.e. \(e_1^\top F = 0\). The epipole \(e_0\) itself has no
+          epipolar line, \(F e_0 = 0\): the ray through \(e_0\) is the baseline, which camera 1 sees as the single point
+          \(e_1\). Like every homogeneous matrix, \(F\) is only defined up to scale; the panel scales it to
+          \(\|F\| = 1\).
+        </p>
+
+        <h2>Special camera arrangements</h2>
+        <p>
+          If the cameras have the same orientation and are only shifted sideways, the baseline is parallel to both image
+          planes. The epipoles move to infinity, and the epipolar lines become parallel and horizontal: a match is on the
+          same image row. Stereo systems aim for exactly this, and <em>rectification</em> warps the images of any two
+          cameras so that the epipolar lines become parallel to the image rows. If camera 1 moves straight forward, the
+          epipole lies in the image, at the point that all epipolar lines radiate from: the focus of expansion of the
+          motion.
+        </p>
+
+        <h2>Try this</h2>
+        <ul class="try">
+          <li>Change the depth of \(X\): the point \(x_1\) slides along \(l_1\), while \(x_0\) stays put. The whole ray is one line in image 1.</li>
+          <li>Turn on <em>lines of all corners</em>: all epipolar lines of an image meet in its epipole, the image of the other camera center.</li>
+          <li>Click different points in image 0 and watch the epipolar plane in the 3D view turn about the baseline.</li>
+          <li>Choose <em>Parallel</em>: the epipoles are at infinity, and every epipolar line is the row of its point. Set <em>up</em> to 0.5 m: the lines tilt but stay parallel, because the baseline is still parallel to the image planes. Set <em>forward</em> to 0.3 m instead: now they meet, far outside the image.</li>
+          <li>Choose <em>Forward motion</em>: both epipoles are at the principal point, and the epipolar lines fan out from the center of the image.</li>
+          <li>Change \(f_1\): the epipolar lines in image 1 scale about the principal point, and \(F\) changes, but the epipolar plane in 3D stays the same.</li>
+          <li>Move camera 1 until its center appears inside image 0: the epipole \(e_0\) marks exactly where camera 1 is.</li>
+        </ul>
+      </article>
+    </main>
+    <script type="module" src="./main.ts"></script>
+  </body>
+</html>
