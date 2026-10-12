@@ -1,0 +1,140 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Interactive singular value decomposition: see A = UΣVᵀ as rotate, scale, rotate on the unit circle, solve Ax = b with the pseudo-inverse and compress an image with its first p singular values." />
+    <title>SVD visualized: rotate, scale, rotate &amp; rank-p approximation · Computer Vision Basics</title>
+  </head>
+  <body>
+    <main class="demo-page">
+      <section class="demo-intro">
+        <h1>SVD visualized</h1>
+        <p class="lead">
+          The singular value decomposition \(A = U \Sigma V^\top\) splits every matrix into a rotation, a scaling along
+          the axes and another rotation. Watch a 2 × 2 matrix turn the unit circle into an ellipse step by step, solve
+          \(Ax = b\) with the pseudo-inverse, and rebuild an image from only its largest singular values.
+        </p>
+      </section>
+
+      <section class="workspace">
+        <div class="views">
+          <figure class="view card view-wide">
+            <figcaption>
+              \(A x = U\,\Sigma\,V^\top x\), one step per panel
+              <span class="muted legend">
+                <span class="key" style="--key: var(--sv-1)">\(v_1\) and its images</span>
+                <span class="key" style="--key: var(--sv-2)">\(v_2\) and its images</span>
+                <span class="key" style="--key: var(--viz-highlight)">\(x\), \(b\)</span>
+                · click the last panel to choose \(b\)
+              </span>
+            </figcaption>
+            <div id="stages-view" class="stages-view"></div>
+          </figure>
+          <figure class="view card">
+            <figcaption>Rank-\(p\) approximation <span class="muted">grayscale, 160 × 120 px, i.e. \(m = 120\), \(n = 160\)</span></figcaption>
+            <div class="image-row">
+              <figure><div id="original-view"></div><figcaption>original</figcaption></figure>
+              <figure><div id="approx-view"></div><figcaption id="approx-caption"></figcaption></figure>
+            </div>
+          </figure>
+          <figure class="view card">
+            <figcaption>
+              Singular values \(\sigma_k\) of the image
+              <span class="muted legend">
+                <span class="key" style="--key: var(--accent)">kept, \(k \le p\)</span>
+                <span class="key" style="--key: var(--fg-muted)">dropped</span>
+                (log scale)
+              </span>
+            </figcaption>
+            <div id="sigma-plot"></div>
+          </figure>
+        </div>
+        <aside id="controls" class="controls"></aside>
+      </section>
+
+      <section id="values" class="card values" aria-live="polite"></section>
+
+      <article class="explanation">
+        <h2>The singular value decomposition</h2>
+        <p>Every real \(m \times n\) matrix \(A\) can be written as</p>
+        $$ A = U \Sigma V^\top, \qquad U^\top U = V V^\top = I $$
+        <ul>
+          <li>\(U\) (\(m \times m\)) is orthogonal; its columns \(u_i\) are the <em>left singular vectors</em>,</li>
+          <li>\(\Sigma\) (\(m \times n\)) is diagonal with the <em>singular values</em> \(\sigma_1 \ge \sigma_2 \ge \dots \ge 0\),</li>
+          <li>\(V\) (\(n \times n\)) is orthogonal; its columns \(v_i\) are the <em>right singular vectors</em>.</li>
+        </ul>
+        <p>
+          The singular values are the square roots of the eigenvalues of \(A^\top A\) (and of \(A A^\top\)), and the
+          \(v_i\) are the eigenvectors of \(A^\top A\). The value panel checks \(\sigma_i^2 = \lambda_i\) for the
+          current matrix. The larger a singular value, the more its pair \(u_i, v_i\) contributes to \(A\).
+        </p>
+
+        <h2>Rotate, scale, rotate</h2>
+        <p>
+          Read \(A x = U\,(\Sigma\,(V^\top x))\) from right to left. \(V^\top\) is orthogonal, so it only turns the
+          plane: the unit circle stays a circle, and \(v_1, v_2\) land on the axes \(e_1, e_2\). \(\Sigma\) stretches the
+          axes by \(\sigma_1\) and \(\sigma_2\): the circle becomes an axis-aligned ellipse. \(U\) turns this ellipse into
+          place. So \(A\) maps the unit circle to an ellipse with semi-axes \(\sigma_1 u_1\) and \(\sigma_2 u_2\), and
+        </p>
+        $$ A v_i = \sigma_i u_i $$
+        <p>
+          The panels use the usual math orientation, \(x\) right and \(y\) up. Singular vectors are only defined up to
+          sign: flipping \(v_i\) and \(u_i\) together gives the same \(A\). Here \(V\) is always chosen as a pure
+          rotation. When \(\det A &lt; 0\), \(A\) flips the plane, and then \(U\) contains a mirror: the small arrow
+          on the circle runs clockwise in the last panel. \(|\det A| = \sigma_1 \sigma_2\) is the area of the ellipse
+          divided by \(\pi\).
+        </p>
+
+        <h2>Solving \(Ax = b\) with the pseudo-inverse</h2>
+        <p>
+          Undoing the three steps in reverse order gives the solution: rotate \(b\) back with \(U^\top\), divide by the
+          singular values, rotate with \(V\):
+        </p>
+        $$ Ax = b \;\Rightarrow\; x = V \Sigma^{-1} U^\top b $$
+        <p>
+          When a singular value is tiny, dividing by it blows up every error in \(b\) along \(u_i\). When it is zero,
+          \(A\) squashes the plane onto a line, most \(b\) are not reachable, and the division is impossible. The
+          <em>pseudo-inverse</em> replaces \(1/\sigma_i\) by 0 for all \(\sigma_i \le \tau\). The result is the
+          least-squares solution, the \(x\) that minimizes \(|Ax - b|\), and among all of those the shortest one. In the
+          last panel, the ring \(Ax\) then sits at the point of the line closest to \(b\). This works for any shape of
+          \(A\), including overdetermined systems with more equations than unknowns.
+        </p>
+
+        <h2>Rank-\(p\) approximation</h2>
+        <p>
+          Written as a sum, the SVD builds \(A\) from rank-1 layers \(\sigma_k u_k v_k^\top\), one per singular value.
+          Keeping only the first \(p\) of them gives
+        </p>
+        $$ a_{ij} \approx \sum_{k=1}^{p} u_{ik} \, \sigma_k \, v_{jk} $$
+        <p>
+          It is the best approximation of rank \(p\): no other matrix of rank \(p\) is closer to \(A\) in the sum of
+          squared differences, and that sum is exactly \(\sum_{k > p} \sigma_k^2\). A grayscale image is an
+          \(m \times n\) matrix, so it can be stored as \(p\) columns of \(U\) and \(V\) plus \(p\) singular values,
+          \(p\,(m + n + 1)\) numbers instead of \(m n\). This is the dimensionality reduction from the lecture: the
+          first singular vectors capture the dominant structure, the last ones mostly fine detail and noise.
+        </p>
+
+        <h2>Where it comes back</h2>
+        <p>
+          The same decomposition solves the homogeneous problem \(Ax = 0\): among all unit vectors, \(x = v_n\), the
+          right singular vector of the smallest singular value, makes \(|Ax|\) smallest, and \(|A v_n| = \sigma_n\).
+          This is the tool behind <a href="../line-fitting/">total least squares</a>, estimating a
+          <a href="../homography/">homography</a> and <a href="../dlt-calibration/">calibrating a camera</a>.
+        </p>
+
+        <h2>Try this</h2>
+        <ul class="try">
+          <li>Choose <em>Rotation</em>: \(\sigma_1 = \sigma_2 = 1\), the circle stays a circle and \(\Sigma = I\). Then choose <em>Scaling</em>: now \(U = V = I\) and only the middle step does anything.</li>
+          <li>Choose <em>Shear</em>, \([1\ 1;\ 0\ 1]\): its singular values are \(1.618\) and \(0.618\), the golden ratio and its inverse. Their product is \(\det A = 1\): a shear keeps the area.</li>
+          <li>Choose <em>Mirror</em>: \(\det A = -1\), the last step reads "rotate + mirror" and the small arrow on the ellipse turns clockwise.</li>
+          <li>Choose <em>Nearly singular</em> and set \(\tau = 0\). Click \(b\) a little off the long axis of the ellipse: \(1/\sigma_2 \approx 50\) sends \(x\) far outside the first panel. Raise \(\tau\) above \(\sigma_2 \approx 0.02\): \(x\) jumps back to a short vector, and \(Ax\) (ring) moves onto the long axis, no longer exactly on \(b\).</li>
+          <li>Choose <em>Singular</em>: the ellipse collapses to a segment and \(\sigma_2 = 0\). Wherever you click \(b\), the ring \(Ax\) lands at the closest point of the segment's line, and \(x\) stays on the line through \(\pm v_1\).</li>
+          <li>Set \(p = 1\): the image consists of copies of one row, each scaled by a different factor. Increase \(p\) and watch the PSNR rise. Above \(p = 68\), \(p\,(m + n + 1)\) exceeds \(m n = 19200\) and storing the SVD costs more than the image.</li>
+          <li>Compare the images: the test chart, made of axis-aligned blocks, has singular values that drop steeply, so a small \(p\) already looks sharp. The zone plate's circles need many more.</li>
+        </ul>
+      </article>
+    </main>
+    <script type="module" src="./main.ts"></script>
+  </body>
+</html>

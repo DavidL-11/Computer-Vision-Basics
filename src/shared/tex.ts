@@ -36,3 +36,15 @@ export const texTuple = (v: readonly number[], digits: number) => `(${v.map((x) 
 
 /** Wraps rendered math in a panel row. */
 export const eq = (tex: string) => `<div class="eq">${renderTex(tex)}</div>`;
+
+/** TeX for a number with `digits` significant digits, as m·10ᵉ when it is small, e.g. the entries of F. */
+export function sci(x: number, digits = 3): string {
+  if (Math.abs(x) < 1e-12) return '0';
+  const e = Math.floor(Math.log10(Math.abs(x)));
+  if (e >= -2) return String(Number(x.toPrecision(digits)));
+  return `${fmt(x / 10 ** e, digits - 1)}\\!\\cdot\\!10^{${e}}`;
+}
+
+/** Right-aligned bracket matrix of sci() values. */
+export const texSciMatrix = (rows: readonly (readonly number[])[], digits = 3) =>
+  `\\begin{bmatrix*}[r] ${rows.map((r) => r.map((v) => sci(v, digits)).join(' & ')).join(' \\\\ ')} \\end{bmatrix*}`;
