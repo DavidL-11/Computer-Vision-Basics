@@ -64,6 +64,19 @@ If you found this repository useful, please consider starring it on GitHub.
 ### 8. Transformations and Calibration
 
 - [2D transformations](https://davidl-11.github.io/Computer-Vision-Basics/demos/transformations-2d/)
+- [SVD visualized](https://davidl-11.github.io/Computer-Vision-Basics/demos/svd/)
+- [Line fitting: vertical vs total least squares](https://davidl-11.github.io/Computer-Vision-Basics/demos/line-fitting/)
+- [Homography & rectification](https://davidl-11.github.io/Computer-Vision-Basics/demos/homography/)
+- [DLT calibration](https://davidl-11.github.io/Computer-Vision-Basics/demos/dlt-calibration/)
+
+### 9. Epipolar Geometry
+
+- [Two-view geometry & epipolar lines](https://davidl-11.github.io/Computer-Vision-Basics/demos/epipolar-geometry/)
+- [8-point algorithm](https://davidl-11.github.io/Computer-Vision-Basics/demos/eight-point/)
+
+### 10. Dense Motion Estimation
+
+- [Matching cost surface](https://davidl-11.github.io/Computer-Vision-Basics/demos/matching-cost/)
 
 ## Read the code, too
 

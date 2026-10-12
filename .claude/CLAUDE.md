@@ -47,8 +47,16 @@ npm run preview   # serve dist/ at http://localhost:4173/Computer-Vision-Basics/
     rejection, `locate()` for a σ, `dogSignature()` and `normalizedLoG()`.
   - `sift.ts`: orientation histogram, `dominantOrientations()`, the 4 × 4 × 8 `describe()`, `siftFeatures()` and
     descriptor `distance()`.
+  - `matrix.ts`: dense `Matrix` (row arrays) of any size: `transpose`, `multiply`, `matVec`, `solve` (Gaussian
+    elimination with partial pivoting) and `leastSquares` via the normal equations AᵀA x = Aᵀb.
+  - `svd.ts`: one-sided Jacobi `svd()` (V always full n × n), `nullVector()` for Ax = 0, `pseudoInverseSolve()`
+    (VΣ⁻¹Uᵀb) and `rankApprox()`.
+  - `lines.ts`: homogeneous 2D lines: `normalizeLine`, `clipLine` to a rectangle, signed `pointLineDistance`.
+  - `epipolar.ts`: two-view geometry from P₀, P₁: `skew` ([v]×), `pseudoInverseP` (P⁺), `centerFromP` (null space),
+    `twoView()` → C₀, C₁, e₀, e₁ and F = [e₁]× P₁ P₀⁺, `epipoles(F)`, `epipolarLine`/`epipolarLineT`, `unitF`, `toPixel`.
   - `plot.ts`: `Plot` canvas for function graphs, stems and bars with axes; colors given as CSS tokens.
-  - `tex.ts`: TeX helpers (`renderTex`, `eq`, `fmt`, `texMatrix`, `texVector`, `texTuple`) for panels with live values.
+  - `tex.ts`: TeX helpers (`renderTex`, `eq`, `fmt`, `sci`, `texMatrix`, `texSciMatrix`, `texVector`, `texTuple`) for panels
+    with live values.
   - `styles/base.css`: design tokens and the Tweakpane theme.
   - `styles/demo.css`: shared demo layout (intro, views + controls, `.values` panel, explanation). Import it in
     each demo's `main.ts` before the demo's own CSS.

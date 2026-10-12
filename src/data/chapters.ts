@@ -327,6 +327,30 @@ export const chapters: Chapter[] = [
           'Compose translation, rotation, scaling, mirror, shear and perspective into one 3 × 3 matrix and see its degrees of freedom and which properties survive.',
         slug: 'transformations-2d',
       },
+      {
+        title: 'SVD visualized',
+        description:
+          'Watch A = UΣVᵀ rotate, scale and rotate the unit circle into an ellipse, solve Ax = b with the pseudo-inverse and rebuild an image from its first p singular values.',
+        slug: 'svd',
+      },
+      {
+        title: 'Line fitting: vertical vs total least squares',
+        description:
+          'Drag points and compare y = mx + b from the normal equations with the line from the smallest eigenvector of AᵀA: vertical lines, rotation and outliers.',
+        slug: 'line-fitting',
+      },
+      {
+        title: 'Homography & rectification',
+        description:
+          'Drag four corners of a planar object, solve Ah = 0 with the SVD for the homography H, and unwarp the photo into a front view.',
+        slug: 'homography',
+      },
+      {
+        title: 'DLT calibration',
+        description:
+          'Estimate the projection matrix M of a camera from a 3D target with Ax = b or Ax = 0, factor it with the RQ decomposition into K and R, and recover t and the camera center.',
+        slug: 'dlt-calibration',
+      },
     ],
   },
   {
@@ -334,9 +358,31 @@ export const chapters: Chapter[] = [
     number: 9,
     title: 'Epipolar Geometry',
     summary:
-      'The geometry of two views: epipoles, epipolar lines and the essential and fundamental matrices.',
-    concepts: ['Epipolar constraint', 'Essential matrix E', 'Fundamental matrix F', '8-point algorithm'],
-    demos: [],
+      'The geometry of two views: epipolar planes, lines and epipoles, the fundamental matrix that maps a point to its epipolar line, and estimating it from correspondences.',
+    concepts: [
+      'Epipolar plane & lines',
+      'Epipoles & baseline',
+      'Backprojection with P⁺',
+      'Fundamental matrix F',
+      'Epipolar constraint',
+      '8-point algorithm',
+      'Normalization',
+      'Rank-2 constraint',
+    ],
+    demos: [
+      {
+        title: 'Two-view geometry & epipolar lines',
+        description:
+          'Click a point in one image and see its epipolar line in the other, slide the 3D point along its ray, and move the cameras to follow the epipoles and F = [e₁]× P₁ P₀⁺.',
+        slug: 'epipolar-geometry',
+      },
+      {
+        title: '8-point algorithm',
+        description:
+          'Estimate F from noisy correspondences with the SVD, and see why normalizing the coordinates and enforcing rank 2 matter.',
+        slug: 'eight-point',
+      },
+    ],
   },
   {
     id: 'dense-motion',
@@ -353,7 +399,14 @@ export const chapters: Chapter[] = [
       'Parametric motion',
       'Regularized flow',
     ],
-    demos: [],
+    demos: [
+      {
+        title: 'Matching cost surface',
+        description:
+          'Compare SSD, SAD, Lp, Geman–McClure, bias & gain and NCC over a search window, with masks and normalization at the border, occlusion and exposure changes.',
+        slug: 'matching-cost',
+      },
+    ],
   },
   {
     id: 'stereo',

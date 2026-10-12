@@ -1,0 +1,167 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Interactive matching cost surface for motion estimation: compare SSD, SAD, Lp, Geman–McClure, bias and gain, CC and NCC over a search window, with masks, normalization (NWSRD), occlusion and exposure changes." />
+    <title>Matching cost surface: SSD, SAD, robust costs &amp; NCC · Computer Vision Basics</title>
+  </head>
+  <body>
+    <main class="demo-page">
+      <section class="demo-intro">
+        <h1>Matching cost surface</h1>
+        <p class="lead">
+          To estimate how a part of an image moved between two frames, compare a window of the first frame with shifted
+          windows of the second and pick the shift that fits best. Which shift fits best depends on how the difference
+          is measured. Pick a window, change the metric, and add noise, an occluder or a different exposure to see where
+          each error metric succeeds and fails.
+        </p>
+      </section>
+
+      <section class="workspace">
+        <div class="views">
+          <figure class="view card">
+            <figcaption>
+              Frame \(I_0\) <span class="muted">click to select the window</span>
+            </figcaption>
+            <div id="i0-view" class="image-frame"></div>
+          </figure>
+          <figure class="view card">
+            <figcaption>
+              Frame \(I_1\)
+              <span class="muted legend">
+                <span class="key dashed" style="--key: var(--accent)">shift \(\mathbf{u}\)</span>
+                <span class="key" style="--key: var(--viz-highlight)">best</span>
+                <span class="key" style="--key: var(--viz-points)">true \(\mathbf{u}^*\) (×)</span>
+                · click to select a shift
+              </span>
+            </figcaption>
+            <div id="i1-view" class="image-frame"></div>
+          </figure>
+          <figure class="view card">
+            <figcaption>
+              Error surface \(E(\mathbf{u})\) <span class="muted">black = best match, click to select a shift</span>
+            </figcaption>
+            <div id="surface-view" class="image-frame square-frame"></div>
+          </figure>
+          <figure class="view card">
+            <figcaption>
+              Errors \(e_i\) at the selected shift
+              <span class="muted legend">gray = 0 · <span class="key" style="--key: var(--viz-object)">not counted</span></span>
+            </figcaption>
+            <div id="residual-view" class="image-frame square-frame"></div>
+          </figure>
+          <figure class="view card view-wide">
+            <figcaption>
+              Kernels \(\rho(e)\)
+              <span class="muted legend">
+                <span class="key" style="--key: var(--accent)">current metric</span>
+                <span class="key" style="--key: var(--fg-faint)">\(e^2\), \(|e|\), \(|e|^p\), Geman–McClure</span>
+                <span class="key" style="--key: var(--viz-points)">histogram of \(e_i\)</span>
+              </span>
+            </figcaption>
+            <div id="kernel-plot"></div>
+          </figure>
+        </div>
+        <aside id="controls" class="controls"></aside>
+      </section>
+
+      <section id="values" class="card values" aria-live="polite"></section>
+
+      <article class="explanation">
+        <h2>Comparing a window at every shift</h2>
+        <p>
+          Given two images \(I_0(\mathbf{x})\) and \(I_1(\mathbf{x})\) with pixel positions \(\mathbf{x} = (x, y)\), we
+          look for the displacement \(\mathbf{u} = (u, v)\) for which \(I_1(\mathbf{x} + \mathbf{u})\) is most similar
+          to \(I_0(\mathbf{x})\). For one window with pixels \(\mathbf{x}_i\), each shift gives an error per pixel,
+          \(e_i = I_1(\mathbf{x}_i + \mathbf{u}) - I_0(\mathbf{x}_i)\), and an error metric \(E(\mathbf{u})\) combines
+          them into one number. Plotted over all shifts, \(E\) forms a surface whose minimum is the estimated motion. It
+          is the same idea as the <a href="../autocorrelation/">autocorrelation surface</a>, where a window is compared
+          with itself. For color images, the sum runs over the color channels or uses only the luminance, as here.
+        </p>
+
+        <h2>SSD and SAD</h2>
+        <p>The simplest metric is the sum of squared differences, the squared L2 norm of the error vector:</p>
+        $$ E_{SSD}(\mathbf{u}) = \sum_i \left[ I_1(\mathbf{x}_i + \mathbf{u}) - I_0(\mathbf{x}_i) \right]^2 = \sum_i e_i^2 $$
+        <p>
+          Small errors count little and large errors a lot. That makes the SSD tolerant to low-amplitude noise and easy
+          to minimize, since it is smooth. But it is not robust: a few large errors, e.g. from an occluded part of the
+          window, dominate the sum. The sum of absolute differences, the L1 norm, weighs them less:
+        </p>
+        $$ E_{SAD}(\mathbf{u}) = \sum_i |e_i| $$
+
+        <h2>Lp norms and robust kernels</h2>
+        <p>Both are special cases of the Lp norm of the error vector, with \(p = 2\) and \(p = 1\):</p>
+        $$ E_{L_p}(\mathbf{u}) = \Big( \sum_i |e_i|^p \Big)^{1/p} $$
+        <p>
+          Values \(p < 1\) also make sense for matching, even though the result is no longer a norm (it violates the
+          triangle inequality). More generally, the sum of robust differences applies a kernel \(\rho\) to each error:
+        </p>
+        $$ E_{SRD}(\mathbf{u}) = \sum_i \rho(e_i), \qquad \rho_{GM}(x) = \frac{x^2}{1 + x^2 / a^2} $$
+        <p>
+          \(\rho(x) = |x|^p\) gives the Lp norm, but for \(p \le 1\) it is not differentiable at 0, which is bad for
+          optimization methods. The Geman–McClure kernel is quadratic for small errors like the SSD, but it levels off
+          at \(a^2\) for errors much larger than \(a\), so outliers can only contribute a bounded amount.
+        </p>
+
+        <h2>Outside the image and masked pixels</h2>
+        <p>
+          A shifted window can leave the image, and some pixels may be known to be invalid, e.g. because they are
+          covered by another object. Masks \(w_0\) and \(w_1\), 1 inside the region of interest and 0 elsewhere, restrict
+          the sum to pixels that are valid in both images:
+        </p>
+        $$ E_{WSRD}(\mathbf{u}) = \sum_i w_0(\mathbf{x}_i)\, w_1(\mathbf{x}_i + \mathbf{u})\, \rho(e_i) $$
+        <p>
+          Now different shifts sum over different numbers of pixels, and a shift that pushes most of the window out of
+          the image has a small sum simply because little is left. Dividing by the counted area
+          \(A(\mathbf{u}) = \sum_i w_0(\mathbf{x}_i)\, w_1(\mathbf{x}_i + \mathbf{u})\) makes them comparable:
+        </p>
+        $$ E_{NWSRD}(\mathbf{u}) = \frac{1}{A(\mathbf{u})} \sum_i w_0(\mathbf{x}_i)\, w_1(\mathbf{x}_i + \mathbf{u})\, \rho(e_i) $$
+
+        <h2>Bias and gain</h2>
+        <p>
+          If the frames were taken with different exposure, aperture or even different cameras, their intensities are
+          not directly comparable. A linear model maps one to the other, \(I_0(\mathbf{x}) \rightarrow \alpha
+          I_0(\mathbf{x}) + \beta\), and the SSD becomes
+        </p>
+        $$ E_{SSD}(\mathbf{u}, \alpha, \beta) = \sum_i \left[ I_1(\mathbf{x}_i + \mathbf{u}) - (\alpha I_0(\mathbf{x}_i) + \beta) \right]^2 $$
+        <p>For every shift, \(\alpha\) and \(\beta\) are found by linear regression, and what remains is the error the model cannot explain.</p>
+
+        <h2>Cross-correlation</h2>
+        <p>Instead of an error, cross-correlation measures a similarity that is largest for the best shift:</p>
+        $$ E_{CC}(\mathbf{u}) = \sum_i I_0(\mathbf{x}_i)\, I_1(\mathbf{x}_i + \mathbf{u}) $$
+        <p>
+          On its own it prefers bright regions of \(I_1\), whatever they look like. Normalized cross-correlation
+          subtracts the means \(\bar I_0\), \(\bar I_1\) of both windows and divides by their spread:
+        </p>
+        $$ E_{NCC}(\mathbf{u}) = \frac{\sum_i [I_0(\mathbf{x}_i) - \bar I_0][I_1(\mathbf{x}_i + \mathbf{u}) - \bar I_1]}{\sqrt{\sum_i [I_0(\mathbf{x}_i) - \bar I_0]^2} \sqrt{\sum_i [I_1(\mathbf{x}_i + \mathbf{u}) - \bar I_1]^2}} $$
+        <p>
+          The normalization removes linear changes of brightness and contrast, so NCC works when the frames were taken
+          with different exposure. The same score finds a template in <a href="../template-matching/">template
+          matching</a>.
+        </p>
+
+        <h2>Full search</h2>
+        <p>
+          The surface above is a full search: every shift within a radius \(R\) is tried. This is expensive, since each
+          of the \((2R + 1)^2\) shifts needs a sum over the whole window, and it only finds the best shift on the
+          integer grid, not with subpixel accuracy. Gradient-based methods such as Lucas–Kanade avoid both problems by
+          following the slope of \(E\) from an initial guess.
+        </p>
+
+        <h2>Try this</h2>
+        <ul class="try">
+          <li>With the defaults, the SSD surface has a single dark minimum at the true shift (3, −2). Click other shifts and watch the errors \(e_i\) grow.</li>
+          <li>Click a flat region of \(I_0\): the surface is dark almost everywhere and the best shift is arbitrary. Click a straight edge: the minimum becomes a dark valley along the edge, since shifts along it change nothing.</li>
+          <li>Choose the <em>zone plate</em> or <em>text</em> image: repeated patterns give several minima of nearly the same depth.</li>
+          <li>Set the gain to 1.5 and the bias to 0.15. SSD, SAD and the robust costs grow at every shift and can pick a wrong one, CC runs to bright spots, while NCC and SSD with bias &amp; gain keep the true shift. The fitted \(\hat\alpha\), \(\hat\beta\) match the settings until the brightest pixels clip at 1.</li>
+          <li>Turn on the occluder: a block of large errors appears in the window. Compare SSD with SAD and Geman–McClure (\(a = 0.1\)): the histogram shows the outliers, and the robust kernels limit their weight. With <em>masks</em>, the occluded pixels do not count at all.</li>
+          <li>Select a window near the border of the image, set \(R = 12\) and choose <em>masks (WSRD)</em>: shifts that leave the image count fewer pixels and look better. <em>Normalized (NWSRD)</em> removes this bias.</li>
+          <li>Set the true shift to (2.5, −2): the true minimum lies between pixels, and the full search can only report a neighbor.</li>
+          <li>Choose the Lp norm and move \(p\) between 0.5 and 2: below 1 the kernel rises steeply at 0 and flattens for large errors, like a robust kernel with a sharp tip; at 2 it is the SSD.</li>
+        </ul>
+      </article>
+    </main>
+    <script type="module" src="./main.ts"></script>
+  </body>
+</html>
