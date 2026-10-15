@@ -1,0 +1,162 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Interactive stereo correspondence along the scanline: pick a pixel in the left image and plot its SSD or NCC window cost over the disparity, compare small and large windows, and search a pyramid from coarse to fine." />
+    <title>Scanline matching cost, interactive stereo demo · Computer Vision Basics</title>
+  </head>
+  <body>
+    <main class="demo-page">
+      <section class="demo-intro">
+        <h1>Scanline matching cost</h1>
+        <p class="lead">
+          In a rectified pair, the partner of a left pixel lies on the same row of the right image, at most a few dozen
+          pixels to the left. Compare the window around the pixel with every candidate on that row, and pick the most
+          similar one. Click pixels on the textured box, the flat panel and the stripes, and see when the minimum is
+          clear, flat or repeated.
+        </p>
+      </section>
+
+      <section class="workspace">
+        <div class="views">
+          <figure class="view card">
+            <figcaption>
+              <span class="view-title">Left image</span>
+              <span class="view-hint legend">
+                <span>click to select a pixel</span>
+                <span class="key" style="--key: var(--accent)">small window</span>
+                <span class="key dashed" style="--key: var(--viz-object)">large window</span>
+              </span>
+            </figcaption>
+            <div class="view-body">
+              <div class="view-main">
+                <div id="left-view" class="image-frame"></div>
+              </div>
+            </div>
+          </figure>
+          <figure class="view card">
+            <figcaption>
+              <span class="view-title">Right image</span>
+              <span class="view-hint legend">
+                <span class="key" style="--key: var(--viz-highlight)">search range on the same row</span>
+                <span class="key" style="--key: var(--viz-points)">true match (×)</span>
+                <span>windows: best matches</span>
+              </span>
+            </figcaption>
+            <div class="view-body">
+              <div class="view-main">
+                <div id="right-view" class="image-frame"></div>
+              </div>
+            </div>
+          </figure>
+          <figure class="view card view-wide">
+            <figcaption>
+              <span class="view-title">Window cost over the disparity \(d\)</span>
+              <span class="view-hint legend">
+                <span class="key" style="--key: var(--accent)">small window</span>
+                <span class="key dashed" style="--key: var(--viz-object)">large window</span>
+                <span class="key" style="--key: var(--viz-points)">true \(d^*\)</span>
+                <span>SSD: minimize, NCC: maximize</span>
+              </span>
+            </figcaption>
+            <div class="view-body">
+              <div class="view-main">
+                <div id="cost-plot"></div>
+              </div>
+            </div>
+          </figure>
+          <figure class="view card view-wide">
+            <figcaption>
+              <span class="view-title">Intensity along the row</span>
+              <span class="view-hint legend">
+                <span class="key" style="--key: var(--accent)">left image</span>
+                <span class="key" style="--key: var(--viz-highlight)">right image, moved right by \(d\)</span>
+                <span class="key dashed" style="--key: var(--fg-faint)">selected pixel</span>
+              </span>
+            </figcaption>
+            <div class="view-body">
+              <div class="view-main">
+                <div id="profile-plot"></div>
+              </div>
+            </div>
+          </figure>
+          <figure class="view card view-wide">
+            <figcaption>
+              <span class="view-title">Hierarchical search, coarsest level first</span>
+              <span class="view-hint legend">
+                <span class="key" style="--key: var(--accent)">cost on the searched range (shaded)</span>
+                <span class="key" style="--key: var(--viz-points)">true \(d^* / 2^l\)</span>
+              </span>
+            </figcaption>
+            <div class="view-body">
+              <div class="view-main">
+                <div id="pyramid" class="pyramid-row"></div>
+              </div>
+            </div>
+          </figure>
+        </div>
+      </section>
+
+      <section class="card values"><div class="view-body"><div id="values" class="view-main values-body" aria-live="polite"></div></div></section>
+
+      <article class="explanation">
+        <h2>Search along the scanline</h2>
+        <p>
+          Stereo correspondence is a search problem: for a pixel in the left image, find the pixel in the right image
+          that shows the same scene point. In a <a href="../rectification/">rectified</a> pair, it lies on the same
+          row, at \(x_R = x_L - d\) with a disparity \(d \ge 0\). So for each pixel, compare it with every pixel on the
+          same row up to a largest disparity and pick the best.
+        </p>
+        <p>
+          Comparing single intensities does not work: many pixels on the row have almost the same value, and noise
+          decides which one wins. Instead, compare <strong>windows</strong> around the pixels, with the same costs as
+          for <a href="../matching-cost/">motion estimation</a>:
+        </p>
+        $$ E_\text{SSD}(d) = \sum_{i} \left[ I_L(x_i, y_i) - I_R(x_i - d, y_i) \right]^2 $$
+        $$ E_\text{NCC}(d) = \frac{\sum_i [I_L(x_i, y_i) - \bar I_L][I_R(x_i - d, y_i) - \bar I_R]}{\sqrt{\sum_i [I_L(x_i, y_i) - \bar I_L]^2}\, \sqrt{\sum_i [I_R(x_i - d, y_i) - \bar I_R]^2}} $$
+        <p>
+          SSD is minimized, NCC is maximized. NCC subtracts the mean and divides by the contrast of both windows, so it
+          also works when the two cameras see the scene with a different exposure. Here, the SSD is averaged over the
+          window so that window sizes can be compared.
+        </p>
+
+        <h2>When the minimum is unclear</h2>
+        <ul>
+          <li><strong>Textureless regions:</strong> all windows on the flat panel look alike, the cost is flat, and noise picks the winner.</li>
+          <li><strong>Repetitive patterns:</strong> the stripes repeat every 6 px along the row, so the cost has a minimum every 6 px of disparity.</li>
+          <li><strong>Occlusions:</strong> background just left of a near object is hidden in the right image, and no candidate is correct.</li>
+        </ul>
+
+        <h2>Window size</h2>
+        <p>
+          A small window gives detail: it can follow small objects and stays close to depth edges, but it contains little
+          structure, so noise and ambiguity make it fail more often. A large window averages noise away and resolves more
+          ambiguities, but it blurs depth edges, because near a boundary it contains parts at two different depths. Adapting
+          the window size to the image content gives better results than any fixed size.
+        </p>
+
+        <h2>Hierarchical correspondence</h2>
+        <p>
+          A full search costs one window comparison per candidate disparity, for every pixel. On an image
+          <a href="../coarse-to-fine/">pyramid</a>, every level halves the disparities: the full range is searched only on
+          the coarsest, small level, and each finer level only checks a few disparities around twice the estimate from the
+          level above. This is faster and handles large disparity ranges, such as outdoor scenes with near and far
+          objects, as long as the coarse level does not pick the wrong minimum.
+        </p>
+
+        <h2>Try this</h2>
+        <ul class="try">
+          <li>With the default pixel on the textured box, both curves have one clear minimum at \(d^* = 16\). In the intensity plot, the two rows overlap where the box is.</li>
+          <li>Click in the middle of the flat panel at the bottom right: the cost is almost flat, and the minimum jumps when you change the noise.</li>
+          <li>Click on the stripes at the bottom left: the small window shows minima 6 px apart. Make the large window wider than the stripes block, so it includes the edges: one minimum now stands out.</li>
+          <li>Click on the background just left of the box, around (20, 50): it is occluded, and no disparity fits well.</li>
+          <li>Click near the edge of the disk: the large window, which also covers background, finds a disparity between the two, or the background one.</li>
+          <li>Set the brightness of the right image to 1.4: SSD gets worse everywhere, NCC hardly changes.</li>
+          <li>Pick a pixel on the disk (\(d^* = 24\)) and use 1, 2 and 3 pyramid levels: with 3 levels, 14 comparisons replace 29. On the stripes, the coarse level blurs the stripes away and has to rely on the edges of the block.</li>
+        </ul>
+      </article>
+    </main>
+    <script type="module" src="./main.ts"></script>
+  </body>
+</html>

@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Interactive stereo rectification: verge two cameras towards a fixation point, see positive and negative disparities and slanted epipolar lines, then warp both images with H = K R_rect Rᵀ K⁻¹ so that corresponding points lie on the same scanline." />
+    <title>Vergence &amp; rectification, interactive stereo demo · Computer Vision Basics</title>
+  </head>
+  <body>
+    <main class="demo-page">
+      <section class="demo-intro">
+        <h1>Vergence &amp; rectification</h1>
+        <p class="lead">
+          Our eyes turn towards what we look at, and cameras of a stereo rig are often turned inwards too. That shares
+          more of the view between them, but corresponding points no longer lie on the same row. Turn the cameras
+          towards a fixation point, then rectify: warp both images onto a common plane, so that every point is found
+          again on its own scanline.
+        </p>
+      </section>
+
+      <section class="workspace">
+        <div class="views">
+          <figure class="view card view-wide">
+            <figcaption>
+              <span class="view-title">Top view</span>
+              <span class="view-hint legend">
+                <span class="key" style="--key: var(--viz-points)">nearer than the fixation point, \(d > 0\)</span>
+                <span class="key" style="--key: var(--accent)">farther, \(d < 0\)</span>
+                <span class="key dashed" style="--key: var(--viz-highlight)">\(d = 0\)</span>
+                <span class="key dashed" style="--key: var(--accent)">direction after rectification</span>
+              </span>
+            </figcaption>
+            <div class="view-body">
+              <div class="view-main">
+                <div id="top-view" class="diagram-view top-view"></div>
+              </div>
+            </div>
+          </figure>
+          <figure class="view card view-wide">
+            <figcaption>
+              <span class="view-title">Images of the verged cameras</span>
+              <span class="view-hint legend">
+                <span>click a point to select it</span>
+                <span class="key" style="--key: var(--viz-highlight)">epipolar line</span>
+                <span class="key dashed" style="--key: var(--fg-muted)">row of the point in the left image</span>
+                <span>+ fixation point</span>
+              </span>
+            </figcaption>
+            <div class="view-body">
+              <div class="view-main">
+                <div id="original-view" class="diagram-view"></div>
+              </div>
+            </div>
+          </figure>
+          <figure class="view card view-wide">
+            <figcaption>
+              <span class="view-title">Rectified images</span>
+              <span class="view-hint">the outline is the original image after warping with \(H_L\) and \(H_R\)</span>
+            </figcaption>
+            <div class="view-body">
+              <div class="view-main">
+                <div id="rectified-view" class="diagram-view"></div>
+              </div>
+            </div>
+          </figure>
+        </div>
+      </section>
+
+      <section class="card values"><div class="view-body"><div id="values" class="view-main values-body" aria-live="polite"></div></div></section>
+
+      <article class="explanation">
+        <h2>Vergence</h2>
+        <p>
+          In the simple stereo setup the optical axes are parallel and meet only at infinity. Human eyes instead turn
+          towards the point they look at, the <strong>fixation point</strong>. With the eyes or cameras a distance
+          \(c\) apart and the angle \(\theta\) between their axes, the fixation point lies at the distance
+        </p>
+        $$ D = \frac{c}{2 \tan(\theta / 2)} $$
+        <p>
+          A large angle means a near point, a small angle a far one. The angle changes quickly only for near points,
+          which is why vergence helps human depth perception only up to about 2–2.5 m; beyond that we rely on other
+          cues such as <a href="../motion-parallax/">motion parallax</a>, perspective and occlusion.
+        </p>
+        <p>
+          The fixation point appears at the same position in both images, so its disparity is zero. A point nearer than
+          the fixation point is seen further outward in each image and has a <em>positive</em> disparity
+          \(d = x_L - x_R > 0\); a farther point a <em>negative</em> one. In the top view, all points with zero
+          disparity lie on the circle through both centers and the fixation point.
+        </p>
+        <p>
+          Turning the cameras inwards makes the parts of the scene that both see larger and allows a larger baseline,
+          which improves the accuracy. But the image rows are no longer aligned: the epipolar line of a point is slanted,
+          and its match lies above or below its row.
+        </p>
+
+        <h2>Rectification</h2>
+        <p>
+          Rectification restores the simple setup without moving the cameras. Each camera is turned virtually about its
+          own center to a common orientation \(R_\text{rect}\): the \(x\) axis along the baseline and both optical axes
+          perpendicular to it. Both images are then reprojected onto one common image plane parallel to the baseline.
+          A change of orientation alone maps pixels through a <a href="../homography/">homography</a>:
+        </p>
+        $$ \mathbf{x}' \sim H_i\, \mathbf{x}, \qquad H_i = K\, R_\text{rect}\, R_i^\top K^{-1} $$
+        <p>
+          \(K^{-1}\) turns a pixel into a viewing ray in camera coordinates, \(R_i^\top\) into world coordinates,
+          \(R_\text{rect}\) into the rectified camera, and \(K\) back into a pixel. Afterwards the epipoles lie at
+          infinity, all epipolar lines are horizontal, and corresponding points share their row. The search for a match
+          becomes a search along a scanline, and the depth follows from
+          <a href="../stereo-depth/">\(Z = f\,c / d\)</a> with only positive disparities.
+        </p>
+        <p>
+          The warp stretches the images into trapezoids, and the stretching grows with the angle between the views.
+          Where the warped image is enlarged, the new pixels are interpolated from fewer original ones.
+        </p>
+
+        <h2>Try this</h2>
+        <ul class="try">
+          <li>Compare the dashed row of the selected point with its epipolar line in the right image: in the verged images they differ, and the match lies on the epipolar line, not on the row. In the rectified images both coincide.</li>
+          <li>Set \(\theta = 0\): the cameras are parallel, the fixation point moves to infinity, and rectification changes nothing.</li>
+          <li>Increase \(\theta\) until the fixation point lies on the box near the cameras: now almost every point is farther and has a negative disparity in the verged images, while all rectified disparities stay positive.</li>
+          <li>Switch to all epipolar lines: in the verged images they fan out towards the epipoles far to the sides; after rectification they are parallel.</li>
+          <li>Select a corner of the wall high up on the left and watch \(y_L - y_R\): it grows with the vergence angle, and rectification brings it back to 0.</li>
+          <li>Push \(\theta\) to 30°: the rectified outlines become strongly slanted trapezoids. Large angles between the views make rectification distort the images more.</li>
+        </ul>
+      </article>
+    </main>
+    <script type="module" src="./main.ts"></script>
+  </body>
+</html>

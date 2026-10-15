@@ -1,0 +1,26 @@
+/* One small plot per pyramid level, coarsest first. */
+.pyramid-row {
+  display: grid;
+  grid-template-columns: repeat(var(--levels, 3), minmax(0, 1fr));
+  gap: 0.6rem;
+  padding: 0.6rem;
+  background: var(--bg-sunken);
+  flex: 1;
+}
+.pyramid-row figure {
+  margin: 0;
+  background: var(--bg-elev);
+  border-radius: 6px;
+  overflow: hidden;
+}
+.pyramid-row figcaption {
+  font-size: 0.8rem;
+  color: var(--fg-muted);
+  text-align: center;
+  padding: 0.2rem 0 0.4rem;
+}
+@media (max-width: 700px) {
+  .pyramid-row {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

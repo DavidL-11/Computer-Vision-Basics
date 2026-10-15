@@ -61,6 +61,11 @@ npm run preview   # serve dist/ at http://localhost:4173/Computer-Vision-Basics/
   - `epipolar.ts`: two-view geometry from P₀, P₁: `skew` ([v]×), `pseudoInverseP` (P⁺), `centerFromP` (null space),
     `twoView()` → C₀, C₁, e₀, e₁ and F = [e₁]× P₁ P₀⁺, `epipoles(F)`, `epipolarLine`/`epipolarLineT`, `unitF`, `toPixel`.
   - `plot.ts`: `Plot` canvas for function graphs, stems and bars with axes; colors given as CSS tokens.
+  - `stereo.ts`: rectified stereo matching: `costVolume()` (SSD or 1 − NCC per window and disparity, via
+    `boxMean()`), `winnerTakeAll()`, `windowCost()` for single pixels, `pyramid()`/`hierarchicalSearch()`, and
+    `scanlineStereo()` (shortest path with match and occlusion moves by dynamic programming).
+  - `stereoScene.ts`: `stereoScene()`, a synthetic rectified pair of flat layers (textured, flat, stripes, disk) with true
+    disparity and occlusion masks.
   - `tex.ts`: TeX helpers (`renderTex`, `eq`, `fmt`, `sci`, `texMatrix`, `texSciMatrix`, `texVector`, `texTuple`) for panels
     with live values.
   - `styles/base.css`: design tokens, fonts, header and footer. `styles/controls.css`: the control kit.

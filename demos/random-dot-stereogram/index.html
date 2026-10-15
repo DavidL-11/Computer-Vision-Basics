@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Interactive random-dot stereogram: a shape that is invisible in either image alone appears in the disparity map when the two images are matched, the principle behind Julesz's experiments and Magic Eye pictures." />
+    <title>Random-dot stereogram, interactive demo · Computer Vision Basics</title>
+  </head>
+  <body>
+    <main class="demo-page">
+      <section class="demo-intro">
+        <h1>Random-dot stereogram</h1>
+        <p class="lead">
+          Both images below are nothing but random dots, and neither shows a shape. Yet part of the dots are shifted
+          between them, and matching the two images reveals a square floating in front of the background. Stereo needs no
+          recognizable objects, only correspondences.
+        </p>
+      </section>
+
+      <section class="workspace">
+        <div class="views">
+          <figure class="view card view-wide">
+            <figcaption>
+              <span class="view-title">The stereo pair</span>
+              <span class="view-hint">to see it in depth, look through the screen (left | right) or cross your eyes (right | left) until the two images fuse</span>
+            </figcaption>
+            <div class="view-body">
+              <div class="view-main">
+                <div class="pair-row">
+                  <figure><div id="pair-left"></div><figcaption id="pair-left-caption"></figcaption></figure>
+                  <figure><div id="pair-right"></div><figcaption id="pair-right-caption"></figcaption></figure>
+                </div>
+              </div>
+            </div>
+          </figure>
+          <figure class="view card">
+            <figcaption>
+              <span class="view-title">Comparison at one disparity</span>
+              <span class="view-hint">\(1 - |I_L(x, y) - I_R(x - d, y)|\): white where the dots agree</span>
+            </figcaption>
+            <div class="view-body">
+              <div class="view-main">
+                <div id="compare-view" class="image-frame"></div>
+              </div>
+            </div>
+          </figure>
+          <figure class="view card">
+            <figcaption>
+              <span class="view-title">Disparity map</span>
+              <span class="view-hint">bright = near</span>
+            </figcaption>
+            <div class="view-body">
+              <div class="view-main">
+                <div id="match-view" class="image-frame"></div>
+              </div>
+            </div>
+          </figure>
+        </div>
+      </section>
+
+      <section class="card values"><div class="view-body"><div id="values" class="view-main values-body" aria-live="polite"></div></div></section>
+
+      <article class="explanation">
+        <h2>Depth without objects</h2>
+        <p>
+          One might think that stereo works by first recognizing objects in both images and then comparing where they are.
+          Random-dot stereograms show that it does not have to: each image is a uniform field of random dots, without
+          edges, shapes or any other cue. Only the correspondence between the two images contains the shape.
+        </p>
+        <p>
+          To build one, take two surfaces covered with random dots, a background and a shape in front of it, and render
+          them as two cameras of a rectified stereo pair would see them. The dots of the shape appear shifted by its
+          disparity, those of the background by a smaller one. Where the shape hides different parts of the background in
+          the two images, a strip of background is visible in one image only, filled with new dots.
+        </p>
+
+        <h2>Finding the shape</h2>
+        <p>
+          Comparing the left image with the right one moved by a disparity \(d\) makes all surfaces with that disparity
+          agree everywhere, and everything else agree only by chance, for about half of the dots. Sweeping \(d\) shows the
+          background at its disparity and the shape at its own. <a href="../scanline-matching/">Window matching</a> does
+          this for every pixel and picks the best \(d\): with random dots, every window is distinctive, so the disparity
+          map comes out almost perfectly, except at the edges of the shape and in the strips seen by only one camera.
+        </p>
+        <p>
+          Human vision does the same. Bela Julesz used random-dot stereograms to show that the brain can match the images
+          of the two eyes before recognizing anything, and the same principle is behind single-image stereograms such as
+          the Magic Eye pictures.
+        </p>
+
+        <h2>Try this</h2>
+        <ul class="try">
+          <li>Look at each image of the pair alone: there is no square. Then try to fuse them, looking through the screen with left | right or crossing your eyes with right | left; the square floats in front with one order and appears sunk behind with the other.</li>
+          <li>Move the disparity slider of the comparison: at \(d = 2\) the background turns white, at the shape's disparity the square does.</li>
+          <li>Set the window radius to 0: single pixels are black or white, so half of all disparities match by chance and the map is noise. A radius of 2 or 3 is already enough.</li>
+          <li>Choose <em>two steps</em>: two nested squares at different depths, both recovered from dots alone.</li>
+          <li>Set the share of black dots to 0.05: the images are almost white, most windows look alike, and the matching fails, as in any textureless region.</li>
+          <li>Increase the dot size to 4 px: windows smaller than a dot contain no structure, and the window has to grow with the dots.</li>
+        </ul>
+      </article>
+    </main>
+    <script type="module" src="./main.ts"></script>
+  </body>
+</html>

@@ -83,6 +83,14 @@ If you found this repository useful, please consider starring it on GitHub.
 - [Patch-based vs regularized flow](https://davidl-11.github.io/Computer-Vision-Basics/demos/optical-flow/)
 - [Motion parallax & focus of expansion](https://davidl-11.github.io/Computer-Vision-Basics/demos/motion-parallax/)
 
+### 11. Stereo Vision
+
+- [Disparity, depth & triangulation](https://davidl-11.github.io/Computer-Vision-Basics/demos/stereo-depth/)
+- [Vergence & rectification](https://davidl-11.github.io/Computer-Vision-Basics/demos/rectification/)
+- [Scanline matching cost](https://davidl-11.github.io/Computer-Vision-Basics/demos/scanline-matching/)
+- [Disparity map](https://davidl-11.github.io/Computer-Vision-Basics/demos/disparity-map/)
+- [Random-dot stereogram](https://davidl-11.github.io/Computer-Vision-Basics/demos/random-dot-stereogram/)
+
 ## Read the code, too
 
 The algorithms behind the demos are written out by hand instead of calling an image-processing library, so the code

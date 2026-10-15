@@ -455,7 +455,37 @@ export const chapters: Chapter[] = [
       'Scanline stereo',
       'Energy minimization',
     ],
-    demos: [],
+    demos: [
+      {
+        title: 'Disparity, depth & triangulation',
+        description:
+          'Intersect the rays of two parallel cameras: depth from disparity Z = f·T/d, a depth error that grows with Z², the baseline trade-off, noise and wrong matches.',
+        slug: 'stereo-depth',
+      },
+      {
+        title: 'Vergence & rectification',
+        description:
+          'Turn two cameras towards a fixation point, see positive and negative disparities and slanted epipolar lines, then warp both images so that matches share a scanline.',
+        slug: 'rectification',
+      },
+      {
+        title: 'Scanline matching cost',
+        description:
+          'Plot the SSD or NCC window cost of a pixel along the scanline: clear, flat and repeated minima, small vs large windows, and a hierarchical search on a pyramid.',
+        slug: 'scanline-matching',
+      },
+      {
+        title: 'Disparity map',
+        description:
+          'Compute a disparity map by window matching and by scanline stereo with dynamic programming: occlusions, streaking, and stereo as match quality plus smoothness.',
+        slug: 'disparity-map',
+      },
+      {
+        title: 'Random-dot stereogram',
+        description: 'Two images of random dots without any visible shape: matching them reveals a square floating in front of the background.',
+        slug: 'random-dot-stereogram',
+      },
+    ],
   },
   {
     id: 'structured-light',

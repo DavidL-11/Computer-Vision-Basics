@@ -1,0 +1,149 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Interactive disparity maps: compute depth for every pixel of a stereo pair by window matching and by scanline stereo with dynamic programming, see streaking, occlusions and the energy of match quality plus smoothness." />
+    <title>Disparity map: window matching vs scanline stereo, interactive demo · Computer Vision Basics</title>
+  </head>
+  <body>
+    <main class="demo-page">
+      <section class="demo-intro">
+        <h1>Disparity map</h1>
+        <p class="lead">
+          Matching every pixel on its own gives a disparity map full of errors wherever a window is ambiguous. Scanline
+          stereo matches a whole row at once: it looks for the cheapest consistent assignment of left to right pixels,
+          with a penalty for every pixel left unmatched. Compare both with the true disparities, and look at one row's
+          path through all possible matches.
+        </p>
+      </section>
+
+      <section class="workspace">
+        <div class="views">
+          <figure class="view card">
+            <figcaption>
+              <span class="view-title">Left image</span> <span class="view-hint">click to select a row</span>
+            </figcaption>
+            <div class="view-body">
+              <div class="view-main">
+                <div id="left-view" class="image-frame"></div>
+              </div>
+            </div>
+          </figure>
+          <figure class="view card">
+            <figcaption>
+              <span class="view-title">True disparity \(d^*\)</span>
+              <span class="view-hint legend">
+                <span>bright = near, black = \(d = 0\)</span>
+                <span class="key hatched" style="--key: var(--viz-highlight)">hidden in the right image</span>
+              </span>
+            </figcaption>
+            <div class="view-body">
+              <div class="view-main">
+                <div id="truth-view" class="image-frame"></div>
+              </div>
+            </div>
+          </figure>
+          <figure class="view card">
+            <figcaption>
+              <span class="view-title">Window matching</span>
+              <span class="view-hint">best disparity per pixel</span>
+            </figcaption>
+            <div class="view-body">
+              <div class="view-main">
+                <div id="wta-view" class="image-frame"></div>
+              </div>
+            </div>
+          </figure>
+          <figure class="view card">
+            <figcaption>
+              <span class="view-title">Scanline stereo</span>
+              <span class="view-hint legend">
+                <span>best path per row</span>
+                <span class="key hatched" style="--key: var(--fg-faint)">unmatched (occluded)</span>
+              </span>
+            </figcaption>
+            <div class="view-body">
+              <div class="view-main">
+                <div id="dp-view" class="image-frame"></div>
+              </div>
+            </div>
+          </figure>
+          <figure class="view card view-wide">
+            <figcaption>
+              <span class="view-title">All matches of row <span id="row-caption"></span>: cost \(C(x, d)\), dark = similar windows</span>
+              <span class="view-hint legend">
+                <span>left pixel \(x\) to the right, disparity \(d\) upwards</span>
+                <span class="key" style="--key: var(--accent)">best path</span>
+                <span class="key" style="--key: var(--viz-points)">true disparities</span>
+              </span>
+            </figcaption>
+            <div class="view-body">
+              <div class="view-main">
+                <div id="dsi-view" class="dsi-frame"></div>
+              </div>
+            </div>
+          </figure>
+        </div>
+      </section>
+
+      <section class="card values"><div class="view-body"><div id="values" class="view-main values-body" aria-live="polite"></div></div></section>
+
+      <article class="explanation">
+        <h2>Window matching</h2>
+        <p>
+          The simplest disparity map takes, for every pixel, the disparity with the lowest window cost along its row, as in
+          the <a href="../scanline-matching/">scanline matching cost</a> demo. Every pixel decides alone. Where the window
+          is ambiguous, on the flat panel, the stripes or next to depth edges, neighboring pixels pick unrelated
+          disparities, and the map becomes noisy. A larger window helps there but rounds off the corners of objects and
+          widens them at depth edges.
+        </p>
+
+        <h2>Scanline stereo as a shortest path</h2>
+        <p>
+          Instead of matching pixels one by one, match a whole row coherently. Put the pixels of the left row along one
+          axis and those of the right row along the other. A path from the first to the last pixel of both rows describes
+          one assignment for the whole row, and every step is one of three moves:
+        </p>
+        <ul>
+          <li><strong>match</strong> the next left pixel with the next right pixel, at the window cost \(C(x, d)\) of that disparity,</li>
+          <li><strong>left occlusion:</strong> skip a left pixel that is not visible in the right image, at the cost \(\kappa\),</li>
+          <li><strong>right occlusion:</strong> skip a right pixel that is not visible in the left image, also at \(\kappa\).</li>
+        </ul>
+        <p>
+          A change of disparity needs occlusion steps, since the path must leave one diagonal and join another, so
+          \(\kappa\) also acts as a penalty for depth jumps. The path keeps the order of the pixels: what is left of
+          something in one image is left of it in the other. Dynamic programming finds the cheapest path in time
+          proportional to the number of pixels times the number of disparities. Above, the path is drawn over the costs
+          with \(x\) and \(d\) as axes: a match moves to the right, an occlusion up or down.
+        </p>
+
+        <h2>Stereo as energy minimization</h2>
+        <p>The path minimizes an energy with two parts, which describe a good stereo correspondence:</p>
+        $$ E = \underbrace{\sum_\text{matches} C(x, d)}_\text{match quality} + \underbrace{\kappa \cdot \#\text{occlusions}}_\text{smoothness} $$
+        <ol>
+          <li><strong>Match quality:</strong> each pixel should find a good match in the other image.</li>
+          <li><strong>Smoothness:</strong> neighboring pixels should usually have about the same disparity.</li>
+        </ol>
+        <p>
+          Every row is optimized on its own, so nothing ties a row to the rows above and below. Where the data is weak, as
+          on the flat panel, neighboring rows choose different paths and the map shows horizontal <strong>streaks</strong>.
+          Dynamic programming cannot optimize a full 2D grid of pixels; coherent 2D solutions need other energy
+          minimization methods, such as graph cuts or belief propagation.
+        </p>
+
+        <h2>Try this</h2>
+        <ul class="try">
+          <li>Compare the window matching map with the true one: the box and the disk come out well, the flat panel is speckled, and the stripes are partly assigned to the wrong repetition.</li>
+          <li>Raise the window radius to 8: the speckles disappear, but the corners of the box are rounded and the disk bulges into the background.</li>
+          <li>Look at scanline stereo: rows are clean, but the flat panel shows horizontal streaks, each row with its own guess.</li>
+          <li>Click a row through the flat panel (y ≈ 120) and look at the cost image: in the panel's columns every disparity is equally dark, and the path just continues straight.</li>
+          <li>Click a row through the disk (y ≈ 46): the path jumps from the background diagonal to the disk's and back, with occlusion steps at both edges. The hatched pixels left of the disk are background that the right camera cannot see.</li>
+          <li>Set κ to 0.001: occlusions are almost free, and the path skips everything that is not a perfect match. At 0.1, it prefers wrong matches over occlusions and smooths away small objects.</li>
+          <li>Compare the energies: the true correspondences often have a <em>higher</em> energy than the path found. Then even a perfect optimizer cannot find them; the energy itself has to be improved.</li>
+        </ul>
+      </article>
+    </main>
+    <script type="module" src="./main.ts"></script>
+  </body>
+</html>

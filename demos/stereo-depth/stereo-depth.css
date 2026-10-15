@@ -1,0 +1,11 @@
+.diagram-view {
+  background: var(--bg-elev);
+}
+.diagram-canvas {
+  display: block;
+  width: 100%;
+}
+.top-view .diagram-canvas {
+  aspect-ratio: 2 / 1;
+  touch-action: none;
+}

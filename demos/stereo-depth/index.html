@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Interactive stereo triangulation: intersect the rays of two parallel cameras, see depth from disparity Z = f·T/d, how the depth error grows with the square of the distance, the baseline trade-off, and where a wrong match puts the 3D point." />
+    <title>Disparity, depth &amp; triangulation, interactive stereo demo · Computer Vision Basics</title>
+  </head>
+  <body>
+    <main class="demo-page">
+      <section class="demo-intro">
+        <h1>Disparity, depth &amp; triangulation</h1>
+        <p class="lead">
+          Two cameras side by side see a point at slightly different positions. Once you know which pixels belong
+          together, the two viewing rays meet at the point, and the shift between the pixels, the disparity, gives its
+          depth. Drag the points, change the baseline and the focal length, and see how pixels, noise and wrong matches
+          limit what stereo can measure.
+        </p>
+      </section>
+
+      <section class="workspace">
+        <div class="views">
+          <figure class="view card view-wide">
+            <figcaption>
+              <span class="view-title">Top view of the stereo rig</span>
+              <span class="view-hint legend">
+                <span>drag \(P\) and \(Q\)</span>
+                <span class="key" style="--key: var(--fg-faint)">shaded: visible in both images</span>
+                <span>◇ reconstructed point, filled area: all points with the same pair of pixels</span>
+              </span>
+            </figcaption>
+            <div class="view-body">
+              <div class="view-main">
+                <div id="top-view" class="diagram-view top-view"></div>
+              </div>
+            </div>
+          </figure>
+          <figure class="view card view-wide">
+            <figcaption>
+              <span class="view-title">The scanline in both images, \(160\) pixels wide</span>
+              <span class="view-hint">thin line: true position, colored cell: measured pixel</span>
+            </figcaption>
+            <div class="view-body">
+              <div class="view-main">
+                <div id="rows-view" class="diagram-view"></div>
+              </div>
+            </div>
+          </figure>
+          <figure class="view card view-wide">
+            <figcaption>
+              <span class="view-title">Depth change per pixel of disparity \(Z^2 / (f\,T)\) in m, over the depth \(Z\) in m</span>
+              <span class="view-hint legend">
+                <span class="key" style="--key: var(--accent)">\(P\)</span>
+                <span class="key" style="--key: var(--viz-object)">\(Q\)</span>
+              </span>
+            </figcaption>
+            <div class="view-body">
+              <div class="view-main">
+                <div id="resolution-plot"></div>
+              </div>
+            </div>
+          </figure>
+        </div>
+      </section>
+
+      <section class="card values"><div class="view-body"><div id="values" class="view-main values-body" aria-live="polite"></div></div></section>
+
+      <article class="explanation">
+        <h2>Correspondence and reconstruction</h2>
+        <p>A stereo system has to solve two problems:</p>
+        <ul>
+          <li><strong>Correspondence:</strong> which pixel in the left image and which in the right image show the same scene point?</li>
+          <li><strong>Reconstruction:</strong> given a correspondence and the geometry of the cameras, where is the point?</li>
+        </ul>
+        <p>
+          This demo is about the second problem and assumes the simplest setup: both optical axes are parallel, both
+          image planes lie in the same plane, and the scanlines are aligned, \(y_L = y_R\). A point can then only
+          correspond to a point on the same scanline, and its two pixels differ only in \(x\). Other setups can be
+          brought into this form by <a href="../rectification/">rectification</a>.
+        </p>
+
+        <h2>Depth from disparity</h2>
+        <p>
+          Put the left center of projection at the origin and the right one at a distance \(T\), the
+          <strong>baseline</strong>, along \(X\). Similar triangles give for both cameras
+        </p>
+        $$ \frac{x_L}{f} = \frac{X}{Z} \;\Rightarrow\; X = \frac{x_L Z}{f}, \qquad \frac{x_R}{f} = \frac{X - T}{Z} \;\Rightarrow\; X = \frac{x_R Z}{f} + T $$
+        <p>Setting both equal and solving for \(Z\):</p>
+        $$ x_R Z = x_L Z - f\,T \quad\Rightarrow\quad Z = \frac{f\,T}{x_L - x_R} = \frac{f\,T}{d} $$
+        <p>
+          The <strong>disparity</strong> \(d = x_L - x_R\) is inversely proportional to the depth: near points have a large
+          disparity, and \(d = 0\) means a point at infinity. Geometrically, \(Z = fT/d\) is where the ray through
+          \(x_L\) meets the ray through \(x_R\).
+        </p>
+
+        <h2>Depth resolution and the baseline</h2>
+        <p>
+          Pixels have a width, so a pixel pair does not determine a point but a small area: the overlap of the two pixel
+          wedges, shaded in the top view. Its depth extent follows from the derivative of \(Z = fT/d\):
+        </p>
+        $$ \left| \frac{\partial Z}{\partial d} \right| = \frac{f\,T}{d^2} = \frac{Z^2}{f\,T} $$
+        <p>
+          The depth error for one pixel of disparity error grows with the <em>square</em> of the distance. A longer
+          focal length or a longer baseline makes it smaller, so a small baseline gives a large depth error. A large
+          baseline has its own problems: the search for correspondences covers more pixels, the two views look more
+          different, and less of the scene is visible in both images, especially near the cameras.
+        </p>
+
+        <h2>Noise and wrong matches</h2>
+        <p>
+          Sensor noise, quantization and discretization shift the measured pixels, and each shift tilts a ray. Near the
+          cameras, where the rays meet at a large angle, that barely moves the intersection; far away, where they are
+          almost parallel, it moves it a lot. A wrong correspondence is worse: if the pixel of \(P\) in the left image is
+          matched with the pixel of \(Q\) in the right image, the rays still meet, but at a point where there is nothing.
+        </p>
+
+        <h2>Try this</h2>
+        <ul class="try">
+          <li>Drag \(P\) away from the cameras and watch the shaded cell grow: at 4 m it spans less than a meter in depth, at 10 m several meters.</li>
+          <li>Halve and double the baseline \(T\): the cells and the curve in the plot shrink as \(T\) grows. Then make \(T\) large, about 1.5 m, and drag a point close to the cameras: it leaves the region both cameras see.</li>
+          <li>Lower the focal length to 30 px: a point at 10 m has a disparity of only 1 px, and the next possible value, 0 px, means infinity.</li>
+          <li>Add noise of 0.5–1 px and press <em>New noise</em> a few times: the reconstruction of the far point \(Q\) jumps much more than that of \(P\).</li>
+          <li>Swap the correspondence: the two rays from \(P\) and \(Q\) cross at two points that do not exist. Move \(Q\) behind \(P\): one of the swapped pairs may have \(d \le 0\) and no intersection at all.</li>
+        </ul>
+      </article>
+    </main>
+    <script type="module" src="./main.ts"></script>
+  </body>
+</html>
