@@ -19,49 +19,80 @@
       <section class="workspace">
         <div class="views steps">
           <figure class="view card">
-            <figcaption>Image \(I\) <span class="muted">click any view to select a pixel</span></figcaption>
-            <div id="input-view" class="image-frame"></div>
+            <figcaption><span class="view-title">Image \(I\)</span> <span class="view-hint">click any view to select a pixel</span></figcaption>
+            <div class="view-body">
+              <div class="view-main">
+                <div id="input-view" class="image-frame"></div>
+              </div>
+            </div>
           </figure>
           <figure class="view card">
-            <figcaption>1 · \(I_x\) <span class="muted">derivative of Gaussian in x</span></figcaption>
-            <div id="ix-view" class="image-frame"></div>
+            <figcaption><span class="step">1</span><span class="view-title">\(I_x\)</span> <span class="view-hint">derivative of Gaussian in x</span></figcaption>
+            <div class="view-body">
+              <div class="view-main">
+                <div id="ix-view" class="image-frame"></div>
+              </div>
+            </div>
           </figure>
           <figure class="view card">
-            <figcaption>1 · \(I_y\) <span class="muted">derivative of Gaussian in y</span></figcaption>
-            <div id="iy-view" class="image-frame"></div>
+            <figcaption><span class="step">1</span><span class="view-title">\(I_y\)</span> <span class="view-hint">derivative of Gaussian in y</span></figcaption>
+            <div class="view-body">
+              <div class="view-main">
+                <div id="iy-view" class="image-frame"></div>
+              </div>
+            </div>
           </figure>
           <figure class="view card">
-            <figcaption>2 · Magnitude \(\|\nabla I\|\) <span class="muted">edge strength</span></figcaption>
-            <div id="magnitude-view" class="image-frame"></div>
+            <figcaption><span class="step">2</span><span class="view-title">Magnitude \(\|\nabla I\|\)</span> <span class="view-hint">edge strength</span></figcaption>
+            <div class="view-body">
+              <div class="view-main">
+                <div id="magnitude-view" class="image-frame"></div>
+              </div>
+            </div>
           </figure>
           <figure class="view card">
-            <figcaption>2 · Orientation \(\theta\) <span class="muted">hue, brightness from magnitude</span></figcaption>
-            <div id="angle-view" class="image-frame"></div>
+            <figcaption><span class="step">2</span><span class="view-title">Orientation \(\theta\)</span> <span class="view-hint">hue, brightness from magnitude</span></figcaption>
+            <div class="view-body">
+              <div class="view-main">
+                <div id="angle-view" class="image-frame"></div>
+              </div>
+            </div>
           </figure>
           <figure class="view card">
-            <figcaption>3 · Non-maximum suppression <span class="muted">thinned to one pixel</span></figcaption>
-            <div id="nms-view" class="image-frame"></div>
+            <figcaption><span class="step">3</span><span class="view-title">Non-maximum suppression</span> <span class="view-hint">thinned to one pixel</span></figcaption>
+            <div class="view-body">
+              <div class="view-main">
+                <div id="nms-view" class="image-frame"></div>
+              </div>
+            </div>
           </figure>
           <figure class="view card">
             <figcaption>
-              4 · Thresholds
-              <span class="muted legend">
+              <span class="step">4</span><span class="view-title">Thresholds</span>
+              <span class="view-hint legend">
                 <span class="key" style="--key: var(--fg)">strong</span>
                 <span class="key" style="--key: var(--accent)">weak kept</span>
                 <span class="key" style="--key: var(--viz-highlight)">dropped</span>
               </span>
             </figcaption>
-            <div id="classes-view" class="image-frame"></div>
+            <div class="view-body">
+              <div class="view-main">
+                <div id="classes-view" class="image-frame"></div>
+              </div>
+            </div>
           </figure>
           <figure class="view card">
-            <figcaption>4 · Edges <span class="muted">after hysteresis</span></figcaption>
-            <div id="edges-view" class="image-frame"></div>
+            <figcaption><span class="step">4</span><span class="view-title">Edges</span> <span class="view-hint">after hysteresis</span></figcaption>
+            <div class="view-body">
+              <div class="view-main">
+                <div id="edges-view" class="image-frame"></div>
+              </div>
+            </div>
           </figure>
         </div>
-        <aside id="controls" class="controls"></aside>
       </section>
 
-      <section id="values" class="card values" aria-live="polite"></section>
+      <section class="card values"><div class="view-body"><div id="values" class="view-main values-body" aria-live="polite"></div></div></section>
 
       <article class="explanation">
         <h2>What makes a good edge detector</h2>

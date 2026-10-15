@@ -1,4 +1,4 @@
-import { Pane } from 'tweakpane';
+import { Controls } from '../../src/shared/controls';
 import { epipolarLine, epipolarLineT, epipoles, toPixel, twoView, unitF } from '../../src/shared/epipolar';
 import { type Mat3, type Vec3, det3 } from '../../src/shared/linalg';
 import { random } from '../../src/shared/noise';
@@ -33,8 +33,16 @@ const defaults = () => ({
 });
 const state = defaults();
 
-const pane = new Pane({ container: document.getElementById('controls')!, title: '8-point algorithm' });
-const data = pane.addFolder({ title: 'Correspondences' });
+const ui = new Controls();
+const toolbar = ui.toolbar();
+toolbar.addBinding(state, 'allLines', { label: 'lines of all points' });
+toolbar.addBinding(state, 'zoomOut', { label: 'zoom out', min: 1, max: 8, step: 0.1 });
+toolbar.addResetButton(() => {
+  Object.assign(state, defaults());
+  ui.refresh();
+  schedule();
+});
+const data = ui.panel('image0-view').addFolder({ title: 'Correspondences' });
 data.addBinding(state, 'count', { label: 'points n', min: 8, max: MAX_POINTS, step: 1 });
 data.addBinding(state, 'noise', { label: 'noise σ (px)', min: 0, max: 3, step: 0.05, format: (v: number) => fmt(v, 2) });
 data.addButton({ title: 'New points' }).on('click', () => {
@@ -45,17 +53,9 @@ data.addButton({ title: 'New noise' }).on('click', () => {
   state.noiseSeed++;
   schedule();
 });
-const algo = pane.addFolder({ title: 'Algorithm' });
+const algo = ui.panel('sigma-plot').addFolder({ title: 'Algorithm' });
 algo.addBinding(state, 'normalize', { label: 'normalize' });
 algo.addBinding(state, 'rank2', { label: 'enforce rank 2' });
-const display = pane.addFolder({ title: 'Display' });
-display.addBinding(state, 'allLines', { label: 'lines of all points' });
-display.addBinding(state, 'zoomOut', { label: 'zoom out', min: 1, max: 8, step: 0.1 });
-pane.addButton({ title: 'Reset' }).on('click', () => {
-  Object.assign(state, defaults());
-  pane.refresh();
-  schedule();
-});
 
 const select = (i: number) => {
   state.selected = i;
@@ -193,6 +193,6 @@ function renderValues(est: FEstimate, F: Mat3, x0: [number, number][], x1: [numb
     </div>`;
 }
 
-pane.on('change', schedule);
+ui.on('change', schedule);
 onThemeChange(schedule);
 update();

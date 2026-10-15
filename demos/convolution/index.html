@@ -20,26 +20,34 @@
       <section class="workspace">
         <div class="views">
           <figure class="view card">
-            <figcaption>Input with border <span class="muted">dashed: the real image, click to select a pixel</span></figcaption>
-            <div id="input-view" class="image-frame"></div>
+            <figcaption><span class="view-title">Input with border</span> <span class="view-hint">dashed: the real image, click to select a pixel</span></figcaption>
+            <div class="view-body">
+              <div class="view-main">
+                <div id="input-view" class="image-frame"></div>
+              </div>
+            </div>
           </figure>
           <figure class="view card">
-            <figcaption>Filtered <span id="result-caption" class="muted"></span></figcaption>
-            <div id="result-view" class="image-frame"></div>
+            <figcaption><span class="view-title">Filtered</span> <span id="result-caption" class="view-hint"></span></figcaption>
+            <div class="view-body">
+              <div class="view-main">
+                <div id="result-view" class="image-frame"></div>
+              </div>
+            </div>
+          </figure>
+          <figure class="view card">
+            <figcaption><span class="view-title">Filter \(f[k, l]\)</span> <span class="view-hint">numbers or fractions such as 1/9; editing a weight switches to a custom filter</span></figcaption>
+            <div class="view-body">
+              <div class="view-main kernel-panel">
+                <div id="kernel-grid" class="kernel-grid"></div>
+                <p id="kernel-sum" class="muted small"></p>
+              </div>
+            </div>
           </figure>
         </div>
-        <aside class="controls">
-          <div id="controls"></div>
-          <section class="card kernel-card">
-            <h3>Filter \(f[k, l]\)</h3>
-            <div id="kernel-grid" class="kernel-grid"></div>
-            <p id="kernel-sum" class="muted small"></p>
-            <p class="muted small">Weights can be numbers or fractions such as 1/9. Editing one switches to a custom filter.</p>
-          </section>
-        </aside>
       </section>
 
-      <section id="values" class="card values" aria-live="polite"></section>
+      <section class="card values"><div class="view-body"><div id="values" class="view-main values-body" aria-live="polite"></div></div></section>
 
       <article class="explanation">
         <h2>Correlation</h2>
@@ -125,7 +133,7 @@
           <li>Apply the 5 × 5 box 20 times with the clip filter: a dark frame grows from the edges. Copy edge and reflect keep the border bright.</li>
           <li>Choose Sobel \(S_x\) and switch between correlation and convolution: dark and light edges swap, because the flipped filter measures the slope with the opposite sign.</li>
           <li>Select a pixel on an edge and check the values panel: the output is the sum of the element-wise products of the two matrices.</li>
-          <li>Set the result display to “absolute” with Sobel \(S_x\): now all vertical edges are bright, whatever their direction.</li>
+          <li>Set <em>show values</em> to “absolute” with Sobel \(S_x\): now all vertical edges are bright, whatever their direction.</li>
           <li>Emboss is asymmetric too: under convolution the light seems to come from the other side.</li>
           <li>Edit the center weight of the identity filter to 2: the image gets twice as bright and clips. Then try a filter whose weights sum to 0.</li>
         </ul>

@@ -1,6 +1,6 @@
-import { Pane } from 'tweakpane';
 import { cssRgb, linearToSrgb, srgbToLinear } from '../../src/shared/color';
 import type { RGB, RGBImage } from '../../src/shared/image';
+import { Controls } from '../../src/shared/controls';
 import { addImagePicker } from '../../src/shared/imagePicker';
 import { initPage } from '../../src/shared/page';
 import { PixelView, perFrame } from '../../src/shared/pixelView';
@@ -21,28 +21,36 @@ function defaults() {
 }
 const state = defaults();
 
-const pane = new Pane({ container: document.getElementById('controls')!, title: 'Gamma' });
-pane.addBinding(state, 'v', { label: 'pixel value v', min: 0, max: 255, step: 1 });
+const ui = new Controls();
+const pixelControls = ui.panel('curve-view');
+pixelControls.addBinding(state, 'v', { label: 'pixel value v', min: 0, max: 255, step: 1 });
+pixelControls.addResetButton(() => {
+  state.v = defaults().v;
+  ui.refresh();
+});
 
-const blurFolder = pane.addFolder({ title: 'Blur' });
-let blurSource: RGBImage = addImagePicker(blurFolder, { names: ['lights', 'scene', 'text', 'chart'], value: 'lights', width: W, height: H }, (img) => {
+const blurControls = ui.panel('blur-original');
+let blurSource: RGBImage = addImagePicker(blurControls, { names: ['lights', 'scene', 'text', 'chart'], value: 'lights', width: W, height: H }, (img) => {
   blurSource = img;
   blurDirty = true;
   schedule();
 });
-blurFolder.addBinding(state, 'sigma', { label: 'σ (px)', min: 0, max: 8, step: 0.1 });
+blurControls.addBinding(state, 'sigma', { label: 'blur σ (px)', min: 0, max: 8, step: 0.1 });
+blurControls.addResetButton(() => {
+  state.sigma = defaults().sigma;
+  ui.refresh();
+});
 
-const adjustFolder = pane.addFolder({ title: 'Gamma adjustment' });
-let adjustSource: RGBImage = addImagePicker(adjustFolder, { names: ['scene', 'chart', 'gradients'], value: 'scene', width: W, height: H }, (img) => {
+const adjustControls = ui.panel('adjust-original');
+let adjustSource: RGBImage = addImagePicker(adjustControls, { names: ['scene', 'chart', 'gradients'], value: 'scene', width: W, height: H }, (img) => {
   adjustSource = img;
   adjustDirty = true;
   schedule();
 });
-adjustFolder.addBinding(state, 'gamma', { label: 'γ', min: 0.2, max: 3, step: 0.05 });
-
-pane.addButton({ title: 'Reset' }).on('click', () => {
-  Object.assign(state, defaults());
-  pane.refresh();
+adjustControls.addBinding(state, 'gamma', { label: 'γ', min: 0.2, max: 3, step: 0.05 });
+adjustControls.addResetButton(() => {
+  state.gamma = defaults().gamma;
+  ui.refresh();
 });
 
 const curveView = new CurveView(document.getElementById('curve-view')!);
@@ -50,7 +58,9 @@ const grayView = new GrayView(document.getElementById('gray-view')!);
 const view = (id: string) => new PixelView(document.getElementById(id)!);
 const blurViews = [view('blur-original'), view('blur-encoded'), view('blur-linear')];
 const adjustViews = [view('adjust-original'), view('adjust-channels'), view('adjust-luma')];
-const values = document.getElementById('values')!;
+const pixelValues = document.getElementById('pixel-values')!;
+const blurValues = document.getElementById('blur-values')!;
+const adjustValues = document.getElementById('adjust-values')!;
 
 let blurDirty = true;
 let adjustDirty = true;
@@ -89,7 +99,7 @@ function renderValues(): void {
   const lin = srgbToLinear(x);
   const srgb = x <= 0.04045 ? `\\frac{${fmt(x, 3)}}{12.92}` : `\\left(\\frac{${fmt(x, 3)} + 0.055}{1.055}\\right)^{2.4}`;
   const g = state.gamma;
-  values.innerHTML = `
+  pixelValues.innerHTML = `
     <div class="value-grid">
       <div class="value-block">
         <h3>Pixel value → light intensity</h3>
@@ -98,6 +108,9 @@ function renderValues(): void {
         ${eq(`\\text{power law: } ${fmt(x, 3)}^{2.2} = ${fmt(decodeGamma(x, 2.2), 3)}`)}
         <p class="muted small">${fmt(100 * lin, 1)} % of the light of white (255).</p>
       </div>
+    </div>`;
+  blurValues.innerHTML = `
+    <div class="value-grid">
       <div class="value-block">
         <h3>Averaging two pixels</h3>
         <table class="mix-table">
@@ -109,6 +122,9 @@ function renderValues(): void {
           </tbody>
         </table>
       </div>
+    </div>`;
+  adjustValues.innerHTML = `
+    <div class="value-grid">
       <div class="value-block">
         <h3>Gamma adjustment</h3>
         ${eq(`\\text{per channel: } (R, G, B) \\to (R^{${fmt(g, 2)}},\\ G^{${fmt(g, 2)}},\\ B^{${fmt(g, 2)}})`)}
@@ -117,5 +133,5 @@ function renderValues(): void {
     </div>`;
 }
 
-pane.on('change', schedule);
+ui.on('change', schedule);
 update();

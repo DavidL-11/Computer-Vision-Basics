@@ -1,4 +1,4 @@
-import { Pane } from 'tweakpane';
+import { Controls } from '../../src/shared/controls';
 import { type Keypoint, type Octave, buildScaleSpace, detectKeypoints } from '../../src/shared/dog';
 import { type Plane, createPlane, planeToImage, toGray } from '../../src/shared/image';
 import { addImagePicker } from '../../src/shared/imagePicker';
@@ -27,29 +27,32 @@ const state = defaults();
 /** The selected keypoint, as a position in the original image. */
 const selected = { x: 0, y: 0, auto: true };
 
-const pane = new Pane({ container: document.getElementById('controls')!, title: 'SIFT descriptor' });
+const ui = new Controls();
+const toolbar = ui.toolbar();
 let original: Plane = toGray(
-  addImagePicker(pane, { names: ['scene', 'shapes', 'blobs', 'text'], value: 'scene', width: W, height: H }, (img) => {
+  addImagePicker(toolbar, { names: ['scene', 'shapes', 'blobs', 'text'], value: 'scene', width: W, height: H }, (img) => {
     original = toGray(img);
     selected.auto = true;
     schedule();
   }),
 );
-const geometry = pane.addFolder({ title: 'Geometry' });
+toolbar.addResetButton(() => {
+  Object.assign(state, defaults());
+  ui.refresh();
+  schedule();
+});
+
+const imageControls = ui.panel('image-view');
+const geometry = imageControls.addFolder({ title: 'Geometry' });
 geometry.addBinding(state, 'angle', { label: 'rotation θ (°)', min: -180, max: 180, step: 1 });
 geometry.addBinding(state, 'scale', { label: 'scale s', min: 0.5, max: 2, step: 0.01 });
-const intensity = pane.addFolder({ title: 'Intensity' });
+const intensity = imageControls.addFolder({ title: 'Intensity' });
 intensity.addBinding(state, 'gain', { label: 'contrast α', min: 0.25, max: 2, step: 0.01 });
 intensity.addBinding(state, 'bias', { label: 'brightness b', min: -0.5, max: 0.5, step: 0.01 });
 intensity.addBinding(state, 'gamma', { label: 'gamma γ', min: 0.3, max: 3, step: 0.05 });
-const descriptorFolder = pane.addFolder({ title: 'Descriptor' });
-descriptorFolder.addBinding(state, 'orient', { label: 'assign orientation' });
-descriptorFolder.addBinding(state, 'clamp', { label: 'clamp limit', min: 0.05, max: 1, step: 0.01 });
-pane.addBinding(state, 'threshold', { label: 'keypoint contrast t', min: 0.005, max: 0.1, step: 0.001 });
-pane.addButton({ title: 'Reset' }).on('click', () => {
-  Object.assign(state, defaults());
-  pane.refresh();
-});
+imageControls.addFolder({ title: 'Detector' }).addBinding(state, 'threshold', { label: 'keypoint contrast t', min: 0.005, max: 0.1, step: 0.001 });
+ui.panel('patch-view').addBinding(state, 'orient', { label: 'assign orientation' });
+ui.panel('cells-plot').addBinding(state, 'clamp', { label: 'clamp limit', min: 0.05, max: 1, step: 0.01 });
 
 const transform = (): Transform => ({ angle: state.angle * DEG, scale: state.scale, tx: 0, ty: 0, gain: state.gain, bias: state.bias });
 
@@ -365,6 +368,6 @@ function renderValues(): void {
     </div>`;
 }
 
-pane.on('change', schedule);
+ui.on('change', schedule);
 onThemeChange(schedule);
 update();

@@ -1,5 +1,5 @@
-import { Pane } from 'tweakpane';
 import { type CameraSnapshot, project, snapshot } from '../../src/shared/camera';
+import { Controls } from '../../src/shared/controls';
 import { type Vec3, dot, norm } from '../../src/shared/linalg';
 import { normalizeLine } from '../../src/shared/lines';
 import { initPage } from '../../src/shared/page';
@@ -31,39 +31,46 @@ function defaults() {
 }
 const state = defaults();
 
-const pane = new Pane({ container: document.getElementById('controls')!, title: 'Camera' });
-const presets = pane.addFolder({ title: 'Presets' });
+const ui = new Controls();
+const toolbar = ui.toolbar();
+const presets = toolbar.addFolder({ title: 'Presets' });
 const preset = (pose: { yaw: number; pitch: number; roll?: number; height?: number }) => () => {
   Object.assign(state, { roll: 0, height: 1.6 }, pose);
-  pane.refresh();
+  ui.refresh();
   schedule();
 };
 presets.addButton({ title: 'One-point perspective' }).on('click', preset({ yaw: 0, pitch: 0 }));
 presets.addButton({ title: 'Two-point perspective' }).on('click', preset({ yaw: 35, pitch: 0 }));
 presets.addButton({ title: 'Three-point perspective' }).on('click', preset({ yaw: 35, pitch: 25, height: 0.5 }));
+const families = toolbar.addFolder({ title: 'Line families' });
+for (const f of FAMILIES) families.addBinding(state.families, f.key, { label: f.name });
+toolbar.addResetButton(() => {
+  // The family switches are bound to state.families itself, so it is updated in place.
+  const { families, ...rest } = defaults();
+  Object.assign(state, rest);
+  Object.assign(state.families, families);
+  ui.refresh();
+  schedule();
+});
 
-const pose = pane.addFolder({ title: 'Pose' });
+const worldControls = ui.panel('world-view');
+const pose = worldControls.addFolder({ title: 'Camera pose' });
 pose.addBinding(state, 'height', { label: 'height [m]', min: 0.2, max: 8, step: 0.05 });
 pose.addBinding(state, 'yaw', { label: 'yaw [°]', min: -60, max: 60, step: 0.5 });
 pose.addBinding(state, 'pitch', { label: 'pitch [°]', min: -60, max: 60, step: 0.5 });
 pose.addBinding(state, 'roll', { label: 'roll [°]', min: -45, max: 45, step: 0.5 });
-pane.addFolder({ title: 'Intrinsics' }).addBinding(state, 'f', { label: 'f [px]', min: 150, max: 1200, step: 1 });
+worldControls.addFolder({ title: 'Show' }).addBinding(state, 'directionRays', { label: 'rays from C' });
 
-const display = pane.addFolder({ title: 'Display' });
-for (const f of FAMILIES) display.addBinding(state.families, f.key, { label: f.name });
-display.addBinding(state, 'showHorizon', { label: 'horizon' });
-display.addBinding(state, 'showExtensions', { label: 'extend lines' });
-display.addBinding(state, 'directionRays', { label: 'rays from C (3D)' });
-display.addBinding(state, 'zoomOut', { label: 'zoom out', min: 1, max: 6, step: 0.1 });
-display.addBinding(state, 'check', {
+const imageControls = ui.panel('image-view');
+imageControls.addFolder({ title: 'Intrinsics' }).addBinding(state, 'f', { label: 'f [px]', min: 150, max: 1200, step: 1 });
+const imageDisplay = imageControls.addFolder({ title: 'Show' });
+imageDisplay.addBinding(state, 'showHorizon', { label: 'horizon' });
+imageDisplay.addBinding(state, 'showExtensions', { label: 'extend lines' });
+imageDisplay.addBinding(state, 'zoomOut', { label: 'zoom out', min: 1, max: 6, step: 0.1 });
+
+ui.panel('values').addBinding(state, 'check', {
   label: 'check family',
   options: Object.fromEntries(FAMILIES.map((f) => [f.name, f.key])),
-});
-
-pane.addButton({ title: 'Reset' }).on('click', () => {
-  Object.assign(state, defaults());
-  pane.refresh();
-  schedule();
 });
 
 const worldView = new WorldView(document.getElementById('world-view')!);
@@ -165,5 +172,5 @@ function renderValues(cam: CameraSnapshot, vps: Record<FamilyKey, Vec3>, h: Vec3
     </div>`;
 }
 
-pane.on('change', schedule);
+ui.on('change', schedule);
 update();

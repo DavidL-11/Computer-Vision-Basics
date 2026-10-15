@@ -21,51 +21,74 @@
         <div class="views">
           <figure class="view card">
             <figcaption>
-              Original \(A\)
-              <span class="muted legend">
+              <span class="view-title">Original \(A\)</span>
+              <span class="view-hint legend">
                 <span class="key" style="--key: var(--axis-y)">found again</span>
                 <span class="key" style="--key: var(--viz-highlight)">lost</span>
               </span>
             </figcaption>
-            <div id="a-view" class="image-frame"></div>
+            <div class="view-body">
+              <div class="view-main">
+                <div id="a-view" class="image-frame"></div>
+              </div>
+            </div>
           </figure>
           <figure class="view card">
             <figcaption>
-              Transformed \(B\)
-              <span class="muted legend">
+              <span class="view-title">Transformed \(B\)</span>
+              <span class="view-hint legend">
                 <span class="key" style="--key: var(--viz-points)">corners of B</span>
                 <span class="key" style="--key: var(--axis-y)">rings: corners of A, mapped</span>
               </span>
             </figcaption>
-            <div id="b-view" class="image-frame"></div>
+            <div class="view-body">
+              <div class="view-main">
+                <div id="b-view" class="image-frame"></div>
+              </div>
+            </div>
           </figure>
           <figure class="view card">
             <figcaption>
-              Rotation θ
-              <span class="muted legend">
+              <span class="view-title">Rotation θ</span>
+              <span class="view-hint legend">
                 <span class="key" style="--key: var(--accent)">found again</span>
                 <span class="key dashed" style="--key: var(--viz-points)">corners of B with a partner</span>
               </span>
             </figcaption>
-            <div id="rotation-plot"></div>
+            <div class="view-body">
+              <div class="view-main">
+                <div id="rotation-plot"></div>
+              </div>
+            </div>
           </figure>
           <figure class="view card">
-            <figcaption>Scale s <span class="muted">each curve changes one parameter only</span></figcaption>
-            <div id="scale-plot"></div>
+            <figcaption><span class="view-title">Scale s</span> <span class="view-hint">each curve changes one parameter only</span></figcaption>
+            <div class="view-body">
+              <div class="view-main">
+                <div id="scale-plot"></div>
+              </div>
+            </div>
           </figure>
           <figure class="view card">
-            <figcaption>Contrast a</figcaption>
-            <div id="contrast-plot"></div>
+            <figcaption><span class="view-title">Contrast a</span></figcaption>
+            <div class="view-body">
+              <div class="view-main">
+                <div id="contrast-plot"></div>
+              </div>
+            </div>
           </figure>
           <figure class="view card">
-            <figcaption>Brightness b</figcaption>
-            <div id="brightness-plot"></div>
+            <figcaption><span class="view-title">Brightness b</span></figcaption>
+            <div class="view-body">
+              <div class="view-main">
+                <div id="brightness-plot"></div>
+              </div>
+            </div>
           </figure>
         </div>
-        <aside id="controls" class="controls"></aside>
       </section>
 
-      <section id="values" class="card values" aria-live="polite"></section>
+      <section class="card values"><div class="view-body"><div id="values" class="view-main values-body" aria-live="polite"></div></div></section>
 
       <article class="explanation">
         <h2>Invariance and covariance</h2>

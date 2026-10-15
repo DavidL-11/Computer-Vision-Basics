@@ -1,4 +1,4 @@
-import { Pane } from 'tweakpane';
+import { Controls } from '../../src/shared/controls';
 import { type Keypoint, type KeypointStatus, type Octave, buildScaleSpace, detectKeypoints, dogSignature, edgeLimit, normalizedLoG } from '../../src/shared/dog';
 import { type Plane, planeToImage, toGray } from '../../src/shared/image';
 import { addImagePicker } from '../../src/shared/imagePicker';
@@ -35,37 +35,42 @@ function defaults() {
 }
 const state = defaults();
 
-const pane = new Pane({ container: document.getElementById('controls')!, title: 'Scale space' });
+const ui = new Controls();
+const toolbar = ui.toolbar();
 let original: Plane = toGray(
-  addImagePicker(pane, { names: ['blobs', 'shapes', 'scene', 'text'], value: 'blobs', width: W, height: H }, (img) => {
+  addImagePicker(toolbar, { names: ['blobs', 'shapes', 'scene', 'text'], value: 'blobs', width: W, height: H }, (img) => {
     original = toGray(img);
     schedule();
   }),
 );
 let previousScale = state.scale;
-pane.addBinding(state, 'scale', { label: 'image scale', min: 0.5, max: 2, step: 0.01 }).on('change', () => {
+toolbar.addBinding(state, 'scale', { label: 'image scale', min: 0.5, max: 2, step: 0.01 }).on('change', () => {
   // Keep the selection on the same scene point, scaled around the image center.
   const f = state.scale / previousScale;
   state.x = Math.round(Math.min(W - 1, Math.max(0, (W - 1) / 2 + f * (state.x - (W - 1) / 2))));
   state.y = Math.round(Math.min(H - 1, Math.max(0, (H - 1) / 2 + f * (state.y - (H - 1) / 2))));
   previousScale = state.scale;
 });
-pane.addBinding(state, 'noise', { label: 'noise σₙ', min: 0, max: 0.1, step: 0.005 });
-const spaceFolder = pane.addFolder({ title: 'Scale space' });
-spaceFolder.addBinding(state, 'sigma0', { label: 'σ₀', min: 1, max: 2.5, step: 0.1 });
-spaceFolder.addBinding(state, 'intervals', { label: 'intervals s', min: 1, max: 5, step: 1 });
-spaceFolder.addBinding(state, 'octaves', { label: 'octaves', min: 1, max: 5, step: 1 });
-const keyFolder = pane.addFolder({ title: 'Keypoints' });
+toolbar.addBinding(state, 'noise', { label: 'noise σₙ', min: 0, max: 0.1, step: 0.005 });
+toolbar.addResetButton(() => {
+  Object.assign(state, defaults());
+  previousScale = state.scale;
+  ui.refresh();
+  schedule();
+});
+
+const keyFolder = ui.panel('image-view').addFolder({ title: 'Keypoints' });
 keyFolder.addBinding(state, 'threshold', { label: 'contrast t', min: 0, max: 0.1, step: 0.001 });
 keyFolder.addBinding(state, 'edgeRatio', { label: 'edge ratio r', min: 1, max: 40, step: 0.5 });
 keyFolder.addBinding(state, 'interpolate', { label: 'interpolate' });
 keyFolder.addBinding(state, 'rejected', { label: 'show rejected' });
-const octaveBinding = pane.addBinding(state, 'octave', { label: 'show octave', min: 0, max: 4, step: 1 });
-pane.addButton({ title: 'Reset' }).on('click', () => {
-  Object.assign(state, defaults());
-  previousScale = state.scale;
-  pane.refresh();
-});
+
+const spaceControls = ui.panel('gauss-row');
+const spaceFolder = spaceControls.addFolder({ title: 'Scale space' });
+spaceFolder.addBinding(state, 'sigma0', { label: 'σ₀', min: 1, max: 2.5, step: 0.1 });
+spaceFolder.addBinding(state, 'intervals', { label: 'intervals s', min: 1, max: 5, step: 1 });
+spaceFolder.addBinding(state, 'octaves', { label: 'octaves', min: 1, max: 5, step: 1 });
+const octaveBinding = spaceControls.addFolder({ title: 'Display' }).addBinding(state, 'octave', { label: 'show octave', min: 0, max: 4, step: 1 });
 
 const select = (x: number, y: number) => {
   state.x = x;
@@ -198,9 +203,9 @@ function update(): void {
   const sigmaRange = (n: number) =>
     `σ = ${fmt(octave.sigmas[0] * octave.step, 2)} … ${fmt(octave.sigmas[n - 1] * octave.step, 2)} image pixels`;
   document.getElementById('gauss-caption')!.innerHTML =
-    `Octave ${state.octave}: Gaussian images ${renderTex('L_i')} <span class="muted">${size} pixels, ${sigmaRange(s + 3)}</span>`;
+    `<span class="view-title">Octave ${state.octave}: Gaussian images ${renderTex('L_i')}</span> <span class="view-hint">${size} pixels, ${sigmaRange(s + 3)}</span>`;
   document.getElementById('dog-caption')!.innerHTML =
-    `Octave ${state.octave}: DoG images ${renderTex('D_i = L_i - L_{i+1}')} <span class="muted">0 = gray, same scale in every octave</span>`;
+    `<span class="view-title">Octave ${state.octave}: DoG images ${renderTex('D_i = L_i - L_{i+1}')}</span> <span class="view-hint">0 = gray, same scale in every octave</span>`;
 
   renderSignature(image, octaves);
   renderValues(octaves);
@@ -302,6 +307,6 @@ function renderValues(octaves: Octave[]): void {
     </div>`;
 }
 
-pane.on('change', schedule);
+ui.on('change', schedule);
 onThemeChange(schedule);
 update();

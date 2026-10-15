@@ -21,66 +21,96 @@
         <div class="views steps">
           <figure class="view card">
             <figcaption>
-              Image \(I\)
-              <span class="muted legend">
+              <span class="view-title">Image \(I\)</span>
+              <span class="view-hint legend">
                 <span class="key" style="--key: var(--viz-points)">corners</span>
                 <span class="key" style="--key: var(--viz-highlight)">ellipse of M</span>
               </span>
             </figcaption>
-            <div id="image-view" class="image-frame"></div>
+            <div class="view-body">
+              <div class="view-main">
+                <div id="image-view" class="image-frame"></div>
+              </div>
+            </div>
           </figure>
           <figure class="view card">
-            <figcaption>1 · \(I_x\) <span class="muted">derivative in x, 0 = gray</span></figcaption>
-            <div id="ix-view" class="image-frame"></div>
+            <figcaption><span class="step">1</span><span class="view-title">\(I_x\)</span> <span class="view-hint">derivative in x, 0 = gray</span></figcaption>
+            <div class="view-body">
+              <div class="view-main">
+                <div id="ix-view" class="image-frame"></div>
+              </div>
+            </div>
           </figure>
           <figure class="view card">
-            <figcaption>1 · \(I_y\) <span class="muted">derivative in y, 0 = gray</span></figcaption>
-            <div id="iy-view" class="image-frame"></div>
+            <figcaption><span class="step">1</span><span class="view-title">\(I_y\)</span> <span class="view-hint">derivative in y, 0 = gray</span></figcaption>
+            <div class="view-body">
+              <div class="view-main">
+                <div id="iy-view" class="image-frame"></div>
+              </div>
+            </div>
           </figure>
           <figure class="view card">
-            <figcaption>2–3 · \(g(I_x^2)\) <span class="muted">squared, then Gaussian window</span></figcaption>
-            <div id="sxx-view" class="image-frame"></div>
+            <figcaption><span class="step">2–3</span><span class="view-title">\(g(I_x^2)\)</span> <span class="view-hint">squared, then Gaussian window</span></figcaption>
+            <div class="view-body">
+              <div class="view-main">
+                <div id="sxx-view" class="image-frame"></div>
+              </div>
+            </div>
           </figure>
           <figure class="view card">
-            <figcaption>2–3 · \(g(I_y^2)\) <span class="muted">squared, then Gaussian window</span></figcaption>
-            <div id="syy-view" class="image-frame"></div>
+            <figcaption><span class="step">2–3</span><span class="view-title">\(g(I_y^2)\)</span> <span class="view-hint">squared, then Gaussian window</span></figcaption>
+            <div class="view-body">
+              <div class="view-main">
+                <div id="syy-view" class="image-frame"></div>
+              </div>
+            </div>
           </figure>
           <figure class="view card">
-            <figcaption>2–3 · \(g(I_x I_y)\) <span class="muted">product, then window, 0 = gray</span></figcaption>
-            <div id="sxy-view" class="image-frame"></div>
+            <figcaption><span class="step">2–3</span><span class="view-title">\(g(I_x I_y)\)</span> <span class="view-hint">product, then window, 0 = gray</span></figcaption>
+            <div class="view-body">
+              <div class="view-main">
+                <div id="sxy-view" class="image-frame"></div>
+              </div>
+            </div>
           </figure>
           <figure class="view card">
-            <figcaption>4 · Cornerness \(C\) <span class="muted">0 = gray, square-root scale</span></figcaption>
-            <div id="response-view" class="image-frame"></div>
+            <figcaption><span class="step">4</span><span class="view-title">Cornerness \(C\)</span> <span class="view-hint">0 = gray, square-root scale</span></figcaption>
+            <div class="view-body">
+              <div class="view-main">
+                <div id="response-view" class="image-frame"></div>
+              </div>
+            </div>
           </figure>
           <figure class="view card">
             <figcaption>
-              5–6 · \(C \ge t\) and local maxima
-              <span class="muted legend">
+              <span class="step">5–6</span><span class="view-title">\(C \ge t\) and local maxima</span>
+              <span class="view-hint legend">
                 <span class="key" style="--key: var(--accent)">above t</span>
                 <span class="key" style="--key: var(--viz-points)">corners</span>
               </span>
             </figcaption>
-            <div id="peaks-view" class="image-frame"></div>
+            <div class="view-body">
+              <div class="view-main">
+                <div id="peaks-view" class="image-frame"></div>
+              </div>
+            </div>
           </figure>
-        </div>
-        <aside class="controls">
-          <div id="controls"></div>
-          <section class="card lambda-card">
-            <h3>
-              Eigenvalues \(\lambda_1 \ge \lambda_2\) of every pixel
-              <span class="muted legend">
+          <figure class="view card">
+            <figcaption><span class="view-title">Eigenvalues \(\lambda_1 \ge \lambda_2\) of every pixel</span> <span class="view-hint legend">
                 <span class="key" style="--key: var(--accent)">\(C \ge t\)</span>
                 <span class="key" style="--key: var(--viz-points)">\(C \le -t\)</span>
                 <span class="key" style="--key: var(--viz-highlight)">selected</span>
-              </span>
-            </h3>
-            <div id="lambda-plot"></div>
-          </section>
-        </aside>
+              </span></figcaption>
+            <div class="view-body">
+              <div class="view-main">
+                <div id="lambda-plot"></div>
+              </div>
+            </div>
+          </figure>
+        </div>
       </section>
 
-      <section id="values" class="card values" aria-live="polite"></section>
+      <section class="card values"><div class="view-body"><div id="values" class="view-main values-body" aria-live="polite"></div></div></section>
 
       <article class="explanation">
         <h2>From the second moment matrix to a score</h2>
@@ -122,7 +152,7 @@
 
         <h2>The plane of eigenvalues</h2>
         <p>
-          The plot next to the controls shows every pixel as a point \((\lambda_1, \lambda_2)\) with
+          The eigenvalue plot shows every pixel as a point \((\lambda_1, \lambda_2)\) with
           \(\lambda_1 \ge \lambda_2\). Flat pixels crowd near the origin, edge pixels lie along the \(\lambda_1\) axis,
           and corners are the few points that also have a large \(\lambda_2\). The shaded regions are where
           \(C \ge t\) and \(C \le -t\). Their borders are lines of constant \(C\), so the classification depends on

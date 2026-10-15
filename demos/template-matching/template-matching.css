@@ -1,19 +1,10 @@
-.template-card {
-  margin-top: 0.75rem;
-  padding: 0.6rem 0.8rem 0.8rem;
-}
-.template-card h3 {
-  font-size: 0.92rem;
-  margin: 0 0 0.5rem;
-}
-.template-card h3 .muted {
-  font-weight: 400;
-  font-size: 0.82rem;
-  margin-left: 0.4rem;
+.template-frame {
+  justify-content: center;
+  padding: 1rem;
 }
 #template-view {
-  width: min(100%, 200px);
-  margin: 0 auto;
+  flex: 0 1 auto;
+  width: min(100%, 240px);
 }
 
 .match-table {

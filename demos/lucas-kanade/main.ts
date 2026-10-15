@@ -1,4 +1,4 @@
-import { Pane } from 'tweakpane';
+import { Controls } from '../../src/shared/controls';
 import { eigen } from '../../src/shared/harris';
 import { type Plane, planeToImage, toGray } from '../../src/shared/image';
 import { addImagePicker } from '../../src/shared/imagePicker';
@@ -39,55 +39,58 @@ const defaults = () => ({
 });
 const state = defaults();
 
-const pane = new Pane({ container: document.getElementById('controls')!, title: 'Lucas–Kanade' });
+const ui = new Controls();
+const toolbar = ui.toolbar();
 let imageVersion = 0;
 let original: Plane = toGray(
-  addImagePicker(pane, { names: ['scene', 'shapes', 'text', 'chart', 'blobs', 'zone-plate'], value: 'scene', width: W, height: H }, (img) => {
+  addImagePicker(toolbar, { names: ['scene', 'shapes', 'text', 'chart', 'blobs', 'zone-plate'], value: 'scene', width: W, height: H }, (img) => {
     original = toGray(img);
     imageVersion++;
     schedule();
   }),
 );
-pane.addBinding(state, 'sigma', { label: 'pre-smoothing σ', min: 0, max: 4, step: 0.1 });
-pane.addBinding(state, 'radius', { label: 'window radius r', min: 2, max: 12, step: 1 });
-
-const iteration = pane.addFolder({ title: 'Iteration' });
-iteration.addBinding(state, 'k', { label: 'shown step k', min: 0, max: 100, step: 1 });
-iteration.addButton({ title: 'Next step' }).on('click', () => {
+toolbar.addBinding(state, 'sigma', { label: 'pre-smoothing σ', min: 0, max: 4, step: 0.1 });
+toolbar.addBinding(state, 'k', { label: 'shown step k', min: 0, max: 100, step: 1 });
+const playButton = toolbar.addButton({ title: 'Play from u₀', primary: true });
+playButton.on('click', () => (timer ? stop() : play()));
+toolbar.addButton({ title: 'Next step' }).on('click', () => {
   stop();
   state.k++;
-  pane.refresh();
+  ui.refresh();
 });
-const playButton = iteration.addButton({ title: 'Play from u₀' });
-playButton.on('click', () => (timer ? stop() : play()));
+toolbar.addResetButton(() => {
+  stop();
+  Object.assign(state, defaults());
+  ui.refresh();
+  schedule();
+});
+
+ui.panel('i0-view').addBinding(state, 'radius', { label: 'window radius r', min: 2, max: 12, step: 1 });
+
 const shift = (label: string) => ({ label, min: -R, max: R, step: 0.1, format: (v: number) => fmt(v, 1) });
+const second = ui.panel('i1-view');
+second.addBinding(state, 'tu', shift('true u* (px)'));
+second.addBinding(state, 'tv', shift('true v* (px)'));
+second.addBinding(state, 'noise', { label: 'noise σₙ', min: 0, max: 0.1, step: 0.005 });
+
+const iteration = ui.panel('surface-view');
 iteration.addBinding(state, 'u0', shift('start u₀ (px)'));
 iteration.addBinding(state, 'v0', shift('start v₀ (px)'));
 iteration.addBinding(state, 'alpha', { label: 'step size α', min: 0.05, max: 2, step: 0.05 });
 iteration.addBinding(state, 'maxIterations', { label: 'max. iterations', min: 1, max: 100, step: 1 });
 iteration.addBinding(state, 'jacobian', { label: 'gradient J', options: { '∇I₁(xᵢ + u), every step': 'i1', '∇I₀(xᵢ), once': 'i0' } });
 
-const second = pane.addFolder({ title: 'Second image I₁' });
-second.addBinding(state, 'tu', shift('true u* (px)'));
-second.addBinding(state, 'tv', shift('true v* (px)'));
-second.addBinding(state, 'noise', { label: 'noise σₙ', min: 0, max: 0.1, step: 0.005 });
-pane.addButton({ title: 'Reset' }).on('click', () => {
-  stop();
-  Object.assign(state, defaults());
-  pane.refresh();
-});
-
 let timer = 0;
 let lastStep = 0;
 function play(): void {
   stop();
   state.k = 0;
-  pane.refresh();
+  ui.refresh();
   playButton.title = 'Stop';
   timer = window.setInterval(() => {
     if (state.k >= lastStep) return stop();
     state.k++;
-    pane.refresh();
+    ui.refresh();
   }, 450);
 }
 function stop(): void {
@@ -224,7 +227,7 @@ function update(): void {
   lastStep = steps.length - 1;
   if (state.k > lastStep) {
     state.k = lastStep;
-    pane.refresh();
+    ui.refresh();
   }
   const k = state.k;
   const s = steps[k];
@@ -338,6 +341,6 @@ function renderValues(steps: Step[], k: number, outcome: Outcome): void {
     </div>`;
 }
 
-pane.on('change', schedule);
+ui.on('change', schedule);
 onThemeChange(schedule);
 update();

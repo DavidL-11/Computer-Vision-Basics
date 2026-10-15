@@ -13,25 +13,32 @@
         <p class="lead">
           A camera maps 3D world points to 2D pixels in two steps. The <strong>extrinsics</strong> \([R \mid t]\) move a
           point from the world into the camera's coordinate frame. The <strong>intrinsics</strong> \(K\) project it onto
-          the image. Change the parameters on the right and watch the camera, the image and all matrices update together.
+          the image. Change the parameters next to each view and watch the camera, the image and all matrices update together.
         </p>
       </section>
 
       <section class="workspace">
         <div class="views">
           <figure class="view card">
-            <figcaption>3D world <span class="muted">drag to orbit, scroll to zoom, click a vertex to select it</span></figcaption>
-            <div id="world-view" class="view-3d world-view"></div>
+            <figcaption><span class="view-title">3D world</span> <span class="view-hint">drag to orbit, scroll to zoom, click a vertex to select it</span></figcaption>
+            <div class="view-body">
+              <div class="view-main">
+                <div id="world-view" class="view-3d world-view"></div>
+              </div>
+            </div>
           </figure>
           <figure class="view card">
-            <figcaption>Camera image <span class="muted">640 × 480 px, click a vertex to select it</span></figcaption>
-            <div id="image-view" class="image-view"></div>
+            <figcaption><span class="view-title">Camera image</span> <span class="view-hint">640 × 480 px, click a vertex to select it</span></figcaption>
+            <div class="view-body">
+              <div class="view-main">
+                <div id="image-view" class="image-view"></div>
+              </div>
+            </div>
           </figure>
         </div>
-        <aside id="controls" class="controls"></aside>
       </section>
 
-      <section id="matrices" class="card values" aria-live="polite"></section>
+      <section class="card values"><div class="view-body"><div id="matrices" class="view-main values-body" aria-live="polite"></div></div></section>
 
       <article class="explanation">
         <h2>The pinhole model</h2>

@@ -19,47 +19,66 @@
       <section class="workspace">
         <div class="views">
           <figure class="view card">
-            <figcaption>Image A <span class="muted">\(|A| \, e^{i \angle A}\)</span></figcaption>
-            <div id="a-view" class="image-frame"></div>
+            <figcaption><span class="view-title">Image A</span> <span class="view-hint">\(|A| \, e^{i \angle A}\)</span></figcaption>
+            <div class="view-body">
+              <div class="view-main">
+                <div id="a-view" class="image-frame"></div>
+              </div>
+            </div>
           </figure>
           <figure class="view card">
-            <figcaption>Image B <span class="muted">\(|B| \, e^{i \angle B}\)</span></figcaption>
-            <div id="b-view" class="image-frame"></div>
+            <figcaption><span class="view-title">Image B</span> <span class="view-hint">\(|B| \, e^{i \angle B}\)</span></figcaption>
+            <div class="view-body">
+              <div class="view-main">
+                <div id="b-view" class="image-frame"></div>
+              </div>
+            </div>
           </figure>
           <figure class="view card">
-            <figcaption>\(\mathcal{F}^{-1}\{|A| \, e^{i \angle B}\}\) <span class="muted">magnitude of A, phase of B</span></figcaption>
-            <div id="mag-a-phase-b-view" class="image-frame"></div>
+            <figcaption><span class="view-title">\(\mathcal{F}^{-1}\{|A| \, e^{i \angle B}\}\)</span> <span class="view-hint">magnitude of A, phase of B</span></figcaption>
+            <div class="view-body">
+              <div class="view-main">
+                <div id="mag-a-phase-b-view" class="image-frame"></div>
+              </div>
+            </div>
           </figure>
           <figure class="view card">
-            <figcaption>\(\mathcal{F}^{-1}\{|B| \, e^{i \angle A}\}\) <span class="muted">magnitude of B, phase of A</span></figcaption>
-            <div id="mag-b-phase-a-view" class="image-frame"></div>
+            <figcaption><span class="view-title">\(\mathcal{F}^{-1}\{|B| \, e^{i \angle A}\}\)</span> <span class="view-hint">magnitude of B, phase of A</span></figcaption>
+            <div class="view-body">
+              <div class="view-main">
+                <div id="mag-b-phase-a-view" class="image-frame"></div>
+              </div>
+            </div>
           </figure>
           <figure class="view card view-wide">
-            <figcaption>Only one part of image A</figcaption>
-            <div class="image-row">
-              <figure>
-                <div id="radial-view"></div>
-                <figcaption>phase of A, radial average of \(|A|\)</figcaption>
-              </figure>
-              <figure>
-                <div id="flat-view"></div>
-                <figcaption>phase of A, \(|F| = 1\) (contrast stretched)</figcaption>
-              </figure>
-              <figure>
-                <div id="random-view"></div>
-                <figcaption>\(|A|\), random phase</figcaption>
-              </figure>
-              <figure>
-                <div id="zero-view"></div>
-                <figcaption>\(|A|\), zero phase (origin in the center, stretched)</figcaption>
-              </figure>
+            <figcaption><span class="view-title">Only one part of image A</span></figcaption>
+            <div class="view-body">
+              <div class="view-main">
+                <div class="image-row">
+                  <figure>
+                    <div id="radial-view"></div>
+                    <figcaption>phase of A, radial average of \(|A|\)</figcaption>
+                  </figure>
+                  <figure>
+                    <div id="flat-view"></div>
+                    <figcaption>phase of A, \(|F| = 1\) (contrast stretched)</figcaption>
+                  </figure>
+                  <figure>
+                    <div id="random-view"></div>
+                    <figcaption>\(|A|\), random phase</figcaption>
+                  </figure>
+                  <figure>
+                    <div id="zero-view"></div>
+                    <figcaption>\(|A|\), zero phase (origin in the center, stretched)</figcaption>
+                  </figure>
+                </div>
+              </div>
             </div>
           </figure>
         </div>
-        <aside id="controls" class="controls"></aside>
       </section>
 
-      <section id="values" class="card values" aria-live="polite"></section>
+      <section class="card values"><div class="view-body"><div id="values" class="view-main values-body" aria-live="polite"></div></div></section>
 
       <article class="explanation">
         <h2>Two halves of the spectrum</h2>

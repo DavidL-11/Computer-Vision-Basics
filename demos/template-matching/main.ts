@@ -1,4 +1,4 @@
-import { Pane } from 'tweakpane';
+import { Controls } from '../../src/shared/controls';
 import { type Plane, planeToImage, toGray } from '../../src/shared/image';
 import { addImagePicker } from '../../src/shared/imagePicker';
 import { initPage } from '../../src/shared/page';
@@ -20,23 +20,26 @@ function defaults() {
 }
 const state = defaults();
 
-const pane = new Pane({ container: document.getElementById('controls')!, title: 'Template matching' });
+const ui = new Controls();
+const toolbar = ui.toolbar();
 let gray: Plane = toGray(
-  addImagePicker(pane, { names: ['text', 'chart', 'scene'], value: 'text', width: W, height: H }, (img) => {
+  addImagePicker(toolbar, { names: ['text', 'chart', 'scene'], value: 'text', width: W, height: H }, (img) => {
     gray = toGray(img);
     schedule();
   }),
 );
-pane.addBinding(state, 'size', { label: 'template size', min: 5, max: 41, step: 2 });
-pane.addBinding(state, 'method', {
+toolbar.addResetButton(() => {
+  Object.assign(state, defaults());
+  ui.refresh();
+  schedule();
+});
+ui.panel('template-view').addBinding(state, 'size', { label: 'template size', min: 5, max: 41, step: 2 });
+const scoreControls = ui.panel('score-view');
+scoreControls.addBinding(state, 'method', {
   label: 'score',
   options: { correlation: 'correlation', 'zero-mean correlation': 'zero-mean', 'SSD (shown as −SSD)': 'ssd', NCC: 'ncc' },
 });
-pane.addBinding(state, 'count', { label: 'matches', min: 1, max: 12, step: 1 });
-pane.addButton({ title: 'Reset' }).on('click', () => {
-  Object.assign(state, defaults());
-  pane.refresh();
-});
+scoreControls.addBinding(state, 'count', { label: 'matches', min: 1, max: 12, step: 1 });
 
 const radius = () => (state.size - 1) / 2;
 const clampCenter = (v: number, n: number) => Math.min(n - 1 - radius(), Math.max(radius(), v));
@@ -173,6 +176,6 @@ function renderValues(t: Template): void {
     </div>`;
 }
 
-pane.on('change', schedule);
+ui.on('change', schedule);
 onThemeChange(schedule);
 update();

@@ -1,4 +1,4 @@
-import { Pane } from 'tweakpane';
+import { Controls } from '../../src/shared/controls';
 import { type RGB, type RGBImage, createImage } from '../../src/shared/image';
 import { initPage } from '../../src/shared/page';
 import { PixelView, type ViewTransform, perFrame } from '../../src/shared/pixelView';
@@ -36,8 +36,14 @@ const OPERATIONS: Record<Operation, string> = {
   boundary: 'Boundary A − (A ⊖ B)',
 };
 
-const pane = new Pane({ container: document.getElementById('controls')!, title: 'Morphology' });
-const paint = pane.addFolder({ title: 'Paint' });
+const ui = new Controls();
+ui.toolbar().addResetButton(() => {
+  Object.assign(state, defaults());
+  image = initialImage();
+  ui.refresh();
+  schedule();
+});
+const paint = ui.panel('input-view').addFolder({ title: 'Paint' });
 paint.addBinding(state, 'mode', { label: 'brush', options: { draw: 'draw', erase: 'erase' } });
 paint.addBinding(state, 'brush', { label: 'brush size', options: { '1 px': 0, '3 px': 1, '5 px': 2 } });
 paint.addButton({ title: 'Reset image' }).on('click', () => {
@@ -48,15 +54,11 @@ paint.addButton({ title: 'Clear' }).on('click', () => {
   image = createBinary(W, H);
   schedule();
 });
-pane.addBinding(state, 'op', { label: 'operation', options: Object.fromEntries(Object.entries(OPERATIONS).map(([k, v]) => [v, k])) });
-pane.addBinding(state, 'shape', { label: 'element B', options: { square: 'square', cross: 'cross', disk: 'disk' } });
-pane.addBinding(state, 'radius', { label: 'radius', min: 0, max: 4, step: 1 });
-pane.addBinding(state, 'connectivity', { label: 'connectivity', options: { '4-neighbors': 4, '8-neighbors': 8 } });
-pane.addButton({ title: 'Reset' }).on('click', () => {
-  Object.assign(state, defaults());
-  image = initialImage();
-  pane.refresh();
-});
+ui.panel('result-view').addBinding(state, 'op', { label: 'operation', options: Object.fromEntries(Object.entries(OPERATIONS).map(([k, v]) => [v, k])) });
+const element = ui.panel('se-view');
+element.addBinding(state, 'shape', { label: 'shape', options: { square: 'square', cross: 'cross', disk: 'disk' } });
+element.addBinding(state, 'radius', { label: 'radius', min: 0, max: 4, step: 1 });
+ui.panel('components-view').addBinding(state, 'connectivity', { label: 'connectivity', options: { '4-neighbors': 4, '8-neighbors': 8 } });
 
 let last: [number, number] | null = null;
 function paintAt(x: number, y: number, e: PointerEvent): void {
@@ -204,6 +206,6 @@ function renderValues(b: Binary, result: Binary, sizes: number[]): void {
     </div>`;
 }
 
-pane.on('change', schedule);
+ui.on('change', schedule);
 onThemeChange(schedule);
 update();

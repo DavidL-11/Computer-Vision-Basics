@@ -21,39 +21,50 @@
         <div class="views">
           <figure class="view card">
             <figcaption>
-              Camera image
-              <span class="muted legend">
+              <span class="view-title">Camera image</span>
+              <span class="view-hint legend">
                 <span class="key" style="--key: var(--viz-points)">measured corners</span>
                 <span class="key" style="--key: var(--accent)">reprojected with \(\hat M\)</span>
                 <span class="key" style="--key: var(--viz-highlight)">error, magnified</span>
               </span>
-              <span id="image-caption" class="muted"></span>
+              <span id="image-caption" class="view-hint"></span>
             </figcaption>
-            <div id="image-view" class="image-view"></div>
+            <div class="view-body">
+              <div class="view-main">
+                <div id="image-view" class="image-view"></div>
+              </div>
+            </div>
           </figure>
           <figure class="view card">
             <figcaption>
-              Calibration target and cameras
-              <span class="muted legend">
+              <span class="view-title">Calibration target and cameras</span>
+              <span class="view-hint legend">
                 <span class="key" style="--key: var(--viz-frustum)">true camera \(C\)</span>
                 <span class="key" style="--key: var(--viz-highlight)">estimated \(\hat C\)</span>
-                · drag to orbit, scroll to zoom
+                <span>drag to orbit, scroll to zoom</span>
               </span>
             </figcaption>
-            <div id="world-view" class="view-3d world-view"></div>
+            <div class="view-body">
+              <div class="view-main">
+                <div id="world-view" class="view-3d world-view"></div>
+              </div>
+            </div>
           </figure>
           <figure class="view card view-wide">
             <figcaption>
-              Singular values \(\sigma_k\) of \(A\)
-              <span class="muted legend">(log scale; for \(Ax = 0\) the red one belongs to the solution)</span>
+              <span class="view-title">Singular values \(\sigma_k\) of \(A\)</span>
+              <span class="view-hint legend">(log scale; for \(Ax = 0\) the red one belongs to the solution)</span>
             </figcaption>
-            <div id="sigma-plot"></div>
+            <div class="view-body">
+              <div class="view-main">
+                <div id="sigma-plot"></div>
+              </div>
+            </div>
           </figure>
         </div>
-        <aside id="controls" class="controls"></aside>
       </section>
 
-      <section id="values" class="card values" aria-live="polite"></section>
+      <section class="card values"><div class="view-body"><div id="values" class="view-main values-body" aria-live="polite"></div></div></section>
 
       <article class="explanation">
         <h2>Calibration with a known target</h2>

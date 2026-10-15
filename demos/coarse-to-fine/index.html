@@ -22,60 +22,79 @@
         <div class="views">
           <figure class="view card">
             <figcaption>
-              Frame \(I_0\) <span class="muted">click to select the window</span>
+              <span class="view-title">Frame \(I_0\)</span> <span class="view-hint">click to select the window</span>
             </figcaption>
-            <div id="i0-view" class="image-frame"></div>
+            <div class="view-body">
+              <div class="view-main">
+                <div id="i0-view" class="image-frame"></div>
+              </div>
+            </div>
           </figure>
           <figure class="view card">
             <figcaption>
-              Frame \(I_1\)
-              <span class="muted legend">
+              <span class="view-title">Frame \(I_1\)</span>
+              <span class="view-hint legend">
                 <span class="key" style="--key: var(--accent)">estimates \(\mathbf{u}_0, \mathbf{u}_1, \dots\)</span>
                 <span class="key" style="--key: var(--viz-points)">true \(\mathbf{u}^*\) (×)</span>
                 <span class="key dashed" style="--key: var(--fg-faint)">level 0 only</span>
               </span>
             </figcaption>
-            <div id="i1-view" class="image-frame"></div>
+            <div class="view-body">
+              <div class="view-main">
+                <div id="i1-view" class="image-frame"></div>
+              </div>
+            </div>
           </figure>
           <figure class="view card view-wide">
             <figcaption>
-              Pyramid of \(I_0\) and error surfaces \(E^{(l)}(\mathbf{u})\) of the window, \(\pm 16\) px
-              <span class="muted legend">
+              <span class="view-title">Pyramid of \(I_0\) and error surfaces \(E^{(l)}(\mathbf{u})\) of the window, \(\pm 16\) px</span>
+              <span class="view-hint legend">
                 <span class="key" style="--key: var(--viz-highlight)">window</span>
                 <span class="key" style="--key: var(--accent)">estimates</span>
                 <span class="key" style="--key: var(--viz-highlight)">true \(\mathbf{u}^*\) (×)</span>
-                · black = smallest error, all surfaces over the same displacements of level 0
+                <span>black = smallest error, all surfaces over the same displacements of level 0</span>
               </span>
             </figcaption>
-            <div id="pyramid" class="pyramid"></div>
-          </figure>
-          <figure class="view card">
-            <figcaption>
-              Window at <span id="patch-caption"></span>
-              <span class="muted legend">gray error = 0 · <span class="key" style="--key: var(--viz-object)">outside \(I_1\)</span></span>
-            </figcaption>
-            <div class="image-row">
-              <figure><div id="patch-i0"></div><figcaption>\(I_0^{(l)}(\mathbf{x}_i)\)</figcaption></figure>
-              <figure><div id="patch-i1"></div><figcaption>\(I_1^{(l)}(\mathbf{x}_i + \mathbf{u}^{(l)})\)</figcaption></figure>
-              <figure><div id="patch-e"></div><figcaption>error \(e_i\)</figcaption></figure>
+            <div class="view-body">
+              <div class="view-main">
+                <div id="pyramid" class="pyramid"></div>
+              </div>
             </div>
           </figure>
           <figure class="view card">
             <figcaption>
-              Distance to the truth \(|\mathbf{u}_k - \mathbf{u}^*|\)
-              <span class="muted legend">
+              <span class="view-title">Window at <span id="patch-caption"></span></span>
+              <span class="view-hint legend"><span>gray = zero error</span> <span class="key" style="--key: var(--viz-object)">outside \(I_1\)</span></span>
+            </figcaption>
+            <div class="view-body">
+              <div class="view-main">
+                <div class="image-row">
+                  <figure><div id="patch-i0"></div><figcaption>\(I_0^{(l)}(\mathbf{x}_i)\)</figcaption></figure>
+                  <figure><div id="patch-i1"></div><figcaption>\(I_1^{(l)}(\mathbf{x}_i + \mathbf{u}^{(l)})\)</figcaption></figure>
+                  <figure><div id="patch-e"></div><figcaption>error \(e_i\)</figcaption></figure>
+                </div>
+              </div>
+            </div>
+          </figure>
+          <figure class="view card">
+            <figcaption>
+              <span class="view-title">Distance to the truth \(|\mathbf{u}_k - \mathbf{u}^*|\)</span>
+              <span class="view-hint legend">
                 <span class="key" style="--key: var(--accent)">coarse to fine</span>
                 <span class="key dashed" style="--key: var(--fg-faint)">level 0 only</span>
-                · in pixels
+                <span>in pixels</span>
               </span>
             </figcaption>
-            <div id="convergence-plot"></div>
+            <div class="view-body">
+              <div class="view-main">
+                <div id="convergence-plot"></div>
+              </div>
+            </div>
           </figure>
         </div>
-        <aside id="controls" class="controls"></aside>
       </section>
 
-      <section id="values" class="card values" aria-live="polite"></section>
+      <section class="card values"><div class="view-body"><div id="values" class="view-main values-body" aria-live="polite"></div></div></section>
 
       <article class="explanation">
         <h2>Why large motions are hard</h2>

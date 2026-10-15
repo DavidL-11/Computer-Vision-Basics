@@ -1,4 +1,4 @@
-import { Pane } from 'tweakpane';
+import { Controls } from '../../src/shared/controls';
 import { type Plane, type RGBImage, mergeChannels, splitChannels } from '../../src/shared/image';
 import { addImagePicker } from '../../src/shared/imagePicker';
 import { det3, inverse3 } from '../../src/shared/linalg';
@@ -45,17 +45,18 @@ const state = { ratio: 4 / 3, grid: true, picked: [240, 180] as Vec2 };
 let corners: Vec2[] = TRUE_CORNERS.map((p) => [...p] as Vec2);
 let defaultCorners = TRUE_CORNERS;
 
-const pane = new Pane({ container: document.getElementById('controls')!, title: 'Homography' });
+const ui = new Controls();
+const toolbar = ui.toolbar();
 let photo = synthesize(
-  addImagePicker(pane, { names: ['text', 'chart', 'scene'], value: 'text', width: PHOTO_W, height: PHOTO_H }, (img, source) => {
+  addImagePicker(toolbar, { names: ['text', 'chart', 'scene'], value: 'text', width: PHOTO_W, height: PHOTO_H }, (img, source) => {
     photo = source === 'file' ? img : synthesize(img);
     defaultCorners = source === 'file' ? INSET_CORNERS : TRUE_CORNERS;
     resetCorners();
   }),
 );
-pane.addBinding(state, 'ratio', { label: 'width : height', options: RATIOS });
-pane.addBinding(state, 'grid', { label: 'grid' });
-pane.addButton({ title: 'Reset corners' }).on('click', resetCorners);
+toolbar.addBinding(state, 'grid', { label: 'grid' });
+toolbar.addResetButton(resetCorners, 'Reset corners');
+ui.panel('front-view').addBinding(state, 'ratio', { label: 'width : height', options: RATIOS });
 
 function resetCorners(): void {
   corners = defaultCorners.map((p) => [...p] as Vec2);
@@ -271,6 +272,6 @@ function renderValues(est: Estimate, w: number, h: number, invertible: boolean):
     </div>`;
 }
 
-pane.on('change', schedule);
+ui.on('change', schedule);
 onThemeChange(schedule);
 update();

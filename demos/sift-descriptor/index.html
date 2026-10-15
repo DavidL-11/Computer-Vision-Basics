@@ -21,62 +21,81 @@
         <div class="views">
           <figure class="view card">
             <figcaption>
-              Transformed image and keypoints
-              <span class="muted legend">
+              <span class="view-title">Transformed image and keypoints</span>
+              <span class="view-hint legend">
                 <span class="key" style="--key: var(--viz-points)">keypoints and orientation</span>
                 <span class="key" style="--key: var(--viz-highlight)">selected</span>
               </span>
             </figcaption>
-            <div id="image-view" class="image-frame"></div>
+            <div class="view-body">
+              <div class="view-main">
+                <div id="image-view" class="image-frame"></div>
+              </div>
+            </div>
           </figure>
           <figure class="view card">
             <figcaption>
-              1 · Gradients around the keypoint
-              <span class="muted legend">
+              <span class="step">1</span><span class="view-title">Gradients around the keypoint</span>
+              <span class="view-hint legend">
                 <span class="key" style="--key: var(--viz-points)">gradients, weighted</span>
                 <span class="key" style="--key: var(--accent)">4 × 4 cells</span>
                 <span class="key dashed" style="--key: var(--fg-muted)">orientation window</span>
               </span>
             </figcaption>
-            <div id="patch-view" class="image-frame square-frame"></div>
+            <div class="view-body">
+              <div class="view-main">
+                <div id="patch-view" class="image-frame square-frame"></div>
+              </div>
+            </div>
           </figure>
           <figure class="view card">
             <figcaption>
-              2 · Orientation histogram
-              <span class="muted legend">
+              <span class="step">2</span><span class="view-title">Orientation histogram</span>
+              <span class="view-hint legend">
                 <span class="key dashed" style="--key: var(--fg-muted)">80% of the peak</span>
                 <span class="key" style="--key: var(--viz-highlight)">θ</span>
               </span>
             </figcaption>
-            <div id="orientation-plot"></div>
+            <div class="view-body">
+              <div class="view-main">
+                <div id="orientation-plot"></div>
+              </div>
+            </div>
           </figure>
           <figure class="view card">
             <figcaption>
-              3 · 4 × 4 histograms of 8 orientations
-              <span class="muted legend">
+              <span class="step">3</span><span class="view-title">4 × 4 histograms of 8 orientations</span>
+              <span class="view-hint legend">
                 <span class="key" style="--key: var(--accent)">transformed</span>
                 <span class="key" style="--key: var(--fg-faint)">original</span>
               </span>
             </figcaption>
-            <div id="cells-plot"></div>
+            <div class="view-body">
+              <div class="view-main">
+                <div id="cells-plot"></div>
+              </div>
+            </div>
           </figure>
           <figure class="view card view-wide">
             <figcaption>
-              4 · The 128 values
-              <span class="muted legend">
+              <span class="step">4</span><span class="view-title">The 128 values</span>
+              <span class="view-hint legend">
                 <span class="key" style="--key: var(--fg-faint)">normalized</span>
                 <span class="key dashed" style="--key: var(--viz-highlight)">clamp limit</span>
                 <span class="key" style="--key: var(--accent)">clamped and renormalized</span>
                 <span class="key" style="--key: var(--viz-points)">original image</span>
               </span>
             </figcaption>
-            <div id="vector-plot"></div>
+            <div class="view-body">
+              <div class="view-main">
+                <div id="vector-plot"></div>
+              </div>
+            </div>
           </figure>
         </div>
-        <aside id="controls" class="controls"></aside>
       </section>
 
-      <section id="values" class="card values" aria-live="polite"></section>
+      <section class="card values"><div class="view-body"><div id="values" class="view-main values-body" aria-live="polite"></div></div></section>
 
       <article class="explanation">
         <h2>What a descriptor should do</h2>

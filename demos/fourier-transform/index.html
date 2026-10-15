@@ -20,33 +20,49 @@
       <section class="workspace">
         <div class="views">
           <figure class="view card">
-            <figcaption>Image \(f(x, y)\) <span class="muted">\(256 \times 256\) px</span></figcaption>
-            <div id="image-view" class="image-frame"></div>
+            <figcaption><span class="view-title">Image \(f(x, y)\)</span> <span class="view-hint">\(256 \times 256\) px</span></figcaption>
+            <div class="view-body">
+              <div class="view-main">
+                <div id="image-view" class="image-frame"></div>
+              </div>
+            </div>
           </figure>
           <figure class="view card">
-            <figcaption>Magnitude \(\log(1 + |F(u, v)|)\) <span class="muted">DC in the center; tinted: removed by the filter</span></figcaption>
-            <div id="magnitude-view" class="image-frame"></div>
+            <figcaption><span class="view-title">Magnitude \(\log(1 + |F(u, v)|)\)</span> <span class="view-hint">DC in the center; tinted: removed by the filter</span></figcaption>
+            <div class="view-body">
+              <div class="view-main">
+                <div id="magnitude-view" class="image-frame"></div>
+              </div>
+            </div>
           </figure>
           <figure class="view card">
-            <figcaption>Filtered \(\mathcal{F}^{-1}\{F \cdot H\}\) <span id="result-caption" class="muted"></span></figcaption>
-            <div id="result-view" class="image-frame"></div>
+            <figcaption><span class="view-title">Filtered \(\mathcal{F}^{-1}\{F \cdot H\}\)</span> <span id="result-caption" class="view-hint"></span></figcaption>
+            <div class="view-body">
+              <div class="view-main">
+                <div id="result-view" class="image-frame"></div>
+              </div>
+            </div>
           </figure>
           <figure class="view card">
-            <figcaption>Phase \(\angle F(u, v)\) <span class="muted">black \(-\pi\), white \(+\pi\)</span></figcaption>
-            <div id="phase-view" class="image-frame"></div>
+            <figcaption><span class="view-title">Phase \(\angle F(u, v)\)</span> <span class="view-hint">black \(-\pi\), white \(+\pi\)</span></figcaption>
+            <div class="view-body">
+              <div class="view-main">
+                <div id="phase-view" class="image-frame"></div>
+              </div>
+            </div>
+          </figure>
+          <figure class="view card">
+            <figcaption><span class="view-title">Basis image of \((u, v)\)</span> <span class="view-hint">\(\cos\!\big(2\pi (ux + vy) / N\big)\), click on the spectrum to choose \((u, v)\)</span></figcaption>
+            <div class="view-body">
+              <div class="view-main">
+                <div class="image-frame basis-frame"><div id="basis-view"></div></div>
+              </div>
+            </div>
           </figure>
         </div>
-        <aside class="controls">
-          <div id="controls"></div>
-          <section class="card basis-card">
-            <h3>Basis image of \((u, v)\)</h3>
-            <div id="basis-view"></div>
-            <p class="muted small">\(\cos\!\big(2\pi (ux + vy) / N\big)\). Click on the spectrum to choose \((u, v)\).</p>
-          </section>
-        </aside>
       </section>
 
-      <section id="values" class="card values" aria-live="polite"></section>
+      <section class="card values"><div class="view-body"><div id="values" class="view-main values-body" aria-live="polite"></div></div></section>
 
       <article class="explanation">
         <h2>The 2D discrete Fourier transform</h2>
@@ -125,7 +141,7 @@
           <li>Choose the test chart and click on the bright dots along the horizontal axis: they belong to the vertical line groups.</li>
           <li>Apply an ideal low-pass with \(D_0 = 20\): the image is blurred, with ripples along every edge. Switch the profile to Gaussian and the ripples disappear.</li>
           <li>Use a high-pass filter: only edges and fine texture remain. Check how little of the energy that is.</li>
-          <li>Open “Periodic noise” and set the amplitude to 0.2: two bright dots appear in the spectrum. Choose the block tool and paint over one of them; its mirror image at \(-(u, v)\) is removed with it.</li>
+          <li>Open “Add periodic noise” and set the amplitude to 0.2: two bright dots appear in the spectrum. Choose the block tool and paint over one of them; its mirror image at \(-(u, v)\) is removed with it.</li>
           <li>Select the box kernel: the tinted rings in the spectrum are frequencies that the box removes or inverts. Compare with the Gaussian kernel, and check the difference to direct filtering in the values panel.</li>
           <li>Look at the spectrum of the zone plate: its local frequency grows with the distance from the center, and its spectrum is again a zone plate.</li>
         </ul>

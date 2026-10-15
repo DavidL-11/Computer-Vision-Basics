@@ -1,4 +1,4 @@
-import { Pane } from 'tweakpane';
+import { Controls } from '../../src/shared/controls';
 import { derivatives, eigen } from '../../src/shared/harris';
 import { type Plane, createPlane, planeToImage, toGray } from '../../src/shared/image';
 import { pixelAt } from '../../src/shared/filter';
@@ -23,27 +23,29 @@ function defaults() {
 }
 const state = defaults();
 
-const pane = new Pane({ container: document.getElementById('controls')!, title: 'Autocorrelation' });
+const ui = new Controls();
+const toolbar = ui.toolbar();
 let original: Plane = toGray(
-  addImagePicker(pane, { names: ['shapes', 'scene', 'chart', 'text'], value: 'shapes', width: W, height: H }, (img) => {
+  addImagePicker(toolbar, { names: ['shapes', 'scene', 'chart', 'text'], value: 'shapes', width: W, height: H }, (img) => {
     original = toGray(img);
     schedule();
   }),
 );
-pane.addBinding(state, 'noise', { label: 'noise σₙ', min: 0, max: 0.1, step: 0.005 });
-const windowFolder = pane.addFolder({ title: 'Window w' });
-windowFolder.addBinding(state, 'window', { label: 'type', options: { Gaussian: 'gaussian', box: 'box' } });
-windowFolder.addBinding(state, 'radius', { label: 'radius r', min: 1, max: 10, step: 1 });
-pane.addBinding(state, 'range', { label: 'shifts |u|, |v| ≤', min: 2, max: 12, step: 1 });
-pane.addBinding(state, 'white', {
+toolbar.addBinding(state, 'noise', { label: 'noise σₙ', min: 0, max: 0.1, step: 0.005 });
+toolbar.addResetButton(() => {
+  Object.assign(state, defaults());
+  ui.refresh();
+  schedule();
+});
+const windowControls = ui.panel('image-view').addFolder({ title: 'Window w' });
+windowControls.addBinding(state, 'window', { label: 'type', options: { Gaussian: 'gaussian', box: 'box' } });
+windowControls.addBinding(state, 'radius', { label: 'radius r', min: 1, max: 10, step: 1 });
+ui.panel('patch-view').addBinding(state, 'range', { label: 'shifts |u|, |v| ≤', min: 2, max: 12, step: 1 });
+ui.panel('e-view').addBinding(state, 'white', {
   label: 'white at E =',
   options: { '0.005': 0.005, '0.01': 0.01, '0.02': 0.02, '0.05': 0.05, '0.1': 0.1, '0.2': 0.2 },
 });
-pane.addBinding(state, 'large', { label: 'λ large if ≥', min: 0.0005, max: 0.02, step: 0.0005 });
-pane.addButton({ title: 'Reset' }).on('click', () => {
-  Object.assign(state, defaults());
-  pane.refresh();
-});
+ui.panel('values').addBinding(state, 'large', { label: 'λ large if ≥', min: 0.0005, max: 0.02, step: 0.0005 });
 
 const clampShift = (s: number) => Math.max(-state.range, Math.min(state.range, s));
 const setShift = (u: number, v: number) => {
@@ -205,6 +207,6 @@ function renderValues(E: Plane, I: Plane): void {
     </div>`;
 }
 
-pane.on('change', schedule);
+ui.on('change', schedule);
 onThemeChange(schedule);
 update();

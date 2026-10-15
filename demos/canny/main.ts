@@ -1,4 +1,4 @@
-import { Pane } from 'tweakpane';
+import { Controls } from '../../src/shared/controls';
 import { type Plane, type RGB, type RGBImage, createImage, planeToImage, toGray } from '../../src/shared/image';
 import { addImagePicker } from '../../src/shared/imagePicker';
 import { gaussianNoise } from '../../src/shared/noise';
@@ -20,29 +20,30 @@ function defaults() {
 }
 const state = defaults();
 
-const pane = new Pane({ container: document.getElementById('controls')!, title: 'Canny' });
+const ui = new Controls();
+const toolbar = ui.toolbar();
 let original: Plane = toGray(
-  addImagePicker(pane, { names: ['scene', 'chart', 'text'], value: 'scene', width: W, height: H }, (img) => {
+  addImagePicker(toolbar, { names: ['scene', 'chart', 'text'], value: 'scene', width: W, height: H }, (img) => {
     original = toGray(img);
     schedule();
   }),
 );
-const noiseFolder = pane.addFolder({ title: 'Noise' });
-noiseFolder.addBinding(state, 'noise', { label: 'σₙ', min: 0, max: 0.2, step: 0.005 });
-noiseFolder.addButton({ title: 'New noise' }).on('click', () => {
+toolbar.addBinding(state, 'noise', { label: 'noise σₙ', min: 0, max: 0.2, step: 0.005 });
+toolbar.addButton({ title: 'New noise' }).on('click', () => {
   state.seed++;
   schedule();
 });
-pane.addBinding(state, 'sigma', { label: 'Gaussian σ', min: 0.5, max: 5, step: 0.1 });
-const thresholds = pane.addFolder({ title: 'Hysteresis (× max magnitude)' });
-thresholds.addBinding(state, 'high', { label: 'high', min: 0, max: 1, step: 0.01 });
-thresholds.addBinding(state, 'low', { label: 'low', min: 0, max: 1, step: 0.01 });
-pane.addBinding(state, 'zoom', { label: 'zoom', options: { '1×': 1, '2×': 2, '4×': 4, '8×': 8 } });
-pane.addButton({ title: 'Reset' }).on('click', () => {
+toolbar.addBinding(state, 'sigma', { label: 'Gaussian σ', min: 0.5, max: 5, step: 0.1 });
+toolbar.addBinding(state, 'zoom', { label: 'zoom', options: { '1×': 1, '2×': 2, '4×': 4, '8×': 8 } });
+toolbar.addResetButton(() => {
   Object.assign(state, defaults());
   Object.assign(center, { x: state.x, y: state.y });
-  pane.refresh();
+  ui.refresh();
+  schedule();
 });
+const thresholds = ui.panel('classes-view').addFolder({ title: 'Hysteresis (× max magnitude)' });
+thresholds.addBinding(state, 'high', { label: 'high', min: 0, max: 1, step: 0.01 });
+thresholds.addBinding(state, 'low', { label: 'low', min: 0, max: 1, step: 0.01 });
 
 const center = { x: state.x, y: state.y };
 const pick = (x: number, y: number, e: PointerEvent) => {
@@ -206,21 +207,21 @@ function renderValues(g: Gradient, thin: Plane, classes: Uint8Array, low: number
   values.innerHTML = `
     <div class="value-grid">
       <div class="value-block">
-        <h3>1 · Derivatives at q = (${x}, ${y})</h3>
+        <h3>1. Derivatives at q = (${x}, ${y})</h3>
         ${eq(`I_x = ${fmt(g.ix.data[i], 4)}, \\qquad I_y = ${fmt(g.iy.data[i], 4)}`)}
-        <h3>2 · Gradient</h3>
+        <h3>2. Gradient</h3>
         ${eq(`\\|\\nabla I\\| = \\sqrt{I_x^2 + I_y^2} = \\htmlClass{result}{${fmt(m, 4)}}`)}
         ${eq(`\\theta = \\operatorname{atan2}(I_y, I_x) = ${fmt((g.angle.data[i] * 180) / Math.PI, 1)}^\\circ`)}
       </div>
       <div class="value-block">
-        <h3>3 · Non-maximum suppression</h3>
+        <h3>3. Non-maximum suppression</h3>
         ${eq(`\\|\\nabla I\\|(q) = ${fmt(m, 4)}`)}
         ${eq(`\\|\\nabla I\\|(p) = ${fmt(s.p, 4)} \\quad \\text{at } q + (${fmt(s.dx, 2)},\\ ${fmt(s.dy, 2)})`)}
         ${eq(`\\|\\nabla I\\|(r) = ${fmt(s.r, 4)} \\quad \\text{at } q - (${fmt(s.dx, 2)},\\ ${fmt(s.dy, 2)})`)}
         <p class="small">${m === 0 ? 'No gradient here.' : s.keep ? '<strong>Kept:</strong> q is a maximum along the gradient.' : '<strong>Suppressed:</strong> a neighbor along the gradient is larger.'}</p>
       </div>
       <div class="value-block">
-        <h3>4 · Hysteresis</h3>
+        <h3>4. Hysteresis</h3>
         ${eq(`t_\\text{high} = ${fmt(state.high, 2)} \\cdot ${fmt(max, 4)} = ${fmt(high, 4)}`)}
         ${eq(`t_\\text{low} = ${fmt(Math.min(state.low, state.high), 2)} \\cdot ${fmt(max, 4)} = ${fmt(low, 4)}`)}
         <p class="small">q: <strong>${cls}</strong>.</p>
@@ -236,6 +237,6 @@ function renderValues(g: Gradient, thin: Plane, classes: Uint8Array, low: number
     </div>`;
 }
 
-pane.on('change', schedule);
+ui.on('change', schedule);
 onThemeChange(schedule);
 update();

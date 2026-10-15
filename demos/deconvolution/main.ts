@@ -1,4 +1,4 @@
-import { Pane } from 'tweakpane';
+import { Controls } from '../../src/shared/controls';
 import { type Spectrum, fft2 } from '../../src/shared/fft';
 import { type Plane, type RGBImage, centerCrop, planeToImage, psnr, toGray } from '../../src/shared/image';
 import { addImagePicker } from '../../src/shared/imagePicker';
@@ -40,21 +40,28 @@ function defaults() {
 }
 const state = defaults();
 
-const pane = new Pane({ container: document.getElementById('controls')!, title: 'Deconvolution' });
+const ui = new Controls();
+const toolbar = ui.toolbar();
 const crop = (img: RGBImage): Plane => centerCrop(toGray(img), N, N);
 let original = crop(
-  addImagePicker(pane, { names: ['scene', 'chart', 'text', 'zone-plate'], value: 'scene', width: 342, height: N }, (img) => {
+  addImagePicker(toolbar, { names: ['scene', 'chart', 'text', 'zone-plate'], value: 'scene', width: 342, height: N }, (img) => {
     original = crop(img);
     schedule();
   }),
 );
+toolbar.addResetButton(() => {
+  Object.assign(state, defaults());
+  ui.refresh();
+  schedule();
+});
 
-const blurFolder = pane.addFolder({ title: 'Blur h (known)' });
+const degradedControls = ui.panel('degraded-view');
+const blurFolder = degradedControls.addFolder({ title: 'Blur h (known)' });
 blurFolder.addBinding(state, 'blur', { label: 'kernel', options: { Gaussian: 'gaussian', 'horizontal motion': 'motion' } });
 const sigmaBinding = blurFolder.addBinding(state, 'sigma', { label: 'σ (px)', min: 0.5, max: 4, step: 0.1 });
 const lengthBinding = blurFolder.addBinding(state, 'length', { label: 'length L (px)', min: 3, max: 25, step: 2 });
 
-const noiseFolder = pane.addFolder({ title: 'Noise n' });
+const noiseFolder = degradedControls.addFolder({ title: 'Noise n' });
 noiseFolder.addBinding(state, 'noise', {
   label: 'σₙ',
   options: { none: 0, '0.00001': 1e-5, '0.0001': 1e-4, '0.001': 1e-3, '0.003': 3e-3, '0.01': 0.01, '0.03': 0.03 },
@@ -65,18 +72,13 @@ noiseFolder.addButton({ title: 'New noise' }).on('click', () => {
   schedule();
 });
 
-const restoreFolder = pane.addFolder({ title: 'Restoration filter R' });
+const restoreFolder = ui.panel('restored-view').addFolder({ title: 'Restoration filter R' });
 restoreFolder.addBinding(state, 'method', {
   label: 'method',
   options: { 'inverse 1/H': 'inverse', 'truncated inverse': 'truncated', 'Wiener (regularized)': 'wiener' },
 });
 const epsBinding = restoreFolder.addBinding(state, 'logEps', { label: 'log₁₀ ε', min: -10, max: 0, step: 0.1 });
 const kBinding = restoreFolder.addBinding(state, 'logK', { label: 'log₁₀ K', min: -10, max: 0, step: 0.1 });
-
-pane.addButton({ title: 'Reset' }).on('click', () => {
-  Object.assign(state, defaults());
-  pane.refresh();
-});
 
 const views = {
   original: new PixelView(document.getElementById('original-view')!),
@@ -216,6 +218,6 @@ function renderValues(H: Filter, R: Filter, g: Plane, restored: Plane): void {
     </div>`;
 }
 
-pane.on('change', schedule);
+ui.on('change', schedule);
 onThemeChange(schedule);
 update();

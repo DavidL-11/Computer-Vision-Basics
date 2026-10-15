@@ -21,26 +21,41 @@
       <section class="workspace">
         <div class="views">
           <figure class="view card">
-            <figcaption>Input \(A\) <span class="muted">drag to paint, hold Shift to erase</span></figcaption>
-            <div id="input-view" class="image-frame"></div>
+            <figcaption><span class="view-title">Input \(A\)</span> <span class="view-hint">drag to paint, hold Shift to erase</span></figcaption>
+            <div class="view-body">
+              <div class="view-main">
+                <div id="input-view" class="image-frame"></div>
+              </div>
+            </div>
           </figure>
           <figure class="view card">
-            <figcaption><span id="result-title">Result</span> <span class="muted legend"><span class="swatch added"></span> added <span class="swatch removed"></span> removed</span></figcaption>
-            <div id="result-view" class="image-frame"></div>
+            <figcaption><span class="view-title"><span id="result-title">Result</span></span> <span class="view-hint legend"><span class="swatch added"></span> added <span class="swatch removed"></span> removed</span></figcaption>
+            <div class="view-body">
+              <div class="view-main">
+                <div id="result-view" class="image-frame"></div>
+              </div>
+            </div>
           </figure>
           <figure class="view card">
-            <figcaption>Connected components of the result <span id="components-caption" class="muted"></span></figcaption>
-            <div id="components-view" class="image-frame"></div>
+            <figcaption><span class="view-title">Connected components of the result</span> <span id="components-caption" class="view-hint"></span></figcaption>
+            <div class="view-body">
+              <div class="view-main">
+                <div id="components-view" class="image-frame"></div>
+              </div>
+            </div>
           </figure>
           <figure class="view card">
-            <figcaption>Structuring element \(B\) <span class="muted">the origin is marked</span></figcaption>
-            <div class="image-frame se-frame"><div id="se-view"></div></div>
+            <figcaption><span class="view-title">Structuring element \(B\)</span> <span class="view-hint">the origin is marked</span></figcaption>
+            <div class="view-body">
+              <div class="view-main">
+                <div class="image-frame se-frame"><div id="se-view"></div></div>
+              </div>
+            </div>
           </figure>
         </div>
-        <aside id="controls" class="controls"></aside>
       </section>
 
-      <section id="values" class="card values" aria-live="polite"></section>
+      <section class="card values"><div class="view-body"><div id="values" class="view-main values-body" aria-live="polite"></div></div></section>
 
       <article class="explanation">
         <h2>Sets and structuring elements</h2>

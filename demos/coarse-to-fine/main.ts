@@ -1,5 +1,5 @@
-import { Pane } from 'tweakpane';
 import { type Plane, planeToImage, toGray } from '../../src/shared/image';
+import { Controls } from '../../src/shared/controls';
 import { addImagePicker } from '../../src/shared/imagePicker';
 import { gaussianNoise } from '../../src/shared/noise';
 import { initPage } from '../../src/shared/page';
@@ -36,54 +36,56 @@ const defaults = () => ({
 });
 const state = defaults();
 
-const pane = new Pane({ container: document.getElementById('controls')!, title: 'Coarse to fine' });
+const ui = new Controls();
+const toolbar = ui.toolbar();
 let imageVersion = 0;
 let original: Plane = toGray(
-  addImagePicker(pane, { names: ['scene', 'shapes', 'text', 'chart', 'blobs', 'zone-plate'], value: 'scene', width: W, height: H }, (img) => {
+  addImagePicker(toolbar, { names: ['scene', 'shapes', 'text', 'chart', 'blobs', 'zone-plate'], value: 'scene', width: W, height: H }, (img) => {
     original = toGray(img);
     imageVersion++;
     schedule();
   }),
 );
-pane.addBinding(state, 'radius', { label: 'window radius r', min: 3, max: 12, step: 1 });
-const pyramidFolder = pane.addFolder({ title: 'Pyramid' });
-pyramidFolder.addBinding(state, 'top', { label: 'coarsest level L', min: 0, max: MAX_LEVEL, step: 1 });
-pyramidFolder.addBinding(state, 'prefilter', { label: 'low-pass first' });
-pyramidFolder.addBinding(state, 'sigma', { label: 'smoothing σ per level', min: 0, max: 3, step: 0.1 });
-pyramidFolder.addBinding(state, 'iterations', { label: 'updates per level', min: 1, max: 30, step: 1 });
-
-const iteration = pane.addFolder({ title: 'Iteration' });
-iteration.addBinding(state, 'k', { label: 'shown step k', min: 0, max: 150, step: 1 });
-iteration.addButton({ title: 'Next step' }).on('click', () => {
+toolbar.addBinding(state, 'k', { label: 'shown step k', min: 0, max: 150, step: 1 });
+const playButton = toolbar.addButton({ title: 'Play', primary: true });
+playButton.on('click', () => (timer ? stop() : play()));
+toolbar.addButton({ title: 'Next step' }).on('click', () => {
   stop();
   state.k++;
-  pane.refresh();
+  ui.refresh();
 });
-const playButton = iteration.addButton({ title: 'Play' });
-playButton.on('click', () => (timer ? stop() : play()));
-
-const second = pane.addFolder({ title: 'Second image I₁' });
-const shift = (label: string) => ({ label, min: -R, max: R, step: 0.1, format: (v: number) => fmt(v, 1) });
-second.addBinding(state, 'tu', shift('true u* (px)'));
-second.addBinding(state, 'tv', shift('true v* (px)'));
-second.addBinding(state, 'noise', { label: 'noise σₙ', min: 0, max: 0.1, step: 0.005 });
-pane.addButton({ title: 'Reset' }).on('click', () => {
+toolbar.addResetButton(() => {
   stop();
   Object.assign(state, defaults());
-  pane.refresh();
+  ui.refresh();
+  schedule();
 });
+
+ui.panel('i0-view').addBinding(state, 'radius', { label: 'window radius r', min: 3, max: 12, step: 1 });
+
+const second = ui.panel('i1-view');
+const shift = (label: string) => ({ label, min: -R, max: R, step: 0.1, format: (v: number) => fmt(v, 1) });
+second.addBinding(state, 'tu', shift('true shift u* (px)'));
+second.addBinding(state, 'tv', shift('true shift v* (px)'));
+second.addBinding(state, 'noise', { label: 'noise σₙ', min: 0, max: 0.1, step: 0.005 });
+
+const pyramid = ui.panel('pyramid');
+pyramid.addBinding(state, 'top', { label: 'coarsest level L', min: 0, max: MAX_LEVEL, step: 1 });
+pyramid.addBinding(state, 'prefilter', { label: 'low-pass first' });
+pyramid.addBinding(state, 'sigma', { label: 'smoothing σ per level', min: 0, max: 3, step: 0.1 });
+pyramid.addBinding(state, 'iterations', { label: 'updates per level', min: 1, max: 30, step: 1 });
 
 let timer = 0;
 let lastStep = 0;
 function play(): void {
   stop();
   state.k = 0;
-  pane.refresh();
+  ui.refresh();
   playButton.title = 'Stop';
   timer = window.setInterval(() => {
     if (state.k >= lastStep) return stop();
     state.k++;
-    pane.refresh();
+    ui.refresh();
   }, 400);
 }
 function stop(): void {
@@ -215,7 +217,7 @@ function update(): void {
   lastStep = steps.length - 1;
   if (state.k > lastStep) {
     state.k = lastStep;
-    pane.refresh();
+    ui.refresh();
   }
   const k = state.k;
   const s = steps[k];
@@ -245,7 +247,7 @@ function update(): void {
       path(ctx, t, steps, indices, k, [R, R]);
     };
     c.surface.show(planeToImage(heatmap(surfaces[l])));
-    c.caption.innerHTML = `level ${l} · ${L.I0.width} × ${L.I0.height} px<br>motion ${fmt(Math.hypot(state.tu, state.tv) / 2 ** l, 1)} px`;
+    c.caption.innerHTML = `<strong>level ${l}</strong>, ${L.I0.width} × ${L.I0.height} px<br>motion ${fmt(Math.hypot(state.tu, state.tv) / 2 ** l, 1)} px`;
   });
 
   const L = pyr[s.level];
@@ -355,6 +357,6 @@ function renderValues(pyr: Level[], win: Window, steps: Step[], single: Step[], 
 
 const texTupleText = (v: number[]) => `(${v.map((x) => fmt(x, 2)).join(', ')})`;
 
-pane.on('change', schedule);
+ui.on('change', schedule);
 onThemeChange(schedule);
 update();

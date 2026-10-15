@@ -22,51 +22,70 @@
         <div class="views">
           <figure class="view card">
             <figcaption>
-              Frame \(I_0\) <span class="muted">click to select the window</span>
+              <span class="view-title">Frame \(I_0\)</span> <span class="view-hint">click to select the window</span>
             </figcaption>
-            <div id="i0-view" class="image-frame"></div>
+            <div class="view-body">
+              <div class="view-main">
+                <div id="i0-view" class="image-frame"></div>
+              </div>
+            </div>
           </figure>
           <figure class="view card">
             <figcaption>
-              Frame \(I_1\)
-              <span class="muted legend">
+              <span class="view-title">Frame \(I_1\)</span>
+              <span class="view-hint legend">
                 <span class="key dashed" style="--key: var(--accent)">shift \(\mathbf{u}\)</span>
                 <span class="key" style="--key: var(--viz-highlight)">best</span>
                 <span class="key" style="--key: var(--viz-points)">true \(\mathbf{u}^*\) (×)</span>
-                · click to select a shift
+                <span>click to select a shift</span>
               </span>
             </figcaption>
-            <div id="i1-view" class="image-frame"></div>
+            <div class="view-body">
+              <div class="view-main">
+                <div id="i1-view" class="image-frame"></div>
+              </div>
+            </div>
           </figure>
           <figure class="view card">
             <figcaption>
-              Error surface \(E(\mathbf{u})\) <span class="muted">black = best match, click to select a shift</span>
+              <span class="view-title">Error surface \(E(\mathbf{u})\)</span> <span class="view-hint">black = best match, click to select a shift</span>
             </figcaption>
-            <div id="surface-view" class="image-frame square-frame"></div>
+            <div class="view-body">
+              <div class="view-main">
+                <div id="surface-view" class="image-frame square-frame"></div>
+              </div>
+            </div>
           </figure>
           <figure class="view card">
             <figcaption>
-              Errors \(e_i\) at the selected shift
-              <span class="muted legend">gray = 0 · <span class="key" style="--key: var(--viz-object)">not counted</span></span>
+              <span class="view-title">Errors \(e_i\) at the selected shift</span>
+              <span class="view-hint legend"><span>gray = 0</span> <span class="key" style="--key: var(--viz-object)">not counted</span></span>
             </figcaption>
-            <div id="residual-view" class="image-frame square-frame"></div>
+            <div class="view-body">
+              <div class="view-main">
+                <div id="residual-view" class="image-frame square-frame"></div>
+              </div>
+            </div>
           </figure>
           <figure class="view card view-wide">
             <figcaption>
-              Kernels \(\rho(e)\)
-              <span class="muted legend">
+              <span class="view-title">Kernels \(\rho(e)\)</span>
+              <span class="view-hint legend">
                 <span class="key" style="--key: var(--accent)">current metric</span>
                 <span class="key" style="--key: var(--fg-faint)">\(e^2\), \(|e|\), \(|e|^p\), Geman–McClure</span>
                 <span class="key" style="--key: var(--viz-points)">histogram of \(e_i\)</span>
               </span>
             </figcaption>
-            <div id="kernel-plot"></div>
+            <div class="view-body">
+              <div class="view-main">
+                <div id="kernel-plot"></div>
+              </div>
+            </div>
           </figure>
         </div>
-        <aside id="controls" class="controls"></aside>
       </section>
 
-      <section id="values" class="card values" aria-live="polite"></section>
+      <section class="card values"><div class="view-body"><div id="values" class="view-main values-body" aria-live="polite"></div></div></section>
 
       <article class="explanation">
         <h2>Comparing a window at every shift</h2>

@@ -21,39 +21,50 @@
         <div class="views">
           <figure class="view card">
             <figcaption>
-              Image 0 <span class="muted">click to select \(x_0\); near a corner it snaps to it</span>
-              <span id="image0-caption" class="muted"></span>
+              <span class="view-title">Image 0</span> <span class="view-hint">click to select \(x_0\); near a corner it snaps to it</span>
+              <span id="image0-caption" class="view-hint"></span>
             </figcaption>
-            <div id="image0-view" class="image-view"></div>
+            <div class="view-body">
+              <div class="view-main">
+                <div id="image0-view" class="image-view"></div>
+              </div>
+            </div>
           </figure>
           <figure class="view card">
             <figcaption>
-              Image 1
-              <span class="muted legend">
+              <span class="view-title">Image 1</span>
+              <span class="view-hint legend">
                 <span class="key" style="--key: var(--accent)">epipolar line \(l_1 = F x_0\)</span>
                 <span class="key" style="--key: var(--viz-object)">epipole</span>
               </span>
-              <span id="image1-caption" class="muted"></span>
+              <span id="image1-caption" class="view-hint"></span>
             </figcaption>
-            <div id="image1-view" class="image-view"></div>
+            <div class="view-body">
+              <div class="view-main">
+                <div id="image1-view" class="image-view"></div>
+              </div>
+            </div>
           </figure>
           <figure class="view card view-wide">
             <figcaption>
-              Scene and cameras
-              <span class="muted legend">
+              <span class="view-title">Scene and cameras</span>
+              <span class="view-hint legend">
                 <span class="key" style="--key: var(--viz-object)">baseline \(C_0 C_1\)</span>
                 <span class="key" style="--key: var(--viz-ray)">rays through \(X\)</span>
                 <span class="key" style="--key: var(--accent)">epipolar plane and lines</span>
-                · drag to orbit, scroll to zoom
+                <span>drag to orbit, scroll to zoom</span>
               </span>
             </figcaption>
-            <div id="world-view" class="view-3d world-view"></div>
+            <div class="view-body">
+              <div class="view-main">
+                <div id="world-view" class="view-3d world-view"></div>
+              </div>
+            </div>
           </figure>
         </div>
-        <aside id="controls" class="controls"></aside>
       </section>
 
-      <section id="values" class="card values" aria-live="polite"></section>
+      <section class="card values"><div class="view-body"><div id="values" class="view-main values-body" aria-live="polite"></div></div></section>
 
       <article class="explanation">
         <h2>Two cameras, one point</h2>

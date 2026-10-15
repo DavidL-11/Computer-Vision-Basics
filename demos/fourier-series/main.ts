@@ -1,4 +1,4 @@
-import { Pane } from 'tweakpane';
+import { Controls } from '../../src/shared/controls';
 import { initPage } from '../../src/shared/page';
 import { perFrame } from '../../src/shared/pixelView';
 import { Plot, ticks } from '../../src/shared/plot';
@@ -15,22 +15,24 @@ function defaults() {
 }
 const state = defaults();
 
-const pane = new Pane({ container: document.getElementById('controls')!, title: 'Fourier series' });
-pane.addBinding(state, 'wave', { label: 'target', options: { 'square wave': 'square', sawtooth: 'sawtooth', triangle: 'triangle' } });
-pane.addBinding(state, 'n', { label: 'terms n', min: 1, max: MAX_TERMS, step: 1 });
-pane.addButton({ title: 'Add term' }).on('click', () => {
-  state.n = Math.min(MAX_TERMS, state.n + 1);
-  pane.refresh();
-});
-pane.addButton({ title: 'Remove term' }).on('click', () => {
+const ui = new Controls();
+const toolbar = ui.toolbar();
+toolbar.addBinding(state, 'wave', { label: 'target', options: { 'square wave': 'square', sawtooth: 'sawtooth', triangle: 'triangle' } });
+toolbar.addBinding(state, 'n', { label: 'terms n', min: 1, max: MAX_TERMS, step: 1 });
+toolbar.addButton({ title: 'Remove term' }).on('click', () => {
   state.n = Math.max(1, state.n - 1);
-  pane.refresh();
+  ui.refresh();
 });
-pane.addBinding(state, 'showTerms', { label: 'show terms' });
-pane.addButton({ title: 'Reset' }).on('click', () => {
+toolbar.addButton({ title: 'Add term' }).on('click', () => {
+  state.n = Math.min(MAX_TERMS, state.n + 1);
+  ui.refresh();
+});
+toolbar.addResetButton(() => {
   Object.assign(state, defaults());
-  pane.refresh();
+  ui.refresh();
+  schedule();
 });
+ui.panel('sum-plot').addBinding(state, 'showTerms', { label: 'show terms' });
 
 const sumPlot = new Plot(document.getElementById('sum-plot')!, 300);
 const coefficientPlot = new Plot(document.getElementById('coefficient-plot')!, 190);
@@ -108,5 +110,5 @@ function renderValues(terms: Term[]): void {
     </div>`;
 }
 
-pane.on('change', schedule);
+ui.on('change', schedule);
 update();

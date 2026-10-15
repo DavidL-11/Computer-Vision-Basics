@@ -1,4 +1,4 @@
-import { Pane } from 'tweakpane';
+import { Controls } from '../../src/shared/controls';
 import type { RGBImage } from '../../src/shared/image';
 import { getPixel } from '../../src/shared/image';
 import { addImagePicker } from '../../src/shared/imagePicker';
@@ -22,25 +22,24 @@ function defaults() {
 }
 const state = defaults();
 
-const pane = new Pane({ container: document.getElementById('controls')!, title: 'Sampling & quantization' });
-const imageFolder = pane.addFolder({ title: 'Image' });
-let source: RGBImage = addImagePicker(imageFolder, { names: ['scene', 'zone-plate', 'gradients', 'chart'], value: 'scene', width: W, height: H }, (img) => {
+const ui = new Controls();
+const toolbar = ui.toolbar();
+let source: RGBImage = addImagePicker(toolbar, { names: ['scene', 'zone-plate', 'gradients', 'chart'], value: 'scene', width: W, height: H }, (img) => {
   source = img;
   schedule();
 });
-imageFolder.addBinding(state, 'gray', { label: 'grayscale' });
+toolbar.addBinding(state, 'gray', { label: 'grayscale' });
+toolbar.addResetButton(() => {
+  Object.assign(state, defaults());
+  ui.refresh();
+  schedule();
+});
 
-const sampling = pane.addFolder({ title: 'Sampling' });
+const resultControls = ui.panel('result-view');
+const sampling = resultControls.addFolder({ title: 'Sampling' });
 sampling.addBinding(state, 'step', { label: 'cell size s', options: Object.fromEntries(STEPS.map((s) => [`${s} × ${s} px`, s])) });
 sampling.addBinding(state, 'mode', { label: 'sample value', options: { 'cell center': 'point', 'cell average': 'area' } });
-
-const quantization = pane.addFolder({ title: 'Quantization' });
-quantization.addBinding(state, 'bits', { label: 'bits b', min: 1, max: 8, step: 1 });
-
-pane.addButton({ title: 'Reset' }).on('click', () => {
-  Object.assign(state, defaults());
-  pane.refresh();
-});
+resultControls.addFolder({ title: 'Quantization' }).addBinding(state, 'bits', { label: 'bits b', min: 1, max: 8, step: 1 });
 
 const pick = (x: number, y: number) => {
   state.x = x;
@@ -115,5 +114,5 @@ function renderValues(small: RGBImage, quantized: RGBImage): void {
     </div>`;
 }
 
-pane.on('change', schedule);
+ui.on('change', schedule);
 update();

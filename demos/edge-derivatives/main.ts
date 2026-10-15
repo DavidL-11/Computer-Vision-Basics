@@ -1,4 +1,4 @@
-import { Pane } from 'tweakpane';
+import { Controls } from '../../src/shared/controls';
 import { type Plane, planeToImage, toGray } from '../../src/shared/image';
 import { addImagePicker } from '../../src/shared/imagePicker';
 import { gaussianNoise } from '../../src/shared/noise';
@@ -31,29 +31,30 @@ function defaults() {
 }
 const state = defaults();
 
-const pane = new Pane({ container: document.getElementById('controls')!, title: 'Derivatives & noise' });
+const ui = new Controls();
+const toolbar = ui.toolbar();
 let original: Plane = toGray(
-  addImagePicker(pane, { names: ['scene', 'chart', 'text', 'gradients'], value: 'scene', width: W, height: H }, (img) => {
+  addImagePicker(toolbar, { names: ['scene', 'chart', 'text', 'gradients'], value: 'scene', width: W, height: H }, (img) => {
     original = toGray(img);
     schedule();
   }),
 );
-const noiseFolder = pane.addFolder({ title: 'Noise' });
-noiseFolder.addBinding(state, 'noise', { label: 'σₙ', min: 0, max: 0.2, step: 0.005 });
-noiseFolder.addButton({ title: 'New noise' }).on('click', () => {
+toolbar.addBinding(state, 'noise', { label: 'noise σₙ', min: 0, max: 0.2, step: 0.005 });
+toolbar.addButton({ title: 'New noise' }).on('click', () => {
   state.seed++;
   schedule();
 });
-const smoothFolder = pane.addFolder({ title: 'Gaussian g' });
+toolbar.addResetButton(() => {
+  Object.assign(state, defaults());
+  ui.refresh();
+  schedule();
+});
+ui.panel('noisy-view').addBinding(state, 'allEdges', { label: 'edges of all rows' });
+const smoothFolder = ui.panel('smooth-view').addFolder({ title: 'Gaussian g' });
 smoothFolder.addBinding(state, 'sigma', { label: 'σ', min: 0.5, max: 6, step: 0.1 });
 smoothFolder.addBinding(state, 'smoothing', { label: 'smooth along', options: { 'row only': 'row', 'x and y': 'xy' } });
-pane.addBinding(state, 'threshold', { label: 'edge threshold t', min: 0.005, max: 0.3, step: 0.005 });
-pane.addBinding(state, 'allEdges', { label: 'edges of all rows' });
-pane.addBinding(state, 'gain', { label: 'derivative contrast', options: { '1×': 1, '2×': 2, '4×': 4, '8×': 8 } });
-pane.addButton({ title: 'Reset' }).on('click', () => {
-  Object.assign(state, defaults());
-  pane.refresh();
-});
+ui.panel('deriv-view').addBinding(state, 'gain', { label: 'derivative contrast', options: { '1×': 1, '2×': 2, '4×': 4, '8×': 8 } });
+ui.panel('deriv-plot').addBinding(state, 'threshold', { label: 'edge threshold t', min: 0.005, max: 0.3, step: 0.005 });
 
 const pick = (x: number, y: number) => {
   state.x = x;
@@ -277,6 +278,6 @@ function allRows({ smoothed, raw }: { smoothed: Uint8Array; raw: Uint8Array }): 
       </div>`;
 }
 
-pane.on('change', schedule);
+ui.on('change', schedule);
 onThemeChange(schedule);
 update();

@@ -17,37 +17,72 @@
         </p>
       </section>
 
-      <section class="workspace">
-        <div class="views">
-          <figure class="view card">
-            <figcaption>Pixel value → light <span class="muted">the decoding curve</span></figcaption>
-            <div id="curve-view" class="curve-view"></div>
-          </figure>
-          <figure class="view card">
-            <figcaption>Medium gray <span class="muted">step back or squint: which center matches its surround?</span></figcaption>
-            <div id="gray-view" class="gray-view"></div>
-          </figure>
-          <figure class="view card">
-            <figcaption>Blur <span class="muted">the same Gaussian, applied to encoded values and to linear light</span></figcaption>
-            <div class="image-row">
-              <figure><div id="blur-original"></div><figcaption>original</figcaption></figure>
-              <figure><div id="blur-encoded"></div><figcaption>blurred encoded values</figcaption></figure>
-              <figure><div id="blur-linear"></div><figcaption>blurred linear light</figcaption></figure>
-            </div>
-          </figure>
-          <figure class="view card">
-            <figcaption>Gamma adjustment \(v \to v^\gamma\) <span class="muted">applied per channel and to luma only</span></figcaption>
-            <div class="image-row">
-              <figure><div id="adjust-original"></div><figcaption>original</figcaption></figure>
-              <figure><div id="adjust-channels"></div><figcaption>per channel</figcaption></figure>
-              <figure><div id="adjust-luma"></div><figcaption>luma only</figcaption></figure>
-            </div>
-          </figure>
+      <section class="demo-section">
+        <h2>Pixel values and light</h2>
+        <div class="workspace">
+          <div class="views">
+            <figure class="view card">
+              <figcaption><span class="view-title">Pixel value → light</span> <span class="view-hint">the decoding curve</span></figcaption>
+              <div class="view-body">
+                <div class="view-main">
+                  <div id="curve-view" class="curve-view"></div>
+                </div>
+              </div>
+            </figure>
+            <figure class="view card">
+              <figcaption><span class="view-title">Medium gray</span> <span class="view-hint">step back or squint: which center matches its surround?</span></figcaption>
+              <div class="view-body">
+                <div class="view-main">
+                  <div id="gray-view" class="gray-view"></div>
+                </div>
+              </div>
+            </figure>
+          </div>
+          <section class="card values"><div class="view-body"><div id="pixel-values" class="view-main values-body" aria-live="polite"></div></div></section>
         </div>
-        <aside id="controls" class="controls"></aside>
       </section>
 
-      <section id="values" class="card values" aria-live="polite"></section>
+      <section class="demo-section">
+        <h2>Blurring encoded values</h2>
+        <div class="workspace">
+          <div class="views">
+            <figure class="view card view-wide">
+              <figcaption><span class="view-title">Blur</span> <span class="view-hint">the same Gaussian, applied to encoded values and to linear light</span></figcaption>
+              <div class="view-body">
+                <div class="view-main">
+                  <div class="image-row">
+                    <figure><div id="blur-original"></div><figcaption>original</figcaption></figure>
+                    <figure><div id="blur-encoded"></div><figcaption>blurred encoded values</figcaption></figure>
+                    <figure><div id="blur-linear"></div><figcaption>blurred linear light</figcaption></figure>
+                  </div>
+                </div>
+              </div>
+            </figure>
+          </div>
+          <section class="card values"><div class="view-body"><div id="blur-values" class="view-main values-body" aria-live="polite"></div></div></section>
+        </div>
+      </section>
+
+      <section class="demo-section">
+        <h2>Gamma adjustment</h2>
+        <div class="workspace">
+          <div class="views">
+            <figure class="view card view-wide">
+              <figcaption><span class="view-title">Gamma adjustment \(v \to v^\gamma\)</span> <span class="view-hint">applied per channel and to luma only</span></figcaption>
+              <div class="view-body">
+                <div class="view-main">
+                  <div class="image-row">
+                    <figure><div id="adjust-original"></div><figcaption>original</figcaption></figure>
+                    <figure><div id="adjust-channels"></div><figcaption>per channel</figcaption></figure>
+                    <figure><div id="adjust-luma"></div><figcaption>luma only</figcaption></figure>
+                  </div>
+                </div>
+              </div>
+            </figure>
+          </div>
+          <section class="card values"><div class="view-body"><div id="adjust-values" class="view-main values-body" aria-live="polite"></div></div></section>
+        </div>
+      </section>
 
       <article class="explanation">
         <h2>Encoded values and light</h2>

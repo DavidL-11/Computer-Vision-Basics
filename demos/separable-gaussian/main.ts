@@ -1,4 +1,4 @@
-import { Pane } from 'tweakpane';
+import { Controls } from '../../src/shared/controls';
 import { correlate, correlateSeparable, gaussianKernel, outerProduct } from '../../src/shared/filter';
 import { type Plane, planeToImage, toGray } from '../../src/shared/image';
 import { addImagePicker } from '../../src/shared/imagePicker';
@@ -22,27 +22,34 @@ function defaults() {
 }
 const state = defaults();
 
-const pane = new Pane({ container: document.getElementById('controls')!, title: 'Gaussian' });
-pane.addBinding(state, 'sigma', { label: 'σ (px)', min: 0.5, max: 5, step: 0.1 });
+const ui = new Controls();
+const gaussToolbar = ui.toolbar('kernel-plot');
+gaussToolbar.addBinding(state, 'sigma', { label: 'σ (px)', min: 0.5, max: 5, step: 0.1 });
+gaussToolbar.addResetButton(() => {
+  state.sigma = defaults().sigma;
+  ui.refresh();
+});
 let gray: Plane = toGray(
-  addImagePicker(pane, { names: ['chart', 'scene', 'text', 'zone-plate'], value: 'chart', width: W, height: H }, (img) => {
+  addImagePicker(ui.panel('original-view'), { names: ['chart', 'scene', 'text', 'zone-plate'], value: 'chart', width: W, height: H }, (img) => {
     gray = toGray(img);
     schedule();
   }),
 );
-const boxFolder = pane.addFolder({ title: 'Repeated box filter' });
-boxFolder.addBinding(state, 'w', { label: 'box width w', options: { '3': 3, '5': 5, '7': 7, '9': 9 } });
-boxFolder.addBinding(state, 'n', { label: 'passes n', min: 1, max: 10, step: 1 });
-pane.addButton({ title: 'Reset' }).on('click', () => {
-  Object.assign(state, defaults());
-  pane.refresh();
+const boxControls = ui.panel('box-plot');
+boxControls.addBinding(state, 'w', { label: 'box width w', options: { '3': 3, '5': 5, '7': 7, '9': 9 } });
+boxControls.addBinding(state, 'n', { label: 'passes n', min: 1, max: 10, step: 1 });
+boxControls.addResetButton(() => {
+  const { w, n } = defaults();
+  Object.assign(state, { w, n });
+  ui.refresh();
 });
 
 const kernelPlot = new KernelPlot(document.getElementById('kernel-plot')!);
 const boxPlot = new KernelPlot(document.getElementById('box-plot')!);
 const kernelView = new PixelView(document.getElementById('kernel-view')!);
 const imageViews = ['original-view', 'rows-view', 'both-view'].map((id) => new PixelView(document.getElementById(id)!));
-const values = document.getElementById('values')!;
+const gaussValues = document.getElementById('gauss-values')!;
+const boxValues = document.getElementById('box-values')!;
 
 kernelView.overlay = (ctx, t) => {
   if (t.scale < 6) return;
@@ -105,7 +112,7 @@ function renderValues(P: number, error: number, box: Float32Array, deviation: nu
   const { sigma, w, n } = state;
   const perPixel = multiplications(1, 1, P, P);
   const image = multiplications(W, H, P, P);
-  values.innerHTML = `
+  gaussValues.innerHTML = `
     <div class="value-grid">
       <div class="value-block">
         <h3>Kernel size</h3>
@@ -118,6 +125,9 @@ function renderValues(P: number, error: number, box: Float32Array, deviation: nu
         ${eq(`MN(P + Q) = \\htmlClass{result}{${count(image.separable)}} \\quad (${fmt(image.direct / image.separable, 1)} \\times \\text{ fewer})`)}
         ${eq(`\\max \\left| \\text{two passes} - \\text{direct 2D} \\right| = ${scientific(error)}`)}
       </div>
+    </div>`;
+  boxValues.innerHTML = `
+    <div class="value-grid">
       <div class="value-block">
         <h3>Box filter of width ${w}, ${n} time${n > 1 ? 's' : ''}: B<sup>(n)</sup></h3>
         ${eq(`\\sigma^2 = n \\, \\frac{w^2 - 1}{12} = ${n} \\cdot \\frac{${w * w - 1}}{12} = ${fmt(repeatedBoxVariance(w, n), 2)}, \\quad \\sigma = \\htmlClass{result}{${fmt(Math.sqrt(repeatedBoxVariance(w, n)), 2)}}`)}
@@ -127,6 +137,6 @@ function renderValues(P: number, error: number, box: Float32Array, deviation: nu
     </div>`;
 }
 
-pane.on('change', schedule);
+ui.on('change', schedule);
 onThemeChange(schedule);
 update();

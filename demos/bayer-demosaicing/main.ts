@@ -1,4 +1,4 @@
-import { Pane } from 'tweakpane';
+import { Controls } from '../../src/shared/controls';
 import { type RGBImage, getPixel, psnr } from '../../src/shared/image';
 import { addImagePicker } from '../../src/shared/imagePicker';
 import { initPage } from '../../src/shared/page';
@@ -27,21 +27,23 @@ function defaults() {
 }
 const state = defaults();
 
-const pane = new Pane({ container: document.getElementById('controls')!, title: 'Bayer pattern' });
-let source: RGBImage = addImagePicker(pane, { names: ['chart', 'zone-plate', 'text', 'scene'], value: 'chart', width: W, height: H }, (img) => {
+const ui = new Controls();
+const toolbar = ui.toolbar();
+let source: RGBImage = addImagePicker(toolbar, { names: ['chart', 'zone-plate', 'text', 'scene'], value: 'chart', width: W, height: H }, (img) => {
   source = img;
   schedule();
 });
-pane.addBinding(state, 'method', { label: 'demosaicing', options: { 'nearest neighbor': 'nearest', bilinear: 'bilinear' } });
-const display = pane.addFolder({ title: 'Display' });
-display.addBinding(state, 'tinted', { label: 'raw in color' });
-display.addBinding(state, 'right', { label: 'right view', options: { demosaiced: 'result', original: 'original', [`error × ${ERROR_GAIN}`]: 'error' } });
-display.addBinding(state, 'zoom', { label: 'zoom', options: { '1×': 1, '2×': 2, '4×': 4, '8×': 8 } });
-pane.addButton({ title: 'Reset' }).on('click', () => {
+toolbar.addBinding(state, 'zoom', { label: 'zoom', options: { '1×': 1, '2×': 2, '4×': 4, '8×': 8 } });
+toolbar.addResetButton(() => {
   Object.assign(state, defaults());
   Object.assign(center, { x: state.x, y: state.y });
-  pane.refresh();
+  ui.refresh();
+  schedule();
 });
+ui.panel('raw-view').addBinding(state, 'tinted', { label: 'raw in color' });
+const resultControls = ui.panel('result-view');
+resultControls.addBinding(state, 'right', { label: 'show', options: { demosaiced: 'result', original: 'original', [`error × ${ERROR_GAIN}`]: 'error' } });
+resultControls.addBinding(state, 'method', { label: 'demosaicing', options: { 'nearest neighbor': 'nearest', bilinear: 'bilinear' } });
 
 const center = { x: state.x, y: state.y };
 const pick = (x: number, y: number, e: PointerEvent) => {
@@ -142,5 +144,5 @@ function update(): void {
 }
 const schedule = perFrame(update);
 
-pane.on('change', schedule);
+ui.on('change', schedule);
 update();

@@ -1,4 +1,4 @@
-import { Pane } from 'tweakpane';
+import { Controls } from '../../src/shared/controls';
 import { buildScaleSpace, detectKeypoints } from '../../src/shared/dog';
 import { type Plane, createImage, toGray } from '../../src/shared/image';
 import { addImagePicker } from '../../src/shared/imagePicker';
@@ -39,29 +39,32 @@ function defaults() {
 }
 const state = defaults();
 
-const pane = new Pane({ container: document.getElementById('controls')!, title: 'Matching' });
+const ui = new Controls();
+const toolbar = ui.toolbar();
 let original: Plane = toGray(
-  addImagePicker(pane, { names: ['scene', 'shapes', 'chart', 'text', 'blobs'], value: 'scene', width: W, height: H }, (img) => {
+  addImagePicker(toolbar, { names: ['scene', 'shapes', 'chart', 'text', 'blobs'], value: 'scene', width: W, height: H }, (img) => {
     original = toGray(img);
     schedule();
   }),
 );
-const transformFolder = pane.addFolder({ title: 'Image B' });
+toolbar.addBinding(state, 'threshold', { label: 'keypoint contrast t', min: 0.005, max: 0.08, step: 0.001 });
+toolbar.addBinding(state, 'eps', { label: 'correct within ε (px)', min: 1, max: 6, step: 0.5 });
+toolbar.addBinding(state, 'criterion', { label: 'accept matches by', options: { 'distance d₁': 'distance', 'ratio d₁/d₂': 'ratio' } });
+toolbar.addResetButton(() => {
+  Object.assign(state, defaults());
+  ui.refresh();
+  schedule();
+});
+
+const pairControls = ui.panel('pair-view');
+const transformFolder = pairControls.addFolder({ title: 'Image B' });
 transformFolder.addBinding(state, 'angle', { label: 'rotation θ (°)', min: -180, max: 180, step: 1 });
 transformFolder.addBinding(state, 'scale', { label: 'scale s', min: 0.5, max: 2, step: 0.01 });
 transformFolder.addBinding(state, 'gain', { label: 'contrast α', min: 0.5, max: 1.5, step: 0.01 });
 transformFolder.addBinding(state, 'noise', { label: 'noise σₙ', min: 0, max: 0.1, step: 0.005 });
-const matchFolder = pane.addFolder({ title: 'Matching' });
-matchFolder.addBinding(state, 'criterion', { label: 'accept by', options: { 'distance d₁': 'distance', 'ratio d₁/d₂': 'ratio' } });
-matchFolder.addBinding(state, 'maxDistance', { label: 'max distance', min: 0, max: 1.2, step: 0.01 });
-matchFolder.addBinding(state, 'maxRatio', { label: 'max ratio τ', min: 0.1, max: 1, step: 0.01 });
-matchFolder.addBinding(state, 'show', { label: 'show', options: { accepted: 'accepted', rejected: 'rejected', all: 'all' } });
-pane.addBinding(state, 'eps', { label: 'correct within ε', min: 1, max: 6, step: 0.5 });
-pane.addBinding(state, 'threshold', { label: 'keypoint contrast t', min: 0.005, max: 0.08, step: 0.001 });
-pane.addButton({ title: 'Reset' }).on('click', () => {
-  Object.assign(state, defaults());
-  pane.refresh();
-});
+pairControls.addFolder({ title: 'Display' }).addBinding(state, 'show', { label: 'show matches', options: { accepted: 'accepted', rejected: 'rejected', all: 'all' } });
+ui.panel('distance-plot').addBinding(state, 'maxDistance', { label: 'max distance', min: 0, max: 1.2, step: 0.01 });
+ui.panel('ratio-plot').addBinding(state, 'maxRatio', { label: 'max ratio τ', min: 0.1, max: 1, step: 0.01 });
 
 const pairView = new PixelView(document.getElementById('pair-view')!);
 const distancePlot = new Plot(document.getElementById('distance-plot')!, 220);
@@ -223,6 +226,6 @@ function renderValues(): void {
     </div>`;
 }
 
-pane.on('change', schedule);
+ui.on('change', schedule);
 onThemeChange(schedule);
 update();

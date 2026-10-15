@@ -20,26 +20,37 @@
       <section class="workspace">
         <div class="views">
           <figure class="view card">
-            <figcaption>Original <span class="muted">click to set the zoom center</span></figcaption>
-            <div id="original-view" class="image-frame"></div>
+            <figcaption><span class="view-title">Original</span> <span class="view-hint">click to set the zoom center</span></figcaption>
+            <div class="view-body">
+              <div class="view-main">
+                <div id="original-view" class="image-frame"></div>
+              </div>
+            </div>
           </figure>
           <figure class="view card">
-            <figcaption>Subsampled <span class="muted">reduced channel upsampled back to 320 × 240 px</span></figcaption>
-            <div id="result-view" class="image-frame"></div>
+            <figcaption><span class="view-title">Subsampled</span> <span class="view-hint">reduced channel upsampled back to 320 × 240 px</span></figcaption>
+            <div class="view-body">
+              <div class="view-main">
+                <div id="result-view" class="image-frame"></div>
+              </div>
+            </div>
           </figure>
           <figure class="view card view-wide">
-            <figcaption>Channels of the subsampled image <span class="muted">mid gray means \(C_b = C_r = 128\): no color</span></figcaption>
-            <div class="image-row">
-              <figure><div id="plane-0"></div><figcaption>\(Y\)</figcaption></figure>
-              <figure><div id="plane-1"></div><figcaption>\(C_b\)</figcaption></figure>
-              <figure><div id="plane-2"></div><figcaption>\(C_r\)</figcaption></figure>
+            <figcaption><span class="view-title">Channels of the subsampled image</span> <span class="view-hint">mid gray means \(C_b = C_r = 128\): no color</span></figcaption>
+            <div class="view-body">
+              <div class="view-main">
+                <div class="image-row">
+                  <figure><div id="plane-0"></div><figcaption>\(Y\)</figcaption></figure>
+                  <figure><div id="plane-1"></div><figcaption>\(C_b\)</figcaption></figure>
+                  <figure><div id="plane-2"></div><figcaption>\(C_r\)</figcaption></figure>
+                </div>
+              </div>
             </div>
           </figure>
         </div>
-        <aside id="controls" class="controls"></aside>
       </section>
 
-      <section id="values" class="card values" aria-live="polite"></section>
+      <section class="card values"><div class="view-body"><div id="values" class="view-main values-body" aria-live="polite"></div></div></section>
 
       <article class="explanation">
         <h2>Luma and chroma</h2>

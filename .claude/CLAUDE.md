@@ -16,7 +16,8 @@ npm run preview   # serve dist/ at http://localhost:4173/Computer-Vision-Basics/
 
 - Vite multi-page build with TypeScript and no UI framework. `base` is `/Computer-Vision-Basics/`, so build internal links from
   `import.meta.env.BASE_URL`.
-- Three.js for 3D, Canvas 2D/WebGL for 2D, Tweakpane for controls, and plain CSS with custom properties.
+- Three.js for 3D, Canvas 2D/WebGL for 2D, our own control kit (`src/shared/controls.ts`), and plain CSS with custom
+  properties. IBM Plex Sans/Mono are self-hosted through `@fontsource` (imported in `base.css`).
 - `src/data/chapters.ts` is the single source of truth for the site. The landing page is prerendered from it at
   build time (`src/landing/render.ts`): chapters, key concepts and the existing demos.
 - Each page's `<title>` and meta description in its `index.html` are what search engines show; canonical and
@@ -24,6 +25,10 @@ npm run preview   # serve dist/ at http://localhost:4173/Computer-Vision-Basics/
 - `PLANS.md` holds ideas for future demos. It is not part of the website.
 - `src/shared/`:
   - `page.ts`: `initPage()` adds the header, breadcrumb, theme toggle and footer.
+  - `controls.ts`: the control kit. One `Controls` hub per page; `ui.toolbar()` and `ui.panel(id)` create a group in
+    the toolbar or in the side column of the panel containing `#id`. Groups have a Tweakpane-like API
+    (`addBinding`, `addButton`, `addFolder`, `addResetButton`); the view follows the value (slider, switch, segments or
+    select, color, point). `ui.refresh()` re-reads all values and sends `change` for each one that differs.
   - `theme.ts`: light/dark handling plus `cssColor()`.
   - `linalg.ts`: small row-major Vec3/Mat3 helpers.
   - `camera.ts`: pinhole camera math: `buildK`, `buildR` (yaw/pitch/roll), `buildT`, `snapshot()` → K, R, t, C, P,
@@ -37,7 +42,8 @@ npm run preview   # serve dist/ at http://localhost:4173/Computer-Vision-Basics/
   - `color.ts`: sRGB decode/encode, BT.601 luma, YCbCr, hex helpers.
   - `noise.ts`: seeded `random()` and `gaussianNoise()` for a `Plane`.
   - `pixelView.ts`: `PixelView` shows an `RGBImage` with visible pixels, zoom, picking and overlays; `perFrame()`.
-  - `testImages.ts` / `imagePicker.ts`: procedural test images and a Tweakpane image list with "Open image…".
+  - `testImages.ts` / `imagePicker.ts`: procedural test images and an image list with a button to open
+    your own image.
   - `fft.ts`: radix-2 FFT, `fft2`/`ifft2` of a `Plane` (power-of-2 sizes, DC at index 0), `fftShift()` for display.
   - `harris.ts`: image `derivatives()`, Gaussian-windowed `secondMoment()`, 2×2 `eigen()`, Harris `cornerness()` /
     `harris()` and `localMaxima()` (non-maximum suppression).
@@ -57,15 +63,17 @@ npm run preview   # serve dist/ at http://localhost:4173/Computer-Vision-Basics/
   - `plot.ts`: `Plot` canvas for function graphs, stems and bars with axes; colors given as CSS tokens.
   - `tex.ts`: TeX helpers (`renderTex`, `eq`, `fmt`, `sci`, `texMatrix`, `texSciMatrix`, `texVector`, `texTuple`) for panels
     with live values.
-  - `styles/base.css`: design tokens and the Tweakpane theme.
-  - `styles/demo.css`: shared demo layout (intro, views + controls, `.values` panel, explanation). Import it in
+  - `styles/base.css`: design tokens, fonts, header and footer. `styles/controls.css`: the control kit.
+  - `styles/demo.css`: shared demo layout (intro, toolbar, panels with their controls, `.values` card, explanation,
+    `.demo-section` for pages with independent parts). Import it in
     each demo's `main.ts` before the demo's own CSS.
 - `demos/<slug>/`: one self-contained demo per folder, each with its own `index.html`. `vite.config.ts` picks up
   every `demos/*/index.html` automatically.
 
 ## Adding a demo
 
-1. Create `demos/<slug>/index.html` (copy the structure of `demos/camera-model/index.html`) and `main.ts`.
+1. Create `demos/<slug>/index.html` (copy the structure of `demos/coarse-to-fine/index.html`, or
+   `demos/aliasing/index.html` for a page with sections) and `main.ts`.
 2. In `main.ts`, call `initPage({ title, chapterId })` first. `chapterId` is the chapter's `id` in `chapters.ts`.
 3. Add the demo to its chapter in `src/data/chapters.ts` (`title`, `description`, `slug`).
 4. Remove its entry from `PLANS.md`, if it was there.
@@ -79,7 +87,15 @@ Conventions for demos:
   explicitly and ask the user before using it; never switch on your own.
 - Colors come from CSS tokens in `base.css` (`--viz-*`, `--axis-*`, etc.). Demo-specific tokens use `light-dark()`
   in the demo's CSS. Canvas/WebGL code reads colors with `cssColor('--token')` and redraws in `onThemeChange()`.
-- Controls use Tweakpane, which is already themed through `base.css`.
+- Controls sit next to what they change. A control goes into the side column of the panel where its quantity is
+  defined or drawn (window radius on I₀, filter settings on the filtered result). The toolbar above the panels only
+  holds inputs to the whole demo (input image, global noise, presets), display options that apply equally to several
+  panels (zoom), playback, and Reset. A page with independent parts gets one `.demo-section` per part, each with its
+  own panels, values card and Reset; never one set of controls for several parts.
+- Panel markup: `<figure class="view card">` with `<figcaption><span class="view-title">…</span> <span
+  class="view-hint">…</span></figcaption>` (or `view-hint legend` with `.key` items), then `<div class="view-body"><div
+  class="view-main">…</div></div>`. The values card is `<section class="card values"><div class="view-body"><div
+  id="values" class="view-main values-body"></div></div></section>`. Every Reset calls `ui.refresh()` and `schedule()`.
 - Only load OpenCV.js through `loadOpenCV()`, and only in demos that need it; never bundle it.
 - Each demo page has a short intro, the interactive part, then an explanation section with "Try this" prompts.
 - Formulas and notation follow the lecture, e.g. x = K[R | t]X with w·(u, v, 1)ᵀ, principal point (u₀, v₀),

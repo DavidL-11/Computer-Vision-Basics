@@ -21,26 +21,37 @@
       <section class="workspace">
         <div class="views">
           <figure class="view card">
-            <figcaption>Image <span class="muted">click to pick a color</span></figcaption>
-            <div id="image-view" class="image-frame"></div>
+            <figcaption><span class="view-title">Image</span> <span class="view-hint">click to pick a color</span></figcaption>
+            <div class="view-body">
+              <div class="view-main">
+                <div id="image-view" class="image-frame"></div>
+              </div>
+            </div>
           </figure>
           <figure class="view card">
-            <figcaption>Channels <span class="muted">each channel as gray; for signed channels, mid gray is 0</span></figcaption>
-            <div class="image-row">
-              <figure><div id="channel-0"></div><figcaption id="channel-0-name"></figcaption></figure>
-              <figure><div id="channel-1"></div><figcaption id="channel-1-name"></figcaption></figure>
-              <figure><div id="channel-2"></div><figcaption id="channel-2-name"></figcaption></figure>
+            <figcaption><span class="view-title">Channels</span> <span class="view-hint">each channel as gray; for signed channels, mid gray is 0</span></figcaption>
+            <div class="view-body">
+              <div class="view-main">
+                <div class="image-row">
+                  <figure><div id="channel-0"></div><figcaption id="channel-0-name"></figcaption></figure>
+                  <figure><div id="channel-1"></div><figcaption id="channel-1-name"></figcaption></figure>
+                  <figure><div id="channel-2"></div><figcaption id="channel-2-name"></figcaption></figure>
+                </div>
+              </div>
             </div>
           </figure>
           <figure class="view card view-wide">
-            <figcaption>From A to B in a straight line <span class="muted">the same two colors, interpolated in each space</span></figcaption>
-            <div id="strips" class="strips"></div>
+            <figcaption><span class="view-title">From A to B in a straight line</span> <span class="view-hint">the same two colors, interpolated in each space</span></figcaption>
+            <div class="view-body">
+              <div class="view-main">
+                <div id="strips" class="strips"></div>
+              </div>
+            </div>
           </figure>
         </div>
-        <aside id="controls" class="controls"></aside>
       </section>
 
-      <section id="values" class="card values" aria-live="polite"></section>
+      <section class="card values"><div class="view-body"><div id="values" class="view-main values-body" aria-live="polite"></div></div></section>
 
       <article class="explanation">
         <h2>RGB</h2>

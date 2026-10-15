@@ -1,4 +1,4 @@
-import { Pane } from 'tweakpane';
+import { Controls } from '../../src/shared/controls';
 import { type Spectrum, fft2, fftShift, ifft2 } from '../../src/shared/fft';
 import { boxKernel1D, correlateSeparable, gaussianKernel, outerProduct } from '../../src/shared/filter';
 import { type Plane, type RGBImage, centerCrop, planeToImage, toGray } from '../../src/shared/image';
@@ -53,9 +53,10 @@ const state = defaults();
 let painted = allPass(N);
 let paintVersion = 0;
 
-const pane = new Pane({ container: document.getElementById('controls')!, title: '2D Fourier transform' });
+const ui = new Controls();
+const toolbar = ui.toolbar();
 let gray: Plane = crop(
-  addImagePicker(pane, { names: ['scene', 'chart', 'text', 'zone-plate', 'gradients'], value: 'scene', width: 342, height: N }, (img) => {
+  addImagePicker(toolbar, { names: ['scene', 'chart', 'text', 'zone-plate', 'gradients'], value: 'scene', width: 342, height: N }, (img) => {
     gray = crop(img);
     schedule();
   }),
@@ -64,12 +65,34 @@ function crop(img: RGBImage): Plane {
   return centerCrop(toGray(img), N, N);
 }
 
-const noiseFolder = pane.addFolder({ title: 'Periodic noise', expanded: false });
+const noiseFolder = toolbar.addFolder({ title: 'Add periodic noise', expanded: false });
 noiseFolder.addBinding(state, 'noise', { label: 'amplitude', min: 0, max: 0.5, step: 0.01 });
 noiseFolder.addBinding(state, 'nu', { label: 'frequency u', min: -64, max: 64, step: 1 });
 noiseFolder.addBinding(state, 'nv', { label: 'frequency v', min: -64, max: 64, step: 1 });
+toolbar.addResetButton(() => {
+  Object.assign(state, defaults());
+  painted = allPass(N);
+  paintVersion++;
+  ui.refresh();
+  schedule();
+});
 
-const filterFolder = pane.addFolder({ title: 'Filter H(u, v)' });
+const toolFolder = ui.panel('magnitude-view').addFolder({ title: 'Click on the spectrum' });
+toolFolder
+  .addBinding(state, 'tool', { label: 'tool', options: { 'inspect frequency': 'inspect', 'block (paint 0)': 'block', 'restore (paint 1)': 'restore' } })
+  .on('change', ({ value }) => {
+    if (value !== 'inspect') state.filter = 'paint';
+    ui.refresh();
+  });
+const brushBinding = toolFolder.addBinding(state, 'brush', { label: 'brush radius', min: 0, max: 16, step: 1 });
+const clearButton = toolFolder.addButton({ title: 'Clear painted mask' });
+clearButton.on('click', () => {
+  painted = allPass(N);
+  paintVersion++;
+  schedule();
+});
+
+const filterFolder = ui.panel('result-view').addFolder({ title: 'Filter H(u, v)' });
 filterFolder.addBinding(state, 'filter', {
   label: 'filter',
   options: {
@@ -87,28 +110,6 @@ const d0Binding = filterFolder.addBinding(state, 'd0', { label: 'radius D₀', m
 const d1Binding = filterFolder.addBinding(state, 'd1', { label: 'radius D₁', min: 1, max: 128, step: 1 });
 const sigmaBinding = filterFolder.addBinding(state, 'sigma', { label: 'kernel σ (px)', min: 0.5, max: 6, step: 0.1 });
 const boxBinding = filterFolder.addBinding(state, 'box', { label: 'box width (px)', options: Object.fromEntries([3, 5, 7, 9, 11, 15].map((w) => [`${w}`, w])) });
-
-const toolFolder = pane.addFolder({ title: 'Click on the spectrum' });
-toolFolder
-  .addBinding(state, 'tool', { label: 'tool', options: { 'inspect frequency': 'inspect', 'block (paint 0)': 'block', 'restore (paint 1)': 'restore' } })
-  .on('change', ({ value }) => {
-    if (value !== 'inspect') state.filter = 'paint';
-    pane.refresh();
-  });
-const brushBinding = toolFolder.addBinding(state, 'brush', { label: 'brush radius', min: 0, max: 16, step: 1 });
-const clearButton = toolFolder.addButton({ title: 'Clear painted mask' });
-clearButton.on('click', () => {
-  painted = allPass(N);
-  paintVersion++;
-  schedule();
-});
-
-pane.addButton({ title: 'Reset' }).on('click', () => {
-  Object.assign(state, defaults());
-  painted = allPass(N);
-  paintVersion++;
-  pane.refresh();
-});
 
 function syncControls(): void {
   const radial = state.filter === 'low-pass' || state.filter === 'high-pass' || state.filter === 'band-pass';
@@ -130,7 +131,7 @@ function onSpectrumPick(x: number, y: number): void {
     paintVersion++;
     if (state.filter !== 'paint') {
       state.filter = 'paint';
-      pane.refresh();
+      ui.refresh();
     }
   }
   schedule();
@@ -318,7 +319,7 @@ function renderValues(S: Spectrum, H: Plane | null): void {
     </div>`;
 }
 
-pane.on('change', schedule);
+ui.on('change', schedule);
 onThemeChange(() => {
   renderMask(cache.filter?.H ?? null);
   schedule();

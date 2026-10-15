@@ -1,5 +1,5 @@
-import { Pane } from 'tweakpane';
 import { type CameraSnapshot, backproject, lookAtAngles, project, snapshot } from '../../src/shared/camera';
+import { Controls } from '../../src/shared/controls';
 import { type Vec4, epipolarLine, mulP, toPixel, twoView, unitF } from '../../src/shared/epipolar';
 import { type Mat3, type Vec3, add, det3, mulMat3Vec, transpose3 } from '../../src/shared/linalg';
 import { type Vec2, normalizeLine, pointLineDistance } from '../../src/shared/lines';
@@ -51,32 +51,35 @@ const defaults = () => ({
 });
 const state = defaults();
 
-const pane = new Pane({ container: document.getElementById('controls')!, title: 'Two views' });
-const presets = pane.addFolder({ title: 'Setup' });
+const ui = new Controls();
+const toolbar = ui.toolbar();
+const presets = toolbar.addFolder({ title: 'Setup' });
 for (const [name, preset] of Object.entries(PRESETS))
   presets.addButton({ title: name }).on('click', () => {
     Object.assign(state, preset());
-    pane.refresh();
+    ui.refresh();
     schedule();
   });
-const cam1Folder = pane.addFolder({ title: 'Camera 1, relative to camera 0' });
+toolbar.addBinding(state, 'pencil', { label: 'lines of all corners' });
+toolbar.addBinding(state, 'zoomOut', { label: 'zoom out', min: 1, max: 4, step: 0.05 });
+toolbar.addResetButton(() => {
+  Object.assign(state, defaults());
+  ui.refresh();
+  schedule();
+});
+
+const worldControls = ui.panel('world-view');
+const cam1Folder = worldControls.addFolder({ title: 'Camera 1, relative to camera 0' });
 const meters = (min: number, max: number) => ({ min, max, step: 0.05, format: (v: number) => fmt(v, 2) });
 cam1Folder.addBinding(state, 'right', { label: 'right (m)', ...meters(-3, 3) });
 cam1Folder.addBinding(state, 'up', { label: 'up (m)', ...meters(-1, 1.5) });
 cam1Folder.addBinding(state, 'forward', { label: 'forward (m)', ...meters(-2, 2.5) });
 cam1Folder.addBinding(state, 'turn', { label: 'turn left (°)', min: -60, max: 60, step: 1 });
-const focal = pane.addFolder({ title: 'Focal lengths' });
+const focal = worldControls.addFolder({ title: 'Focal lengths' });
 focal.addBinding(state, 'f0', { label: 'f₀ (px)', min: 400, max: 1400, step: 10 });
 focal.addBinding(state, 'f1', { label: 'f₁ (px)', min: 400, max: 1400, step: 10 });
-const pointFolder = pane.addFolder({ title: 'Point X on the ray of x₀' });
+const pointFolder = ui.panel('image0-view').addFolder({ title: 'Point X on the ray of x₀' });
 pointFolder.addBinding(state, 'depth', { label: 'depth (m)', min: 0.5, max: 12, step: 0.05, format: (v: number) => fmt(v, 2) });
-pane.addBinding(state, 'pencil', { label: 'lines of all corners' });
-pane.addBinding(state, 'zoomOut', { label: 'zoom out', min: 1, max: 4, step: 0.05 });
-pane.addButton({ title: 'Reset' }).on('click', () => {
-  Object.assign(state, defaults());
-  pane.refresh();
-  schedule();
-});
 
 /** Clicking near a corner of the scene selects it together with its depth, so that X is the corner itself. */
 const SNAP = 12;
@@ -93,7 +96,7 @@ const imageView0 = new ImageView(document.getElementById('image0-view')!, (u, v)
     [state.u, state.v] = pr.uv;
     state.depth = pr.depth;
   }
-  pane.refresh();
+  ui.refresh();
   schedule();
 });
 const imageView1 = new ImageView(document.getElementById('image1-view')!);
@@ -139,7 +142,7 @@ function update(): void {
   imageView0.render({ cam: cam0, sub: '₀', point: x0, line: l0, epipole: view.e0, pencil: pencil.map(([, b]) => mulMat3Vec(Ft, b)), zoomOut: state.zoomOut });
   imageView1.render({ cam: cam1, sub: '₁', point: x1, line: l1, epipole: view.e1, pencil: pencil.map(([a]) => mulMat3Vec(F, a)), zoomOut: state.zoomOut });
   captions[0].textContent = epipoleText(view.e0, '₀');
-  captions[1].textContent = `${epipoleText(view.e1, '₁')}${x1 ? '' : ' · X is behind camera 1'}`;
+  captions[1].textContent = `${epipoleText(view.e1, '₁')}${x1 ? '' : '; X is behind camera 1'}`;
   worldView.update({ cams, x0, X, lines: [l0, l1] });
   renderValues(view, F, X, x1, l1);
 }
@@ -186,6 +189,6 @@ function renderValues(view: ReturnType<typeof twoView>, F: Mat3, X: Vec3, x1: Ve
     </div>`;
 }
 
-pane.on('change', schedule);
+ui.on('change', schedule);
 onThemeChange(schedule);
 update();

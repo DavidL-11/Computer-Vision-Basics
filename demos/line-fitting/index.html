@@ -21,30 +21,37 @@
         <div class="views">
           <figure class="view card">
             <figcaption>
-              Points and fitted lines
-              <span class="muted legend">
+              <span class="view-title">Points and fitted lines</span>
+              <span class="view-hint legend">
                 <span class="key" style="--key: var(--vls)">vertical LS</span>
                 <span class="key" style="--key: var(--tls)">total LS</span>
-                · click to add, drag to move, double-click or shift-click to remove
+                <span>click to add, drag to move, double-click or shift-click to remove</span>
               </span>
             </figcaption>
-            <div id="fit-view" class="fit-view"></div>
+            <div class="view-body">
+              <div class="view-main">
+                <div id="fit-view" class="fit-view"></div>
+              </div>
+            </div>
           </figure>
           <figure class="view card">
             <figcaption>
-              Squared residual per point
-              <span class="muted legend">
+              <span class="view-title">Squared residual per point</span>
+              <span class="view-hint legend">
                 <span class="key" style="--key: var(--vls)">\((y_i - (m x_i + b))^2\)</span>
                 <span class="key" style="--key: var(--tls)">\((a x_i + b y_i + c)^2\)</span>
               </span>
             </figcaption>
-            <div id="residual-plot"></div>
+            <div class="view-body">
+              <div class="view-main">
+                <div id="residual-plot"></div>
+              </div>
+            </div>
           </figure>
         </div>
-        <aside id="controls" class="controls"></aside>
       </section>
 
-      <section id="values" class="card values" aria-live="polite"></section>
+      <section class="card values"><div class="view-body"><div id="values" class="view-main values-body" aria-live="polite"></div></div></section>
 
       <article class="explanation">
         <h2>Least squares</h2>

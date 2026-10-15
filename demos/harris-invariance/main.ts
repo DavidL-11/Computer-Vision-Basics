@@ -1,4 +1,4 @@
-import { Pane } from 'tweakpane';
+import { Controls } from '../../src/shared/controls';
 import type { Corner } from '../../src/shared/harris';
 import { type Plane, planeToImage, toGray } from '../../src/shared/image';
 import { addImagePicker } from '../../src/shared/imagePicker';
@@ -37,22 +37,16 @@ function defaults() {
 }
 const state = defaults();
 
-const pane = new Pane({ container: document.getElementById('controls')!, title: 'Harris invariance' });
+const ui = new Controls();
+const toolbar = ui.toolbar();
 let original: Plane = toGray(
-  addImagePicker(pane, { names: ['shapes', 'scene', 'chart', 'text'], value: 'shapes', width: W, height: H }, (img) => {
+  addImagePicker(toolbar, { names: ['shapes', 'scene', 'chart', 'text'], value: 'shapes', width: W, height: H }, (img) => {
     original = toGray(img);
     schedule();
   }),
 );
-const geometry = pane.addFolder({ title: 'Geometry' });
-geometry.addBinding(state, 'angle', { label: 'rotation θ (°)', min: -180, max: 180, step: 1 });
-geometry.addBinding(state, 'scale', { label: 'scale s', min: 0.5, max: 2, step: 0.01 });
-geometry.addBinding(state, 'tx', { label: 'shift x', min: -30, max: 30, step: 0.5 });
-geometry.addBinding(state, 'ty', { label: 'shift y', min: -30, max: 30, step: 0.5 });
-const intensity = pane.addFolder({ title: 'Intensity' });
-intensity.addBinding(state, 'gain', { label: 'contrast a', min: 0.25, max: 2, step: 0.01 });
-intensity.addBinding(state, 'bias', { label: 'brightness b', min: -0.5, max: 0.5, step: 0.01 });
-const detector = pane.addFolder({ title: 'Detector' });
+toolbar.addBinding(state, 'eps', { label: 'match distance ε', min: 0.5, max: 5, step: 0.5 });
+const detector = toolbar.addFolder({ title: 'Detector settings', expanded: false });
 detector.addBinding(state, 'sigmaD', { label: 'blur σ_D', min: 0, max: 3, step: 0.1 });
 detector.addBinding(state, 'sigmaI', { label: 'window σ', min: 0.5, max: 5, step: 0.1 });
 detector.addBinding(state, 'alpha', { label: 'α', min: 0, max: 0.2, step: 0.005 });
@@ -60,11 +54,21 @@ detector.addBinding(state, 'radius', { label: 'NMS radius', min: 1, max: 10, ste
 detector.addBinding(state, 'relative', { label: 'relative threshold' });
 const logT = detector.addBinding(state, 'logT', { label: 'log₁₀ t', min: -8, max: -3, step: 0.1 });
 const fraction = detector.addBinding(state, 'fraction', { label: 't (× max C)', min: 0, max: 0.3, step: 0.001 });
-pane.addBinding(state, 'eps', { label: 'match distance ε', min: 0.5, max: 5, step: 0.5 });
-pane.addButton({ title: 'Reset' }).on('click', () => {
+toolbar.addResetButton(() => {
   Object.assign(state, defaults());
-  pane.refresh();
+  ui.refresh();
+  schedule();
 });
+
+const bControls = ui.panel('b-view');
+const geometry = bControls.addFolder({ title: 'Geometry' });
+geometry.addBinding(state, 'angle', { label: 'rotation θ (°)', min: -180, max: 180, step: 1 });
+geometry.addBinding(state, 'scale', { label: 'scale s', min: 0.5, max: 2, step: 0.01 });
+geometry.addBinding(state, 'tx', { label: 'shift x', min: -30, max: 30, step: 0.5 });
+geometry.addBinding(state, 'ty', { label: 'shift y', min: -30, max: 30, step: 0.5 });
+const intensity = bControls.addFolder({ title: 'Intensity' });
+intensity.addBinding(state, 'gain', { label: 'contrast a', min: 0.25, max: 2, step: 0.01 });
+intensity.addBinding(state, 'bias', { label: 'brightness b', min: -0.5, max: 0.5, step: 0.01 });
 
 const aView = new PixelView(document.getElementById('a-view')!);
 const bView = new PixelView(document.getElementById('b-view')!);
@@ -281,6 +285,6 @@ function renderValues(T: Transform): void {
     </div>`;
 }
 
-pane.on('change', schedule);
+ui.on('change', schedule);
 onThemeChange(schedule);
 update();

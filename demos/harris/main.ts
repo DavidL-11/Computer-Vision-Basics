@@ -1,4 +1,4 @@
-import { Pane } from 'tweakpane';
+import { Controls } from '../../src/shared/controls';
 import { type Corner, type Harris, cornerness, eigen, harris, harrisResponse, localMaxima, maxOf } from '../../src/shared/harris';
 import { type Plane, type RGB, createImage, planeToImage, toGray } from '../../src/shared/image';
 import { addImagePicker } from '../../src/shared/imagePicker';
@@ -21,31 +21,33 @@ function defaults() {
 }
 const state = defaults();
 
-const pane = new Pane({ container: document.getElementById('controls')!, title: 'Harris' });
+const ui = new Controls();
+const toolbar = ui.toolbar();
 let original: Plane = toGray(
-  addImagePicker(pane, { names: ['shapes', 'scene', 'chart', 'text'], value: 'shapes', width: W, height: H }, (img) => {
+  addImagePicker(toolbar, { names: ['shapes', 'scene', 'chart', 'text'], value: 'shapes', width: W, height: H }, (img) => {
     original = toGray(img);
     schedule();
   }),
 );
-const noiseFolder = pane.addFolder({ title: 'Noise' });
-noiseFolder.addBinding(state, 'noise', { label: 'σₙ', min: 0, max: 0.2, step: 0.005 });
-noiseFolder.addButton({ title: 'New noise' }).on('click', () => {
+toolbar.addBinding(state, 'noise', { label: 'noise σₙ', min: 0, max: 0.2, step: 0.005 });
+toolbar.addButton({ title: 'New noise' }).on('click', () => {
   state.seed++;
   schedule();
 });
-pane.addBinding(state, 'sigmaD', { label: 'blur σ_D', min: 0, max: 3, step: 0.1 });
-pane.addBinding(state, 'sigmaI', { label: 'window σ', min: 0.5, max: 5, step: 0.1 });
-pane.addBinding(state, 'alpha', { label: 'α', min: 0, max: 0.25, step: 0.005 });
-pane.addBinding(state, 'threshold', { label: 't (× max C)', min: 0, max: 0.5, step: 0.001 });
-pane.addBinding(state, 'radius', { label: 'NMS radius', min: 1, max: 10, step: 1 });
-pane.addBinding(state, 'grid', { label: 'ellipses on a grid' });
-pane.addBinding(state, 'zoom', { label: 'zoom', options: { '1×': 1, '2×': 2, '4×': 4, '8×': 8 } });
-pane.addButton({ title: 'Reset' }).on('click', () => {
+toolbar.addBinding(state, 'sigmaD', { label: 'blur σ_D', min: 0, max: 3, step: 0.1 });
+toolbar.addBinding(state, 'sigmaI', { label: 'window σ', min: 0.5, max: 5, step: 0.1 });
+toolbar.addBinding(state, 'zoom', { label: 'zoom', options: { '1×': 1, '2×': 2, '4×': 4, '8×': 8 } });
+toolbar.addResetButton(() => {
   Object.assign(state, defaults());
   Object.assign(center, { x: state.x, y: state.y });
-  pane.refresh();
+  ui.refresh();
+  schedule();
 });
+ui.panel('image-view').addBinding(state, 'grid', { label: 'ellipses on a grid' });
+ui.panel('response-view').addBinding(state, 'alpha', { label: 'α', min: 0, max: 0.25, step: 0.005 });
+const peaks = ui.panel('peaks-view');
+peaks.addBinding(state, 'threshold', { label: 't (× max C)', min: 0, max: 0.5, step: 0.001 });
+peaks.addBinding(state, 'radius', { label: 'NMS radius', min: 1, max: 10, step: 1 });
 
 const center = { x: state.x, y: state.y };
 const pick = (x: number, y: number, e: PointerEvent) => {
@@ -268,9 +270,9 @@ function renderValues(maxC: number): void {
   values.innerHTML = `
     <div class="value-grid">
       <div class="value-block">
-        <h3>1 · Derivatives at (${x}, ${y})</h3>
+        <h3>1. Derivatives at (${x}, ${y})</h3>
         ${eq(`I_x = ${fmt(h.d.ix.data[i], 4)}, \\qquad I_y = ${fmt(h.d.iy.data[i], 4)}`)}
-        <h3>2–3 · Second moment matrix</h3>
+        <h3>2–3. Second moment matrix</h3>
         ${eq(`M = \\begin{bmatrix} g(I_x^2) & g(I_x I_y) \\\\ g(I_x I_y) & g(I_y^2) \\end{bmatrix} = ${texMatrix(
           [
             [a, b],
@@ -280,14 +282,14 @@ function renderValues(maxC: number): void {
         )}`)}
       </div>
       <div class="value-block">
-        <h3>4 · Cornerness</h3>
+        <h3>4. Cornerness</h3>
         ${eq(`\\det M = ${e(det)}, \\qquad \\operatorname{trace} M = ${e(trace)}`)}
         ${eq(`C = \\det M - \\alpha \\operatorname{trace}(M)^2 = \\htmlClass{result}{${e(C)}}`)}
         ${eq(`\\lambda_1 = ${e(l1)}, \\quad \\lambda_2 = ${e(l2)}`)}
         ${eq(`\\lambda_1 \\lambda_2 - \\alpha (\\lambda_1 + \\lambda_2)^2 = ${e(l1 * l2 - state.alpha * (l1 + l2) ** 2)}`)}
       </div>
       <div class="value-block">
-        <h3>5–6 · Threshold and non-maximum suppression</h3>
+        <h3>5–6. Threshold and non-maximum suppression</h3>
         ${eq(`t = ${fmt(state.threshold, 3)} \\cdot \\max C = ${fmt(state.threshold, 3)} \\cdot ${e(maxC)} = ${e(t)}`)}
         ${eq(`\\text{pixels with } C \\ge t\\text{: } ${aboveCount}`)}
         ${eq(`\\text{corners after suppression: } \\htmlClass{result}{${corners.length}}`)}
@@ -296,6 +298,6 @@ function renderValues(maxC: number): void {
     </div>`;
 }
 
-pane.on('change', schedule);
+ui.on('change', schedule);
 onThemeChange(schedule);
 update();

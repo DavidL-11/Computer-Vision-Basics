@@ -16,44 +16,66 @@
         </p>
       </section>
 
-      <section class="workspace">
-        <div class="views">
-          <figure class="view card view-wide">
-            <figcaption>
-              Sampling \(x(t) = \cos(2\pi f t + \varphi)\)
-              <span class="muted legend">
-                <span class="key" style="--key: var(--fg-muted)">signal</span>
-                <span class="key" style="--key: var(--accent)">samples at \(t = n / f_s\)</span>
-                <span class="key dashed" style="--key: var(--viz-highlight)">alias through the same samples</span>
-              </span>
-            </figcaption>
-            <div id="signal-plot"></div>
-          </figure>
-          <figure class="view card view-wide">
-            <figcaption>
-              Spectrum of the sampled signal
-              <span class="muted legend">
-                <span class="key" style="--key: var(--fg-muted)">\(\pm f\)</span>
-                <span class="key" style="--key: var(--accent)">copies \(k f_s \pm f\)</span>
-                <span class="key" style="--key: var(--viz-highlight)">the copy inside \([-f_s/2, f_s/2]\)</span>
-                (Hz)
-              </span>
-            </figcaption>
-            <div id="spectrum-plot"></div>
-          </figure>
-          <figure class="view card view-wide">
-            <figcaption>Subsampling an image <span class="muted">each result enlarged back to the original size</span></figcaption>
-            <div class="image-row">
-              <figure><div id="original-view"></div><figcaption>original</figcaption></figure>
-              <figure><div id="naive-view"></div><figcaption id="naive-caption"></figcaption></figure>
-              <figure><div id="filtered-view"></div><figcaption id="filtered-caption"></figcaption></figure>
-            </div>
-          </figure>
+      <section class="demo-section">
+        <h2>Sampling a sinusoid</h2>
+        <div class="workspace">
+          <div class="views">
+            <figure class="view card view-wide">
+              <figcaption>
+                <span class="view-title">Sampling \(x(t) = \cos(2\pi f t + \varphi)\)</span>
+                <span class="view-hint legend">
+                  <span class="key" style="--key: var(--fg-muted)">signal</span>
+                  <span class="key" style="--key: var(--accent)">samples at \(t = n / f_s\)</span>
+                  <span class="key dashed" style="--key: var(--viz-highlight)">alias through the same samples</span>
+                </span>
+              </figcaption>
+              <div class="view-body">
+                <div class="view-main">
+                  <div id="signal-plot"></div>
+                </div>
+              </div>
+            </figure>
+            <figure class="view card view-wide">
+              <figcaption>
+                <span class="view-title">Spectrum of the sampled signal</span>
+                <span class="view-hint legend">
+                  <span class="key" style="--key: var(--fg-muted)">\(\pm f\)</span>
+                  <span class="key" style="--key: var(--accent)">copies \(k f_s \pm f\)</span>
+                  <span class="key" style="--key: var(--viz-highlight)">the copy inside \([-f_s/2, f_s/2]\)</span>
+                  <span>in Hz</span>
+                </span>
+              </figcaption>
+              <div class="view-body">
+                <div class="view-main">
+                  <div id="spectrum-plot"></div>
+                </div>
+              </div>
+            </figure>
+          </div>
+          <section class="card values"><div class="view-body"><div id="signal-values" class="view-main values-body" aria-live="polite"></div></div></section>
         </div>
-        <aside id="controls" class="controls"></aside>
       </section>
 
-      <section id="values" class="card values" aria-live="polite"></section>
+      <section class="demo-section">
+        <h2>Subsampling an image</h2>
+        <div class="workspace">
+          <div class="views">
+            <figure class="view card view-wide">
+              <figcaption><span class="view-title">Original and subsampled</span> <span class="view-hint">each result enlarged back to the original size</span></figcaption>
+              <div class="view-body">
+                <div class="view-main">
+                  <div class="image-row">
+                    <figure><div id="original-view"></div><figcaption>original</figcaption></figure>
+                    <figure><div id="naive-view"></div><figcaption id="naive-caption"></figcaption></figure>
+                    <figure><div id="filtered-view"></div><figcaption id="filtered-caption"></figcaption></figure>
+                  </div>
+                </div>
+              </div>
+            </figure>
+          </div>
+          <section class="card values"><div class="view-body"><div id="image-values" class="view-main values-body" aria-live="polite"></div></div></section>
+        </div>
+      </section>
 
       <article class="explanation">
         <h2>Sampling a sinusoid</h2>

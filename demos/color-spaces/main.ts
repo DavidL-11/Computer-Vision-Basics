@@ -1,5 +1,5 @@
-import { Pane } from 'tweakpane';
 import { cssRgb, hexToRgb, rgbToHex } from '../../src/shared/color';
+import { Controls } from '../../src/shared/controls';
 import { type RGB, type RGBImage, clamp01, createImage, getPixel } from '../../src/shared/image';
 import { addImagePicker } from '../../src/shared/imagePicker';
 import { initPage } from '../../src/shared/page';
@@ -22,31 +22,32 @@ function defaults() {
 const state = defaults();
 const picked: Record<'a' | 'b', { x: number; y: number; hex: string } | null> = { a: null, b: null };
 
-const pane = new Pane({ container: document.getElementById('controls')!, title: 'Color spaces' });
-let source: RGBImage = addImagePicker(pane, { names: ['chart', 'scene', 'text'], value: 'chart', width: W, height: H }, (img) => {
+const ui = new Controls();
+ui.toolbar().addResetButton(() => {
+  Object.assign(state, defaults());
+  picked.a = picked.b = null;
+  ui.refresh();
+  schedule();
+});
+let source: RGBImage = addImagePicker(ui.panel('image-view'), { names: ['chart', 'scene', 'text'], value: 'chart', width: W, height: H }, (img) => {
   source = img;
   picked.a = picked.b = null;
   schedule();
 });
-pane.addBinding(state, 'space', { label: 'channels of', options: Object.fromEntries(SPACES.map((s) => [SPACE_NAMES[s], s])) });
-const colors = pane.addFolder({ title: 'Two colors' });
-colors.addBinding(state, 'target', { label: 'click picks', options: { 'color A': 'a', 'color B': 'b' } });
+ui.panel('channel-0').addBinding(state, 'space', { label: 'channels of', options: Object.fromEntries(SPACES.map((s) => [SPACE_NAMES[s], s])) });
+const colors = ui.panel('strips');
 for (const key of ['a', 'b'] as const) {
   colors.addBinding(state, key, { label: `color ${key.toUpperCase()}` }).on('change', () => {
     if (picked[key]?.hex !== state[key]) picked[key] = null;
   });
 }
-pane.addButton({ title: 'Reset' }).on('click', () => {
-  Object.assign(state, defaults());
-  picked.a = picked.b = null;
-  pane.refresh();
-});
+colors.addBinding(state, 'target', { label: 'a click in the image picks', options: { 'color A': 'a', 'color B': 'b' } });
 
 const pick = (x: number, y: number) => {
   const hex = rgbToHex(getPixel(source, x, y));
   picked[state.target] = { x, y, hex };
   state[state.target] = hex;
-  pane.refresh();
+  ui.refresh();
   schedule();
 };
 
@@ -169,5 +170,5 @@ function renderValues(a: RGB, b: RGB): void {
     </div>`;
 }
 
-pane.on('change', schedule);
+ui.on('change', schedule);
 update();

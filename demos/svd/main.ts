@@ -1,4 +1,4 @@
-import { Pane } from 'tweakpane';
+import { Controls } from '../../src/shared/controls';
 import { eigen } from '../../src/shared/harris';
 import { type Plane, type RGBImage, planeToImage, psnr, toGray } from '../../src/shared/image';
 import { addImagePicker } from '../../src/shared/imagePicker';
@@ -35,35 +35,41 @@ const defaults = () => {
 const state = defaults();
 const matrix = (): Mat2 => [state.a, state.b, state.c, state.d];
 
-const pane = new Pane({ container: document.getElementById('controls')!, title: 'SVD' });
-const entries = pane.addFolder({ title: 'Matrix A = [a b; c d]' });
+const ui = new Controls();
+const matrixControls = ui.panel('stages-view');
+const entries = matrixControls.addFolder({ title: 'Matrix A = [a b; c d]' });
 const entry = { min: -2, max: 2, step: 0.01, format: (v: number) => fmt(v, 2) };
 for (const key of ['a', 'b', 'c', 'd'] as const) entries.addBinding(state, key, { label: key, ...entry });
-const presets = pane.addFolder({ title: 'Presets' });
+const presets = matrixControls.addFolder({ title: 'Presets' });
 for (const [name, M] of Object.entries(PRESETS))
   presets.addButton({ title: name[0].toUpperCase() + name.slice(1) }).on('click', () => {
     // Rounded like the sliders, so a preset and the same values set by hand give the same result.
     [state.a, state.b, state.c, state.d] = M.map((v) => Math.round(v * 100) / 100);
-    pane.refresh();
+    ui.refresh();
     schedule();
   });
-const solveFolder = pane.addFolder({ title: 'Solve Ax = b' });
+const solveFolder = matrixControls.addFolder({ title: 'Solve Ax = b' });
 solveFolder.addBinding(state, 'tau', { label: 'τ (keep σ > τ)', min: 0, max: 0.5, step: 0.01, format: (v: number) => fmt(v, 2) });
+matrixControls.addResetButton(() => {
+  const { a, b, c, d, bx, by, tau } = defaults();
+  Object.assign(state, { a, b, c, d, bx, by, tau });
+  ui.refresh();
+  schedule();
+});
 
-const imageFolder = pane.addFolder({ title: 'Rank-p image' });
+const imageControls = ui.panel('original-view');
 let image: RGBImage = addImagePicker(
-  imageFolder,
+  imageControls,
   { names: ['scene', 'text', 'chart', 'shapes', 'zone-plate'], value: 'scene', width: IMG_W, height: IMG_H },
   (img) => {
     setImage(img);
     schedule();
   },
 );
-imageFolder.addBinding(state, 'p', { label: 'p', min: 1, max: Math.min(IMG_W, IMG_H), step: 1 });
-pane.addButton({ title: 'Reset' }).on('click', () => {
-  Object.assign(state, defaults());
-  pane.refresh();
-  schedule();
+imageControls.addBinding(state, 'p', { label: 'rank p', min: 1, max: Math.min(IMG_W, IMG_H), step: 1 });
+imageControls.addResetButton(() => {
+  state.p = defaults().p;
+  ui.refresh();
 });
 
 const stagesView = new StagesView(document.getElementById('stages-view')!, ([x, y]) => {
@@ -75,7 +81,8 @@ const originalView = new PixelView(document.getElementById('original-view')!);
 const approxView = new PixelView(document.getElementById('approx-view')!);
 const sigmaPlot = new Plot(document.getElementById('sigma-plot')!, 240);
 const approxCaption = document.getElementById('approx-caption')!;
-const values = document.getElementById('values')!;
+const matrixValues = document.getElementById('matrix-values')!;
+const imageValues = document.getElementById('image-values')!;
 
 let gray: Plane;
 let imageSvd: SVD;
@@ -148,7 +155,7 @@ function renderValues(A: Mat2, s: SVD2, b: Vec2, sol: Solution, approx: Plane): 
   const { rankP, full } = storage(IMG_H, IMG_W, state.p);
   const quality = psnr(gray, approx);
 
-  values.innerHTML = `
+  matrixValues.innerHTML = `
     <div class="value-grid">
       <div class="value-block">
         <h3>${renderTex('A = U \\Sigma V^\\top')}</h3>
@@ -180,6 +187,9 @@ function renderValues(A: Mat2, s: SVD2, b: Vec2, sol: Solution, approx: Plane): 
           ${sol.inverted[1] ? '' : `<br><span class="warn">σ₂ ≤ τ: 1/σ₂ is dropped, x is the least-squares solution of minimum norm.</span>`}
         </p>
       </div>
+    </div>`;
+  imageValues.innerHTML = `
+    <div class="value-grid">
       <div class="value-block">
         <h3>Rank-${state.p} image ${renderTex(`a_{ij} \\approx \\sum_{k=1}^{${state.p}} u_{ik} \\sigma_k v_{jk}`)}</h3>
         ${eq(`p\\,(m + n + 1) = ${state.p} \\cdot (${IMG_H} + ${IMG_W} + 1) = ${rankP}`)}
@@ -192,6 +202,6 @@ function renderValues(A: Mat2, s: SVD2, b: Vec2, sol: Solution, approx: Plane): 
     </div>`;
 }
 
-pane.on('change', schedule);
+ui.on('change', schedule);
 onThemeChange(schedule);
 update();

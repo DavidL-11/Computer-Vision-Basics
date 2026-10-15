@@ -20,38 +20,57 @@
       <section class="workspace">
         <div class="views">
           <figure class="view card">
-            <figcaption>Original \(f\)</figcaption>
-            <div id="original-view" class="image-frame"></div>
+            <figcaption><span class="view-title">Original \(f\)</span></figcaption>
+            <div class="view-body">
+              <div class="view-main">
+                <div id="original-view" class="image-frame"></div>
+              </div>
+            </div>
           </figure>
           <figure class="view card">
-            <figcaption>Degraded \(g = h \ast f + n\) <span class="muted">what the camera records</span></figcaption>
-            <div id="degraded-view" class="image-frame"></div>
+            <figcaption><span class="view-title">Degraded \(g = h \ast f + n\)</span> <span class="view-hint">what the camera records</span></figcaption>
+            <div class="view-body">
+              <div class="view-main">
+                <div id="degraded-view" class="image-frame"></div>
+              </div>
+            </div>
           </figure>
           <figure class="view card">
-            <figcaption>Restored \(\hat f = \mathcal{F}^{-1}\{R \cdot G\}\)</figcaption>
-            <div id="restored-view" class="image-frame"></div>
+            <figcaption><span class="view-title">Restored \(\hat f = \mathcal{F}^{-1}\{R \cdot G\}\)</span></figcaption>
+            <div class="view-body">
+              <div class="view-main">
+                <div id="restored-view" class="image-frame"></div>
+              </div>
+            </div>
           </figure>
           <figure class="view card">
-            <figcaption>Error \(\hat f - f\) <span class="muted">amplified 4×, gray = 0</span></figcaption>
-            <div id="error-view" class="image-frame"></div>
+            <figcaption><span class="view-title">Error \(\hat f - f\)</span> <span class="view-hint">amplified 4×, gray = 0</span></figcaption>
+            <div class="view-body">
+              <div class="view-main">
+                <div id="error-view" class="image-frame"></div>
+              </div>
+            </div>
           </figure>
           <figure class="view card view-wide">
             <figcaption>
-              Filters along the \(u\) axis, \(v = 0\)
-              <span class="muted legend">
+              <span class="view-title">Filters along the \(u\) axis, \(v = 0\)</span>
+              <span class="view-hint legend">
                 <span class="key" style="--key: var(--fg-muted)">blur \(|H|\)</span>
                 <span class="key" style="--key: var(--accent)">restoration \(|R|\)</span>
                 <span class="key dashed" style="--key: var(--viz-highlight)">together \(|R H|\)</span>
                 shaded: \(R = 0\)
               </span>
             </figcaption>
-            <div id="transfer-plot"></div>
+            <div class="view-body">
+              <div class="view-main">
+                <div id="transfer-plot"></div>
+              </div>
+            </div>
           </figure>
         </div>
-        <aside id="controls" class="controls"></aside>
       </section>
 
-      <section id="values" class="card values" aria-live="polite"></section>
+      <section class="card values"><div class="view-body"><div id="values" class="view-main values-body" aria-live="polite"></div></div></section>
 
       <article class="explanation">
         <h2>Blur as a multiplication</h2>

@@ -20,18 +20,25 @@
       <section class="workspace">
         <div class="views">
           <figure class="view card">
-            <figcaption>Side view <span class="muted">true scale; wedge: vertical field of view, red: projection rays</span></figcaption>
-            <div id="side-view" class="diagram-view"></div>
+            <figcaption><span class="view-title">Side view</span> <span class="view-hint">true scale; wedge: vertical field of view, red: projection rays</span></figcaption>
+            <div class="view-body">
+              <div class="view-main">
+                <div id="side-view" class="diagram-view"></div>
+              </div>
+            </div>
           </figure>
           <figure class="view card">
-            <figcaption>Camera image <span class="muted">640 × 480 px; dashed: the model under “compare with”</span></figcaption>
-            <div id="image-view" class="image-view"></div>
+            <figcaption><span class="view-title">Camera image</span> <span class="view-hint">640 × 480 px; dashed: the model under “compare with”</span></figcaption>
+            <div class="view-body">
+              <div class="view-main">
+                <div id="image-view" class="image-view"></div>
+              </div>
+            </div>
           </figure>
         </div>
-        <aside id="controls" class="controls"></aside>
       </section>
 
-      <section id="values" class="card values" aria-live="polite"></section>
+      <section class="card values"><div class="view-body"><div id="values" class="view-main values-body" aria-live="polite"></div></div></section>
 
       <article class="explanation">
         <h2>Focal length and field of view</h2>

@@ -21,50 +21,69 @@
         <div class="views">
           <figure class="view card">
             <figcaption>
-              Image \(I\) <span class="muted">click to select the window center</span>
+              <span class="view-title">Image \(I\)</span> <span class="view-hint">click to select the window center</span>
             </figcaption>
-            <div id="image-view" class="image-frame"></div>
+            <div class="view-body">
+              <div class="view-main">
+                <div id="image-view" class="image-frame"></div>
+              </div>
+            </div>
           </figure>
           <figure class="view card">
             <figcaption>
-              Neighborhood
-              <span class="muted legend">
+              <span class="view-title">Neighborhood</span>
+              <span class="view-hint legend">
                 <span class="key" style="--key: var(--viz-highlight)">window</span>
                 <span class="key dashed" style="--key: var(--viz-points)">shifted by (u, v)</span>
               </span>
             </figcaption>
-            <div id="patch-view" class="image-frame square-frame"></div>
+            <div class="view-body">
+              <div class="view-main">
+                <div id="patch-view" class="image-frame square-frame"></div>
+              </div>
+            </div>
           </figure>
           <figure class="view card">
             <figcaption>
-              \(E(u, v)\) <span class="muted">black = 0, click to select a shift</span>
+              <span class="view-title">\(E(u, v)\)</span> <span class="view-hint">black = 0, click to select a shift</span>
             </figcaption>
-            <div id="e-view" class="image-frame square-frame"></div>
+            <div class="view-body">
+              <div class="view-main">
+                <div id="e-view" class="image-frame square-frame"></div>
+              </div>
+            </div>
           </figure>
           <figure class="view card">
             <figcaption>
-              Approximation \([u \;\, v] \, M \, [u \;\, v]^\top\)
-              <span class="muted legend"><span class="key" style="--key: var(--accent)">ellipse at half the white level</span></span>
+              <span class="view-title">Approximation \([u \;\, v] \, M \, [u \;\, v]^\top\)</span>
+              <span class="view-hint legend"><span class="key" style="--key: var(--accent)">ellipse at half the white level</span></span>
             </figcaption>
-            <div id="q-view" class="image-frame square-frame"></div>
+            <div class="view-body">
+              <div class="view-main">
+                <div id="q-view" class="image-frame square-frame"></div>
+              </div>
+            </div>
           </figure>
           <figure class="view card view-wide">
             <figcaption>
-              Sections through \((0, 0)\)
-              <span class="muted legend">
+              <span class="view-title">Sections through \((0, 0)\)</span>
+              <span class="view-hint legend">
                 <span class="key" style="--key: var(--accent)">\(E(u, 0)\)</span>
                 <span class="key dashed" style="--key: var(--accent)">\(M_{11} u^2\)</span>
                 <span class="key" style="--key: var(--viz-points)">\(E(0, v)\)</span>
                 <span class="key dashed" style="--key: var(--viz-points)">\(M_{22} v^2\)</span>
               </span>
             </figcaption>
-            <div id="section-plot"></div>
+            <div class="view-body">
+              <div class="view-main">
+                <div id="section-plot"></div>
+              </div>
+            </div>
           </figure>
         </div>
-        <aside id="controls" class="controls"></aside>
       </section>
 
-      <section id="values" class="card values" aria-live="polite"></section>
+      <section class="card values"><div class="view-body"><div id="values" class="view-main values-body" aria-live="polite"></div></div></section>
 
       <article class="explanation">
         <h2>Interest points</h2>

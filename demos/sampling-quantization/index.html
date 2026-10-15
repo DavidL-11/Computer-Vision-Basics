@@ -21,22 +21,33 @@
       <section class="workspace">
         <div class="views">
           <figure class="view card">
-            <figcaption>Original <span class="muted">320 × 240 px, click to select a pixel and row</span></figcaption>
-            <div id="original-view" class="image-frame"></div>
+            <figcaption><span class="view-title">Original</span> <span class="view-hint">320 × 240 px, click to select a pixel and row</span></figcaption>
+            <div class="view-body">
+              <div class="view-main">
+                <div id="original-view" class="image-frame"></div>
+              </div>
+            </div>
           </figure>
           <figure class="view card">
-            <figcaption>Sampled &amp; quantized <span class="muted">each sample is drawn as an \(s \times s\) block</span></figcaption>
-            <div id="result-view" class="image-frame"></div>
+            <figcaption><span class="view-title">Sampled &amp; quantized</span> <span class="view-hint">each sample is drawn as an \(s \times s\) block</span></figcaption>
+            <div class="view-body">
+              <div class="view-main">
+                <div id="result-view" class="image-frame"></div>
+              </div>
+            </div>
           </figure>
           <figure class="view card view-wide">
-            <figcaption>Intensity along the selected row <span class="muted">thin: original, thick: sampled &amp; quantized, grid: quantization levels</span></figcaption>
-            <div id="profile-view"></div>
+            <figcaption><span class="view-title">Intensity along the selected row</span> <span class="view-hint">thin: original, thick: sampled &amp; quantized, grid: quantization levels</span></figcaption>
+            <div class="view-body">
+              <div class="view-main">
+                <div id="profile-view"></div>
+              </div>
+            </div>
           </figure>
         </div>
-        <aside id="controls" class="controls"></aside>
       </section>
 
-      <section id="values" class="card values" aria-live="polite"></section>
+      <section class="card values"><div class="view-body"><div id="values" class="view-main values-body" aria-live="polite"></div></div></section>
 
       <article class="explanation">
         <h2>Images as sampled signals</h2>

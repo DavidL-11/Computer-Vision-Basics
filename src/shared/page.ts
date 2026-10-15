@@ -21,21 +21,26 @@ export function initPage(options: PageOptions = {}): void {
   const brand = document.createElement('a');
   brand.className = 'brand';
   brand.href = home;
-  brand.innerHTML = 'Computer Vision<span>·</span>Basics';
+  brand.textContent = 'Computer Vision Basics';
   container.append(brand);
 
   if (options.title) {
     const crumb = document.createElement('nav');
     crumb.className = 'breadcrumb';
     const chapter = options.chapterId ? chapterById(options.chapterId) : undefined;
+    const part = (tag: 'a' | 'span', className: string, text: string) => {
+      const e = document.createElement(tag);
+      e.className = className;
+      e.textContent = text;
+      return e;
+    };
+    crumb.append(part('span', 'sep', '/'));
     if (chapter) {
-      const link = document.createElement('a');
+      const link = part('a', 'chapter-link', chapter.title) as HTMLAnchorElement;
       link.href = `${home}#${chapter.id}`;
-      link.textContent = `${chapter.number}. ${chapter.title}`;
-      crumb.append('/ ', link, ` / ${options.title}`);
-    } else {
-      crumb.append(`/ ${options.title}`);
+      crumb.append(link, part('span', 'sep chapter-sep', '/'));
     }
+    crumb.append(part('span', 'current', options.title));
     container.append(crumb);
   }
 
@@ -47,6 +52,6 @@ export function initPage(options: PageOptions = {}): void {
 
   const footer = document.createElement('footer');
   footer.className = 'site-footer';
-  footer.innerHTML = `<div class="container">Computer Vision Basics: interactive computer vision fundamentals.</div>`;
+  footer.innerHTML = `<div class="container"><span>Computer Vision Basics</span><a href="${home}">All chapters</a></div>`;
   document.body.append(footer);
 }

@@ -23,35 +23,46 @@
         <div class="views">
           <figure class="view card view-wide">
             <figcaption>
-              Side view <span class="muted">schematic, distances on a log scale</span>
-              <span class="muted legend">
+              <span class="view-title">Side view</span> <span class="view-hint">schematic, distances on a log scale</span>
+              <span class="view-hint legend">
                 <span class="key" style="--key: var(--layer-near)">foreground</span>
                 <span class="key" style="--key: var(--layer-subject)">subject</span>
                 <span class="key" style="--key: var(--layer-far)">background</span>
               </span>
             </figcaption>
-            <div id="lens-diagram" class="diagram-view"></div>
+            <div class="view-body">
+              <div class="view-main">
+                <div id="lens-diagram" class="diagram-view"></div>
+              </div>
+            </div>
           </figure>
           <figure class="view card">
-            <figcaption>Simulated photo <span class="muted">each layer blurred by its circle of confusion</span></figcaption>
-            <div id="image-view" class="image-frame"></div>
+            <figcaption><span class="view-title">Simulated photo</span> <span class="view-hint">each layer blurred by its circle of confusion</span></figcaption>
+            <div class="view-body">
+              <div class="view-main">
+                <div id="image-view" class="image-frame"></div>
+              </div>
+            </div>
           </figure>
           <figure class="view card">
             <figcaption>
-              Circle of confusion
-              <span class="muted legend">
+              <span class="view-title">Circle of confusion</span>
+              <span class="view-hint legend">
                 <span class="key" style="--key: var(--fg)">\(c(D)\) [mm]</span>
                 <span class="key dashed" style="--key: var(--accent)">acceptable \(c\)</span>
                 shaded: depth of field
               </span>
             </figcaption>
-            <div id="coc-plot"></div>
+            <div class="view-body">
+              <div class="view-main">
+                <div id="coc-plot"></div>
+              </div>
+            </div>
           </figure>
         </div>
-        <aside id="controls" class="controls"></aside>
       </section>
 
-      <section id="values" class="card values" aria-live="polite"></section>
+      <section class="card values"><div class="view-body"><div id="values" class="view-main values-body" aria-live="polite"></div></div></section>
 
       <article class="explanation">
         <h2>The thin lens</h2>

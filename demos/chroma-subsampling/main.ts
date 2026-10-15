@@ -1,4 +1,4 @@
-import { Pane } from 'tweakpane';
+import { Controls } from '../../src/shared/controls';
 import { type RGBImage, planeToImage, psnr } from '../../src/shared/image';
 import { addImagePicker } from '../../src/shared/imagePicker';
 import { initPage } from '../../src/shared/page';
@@ -26,20 +26,23 @@ function defaults() {
 const state = defaults();
 const center = { x: W / 2, y: H / 2 };
 
-const pane = new Pane({ container: document.getElementById('controls')!, title: 'Chroma subsampling' });
-let source: RGBImage = addImagePicker(pane, { names: ['scene', 'text', 'chart', 'zone-plate'], value: 'scene', width: W, height: H }, (img) => {
+const ui = new Controls();
+const toolbar = ui.toolbar();
+let source: RGBImage = addImagePicker(toolbar, { names: ['scene', 'text', 'chart', 'zone-plate'], value: 'scene', width: W, height: H }, (img) => {
   source = img;
   schedule();
 });
-pane.addBinding(state, 'scheme', { label: 'scheme', options: Object.fromEntries(Object.keys(SCHEMES).map((k) => [k, k])) });
-pane.addBinding(state, 'target', { label: 'reduce', options: { 'chroma Cb, Cr': 'chroma', 'luma Y': 'luma' } });
-pane.addBinding(state, 'upsampling', { label: 'upsampling', options: { 'nearest neighbor': 'nearest', bilinear: 'bilinear' } });
-pane.addBinding(state, 'zoom', { label: 'zoom', options: { '1×': 1, '2×': 2, '4×': 4, '8×': 8 } });
-pane.addButton({ title: 'Reset' }).on('click', () => {
+toolbar.addBinding(state, 'zoom', { label: 'zoom', options: { '1×': 1, '2×': 2, '4×': 4, '8×': 8 } });
+toolbar.addResetButton(() => {
   Object.assign(state, defaults());
   Object.assign(center, { x: W / 2, y: H / 2 });
-  pane.refresh();
+  ui.refresh();
+  schedule();
 });
+const subsampling = ui.panel('result-view');
+subsampling.addBinding(state, 'scheme', { label: 'scheme', options: Object.fromEntries(Object.keys(SCHEMES).map((k) => [k, k])) });
+subsampling.addBinding(state, 'target', { label: 'reduce', options: { 'chroma Cb, Cr': 'chroma', 'luma Y': 'luma' } });
+subsampling.addBinding(state, 'upsampling', { label: 'upsampling', options: { 'nearest neighbor': 'nearest', bilinear: 'bilinear' } });
 
 const recenter = (x: number, y: number, e: PointerEvent) => {
   if (e.type !== 'pointerdown') return;
@@ -100,5 +103,5 @@ function renderValues(fx: number, fy: number): void {
     </div>`;
 }
 
-pane.on('change', schedule);
+ui.on('change', schedule);
 update();

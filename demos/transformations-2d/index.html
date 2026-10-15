@@ -21,20 +21,27 @@
         <div class="views">
           <figure class="view card">
             <figcaption>
-              Plane \(p' = H p\)
-              <span class="muted">click to pick a point; faint: before the transformation</span>
+              <span class="view-title">Plane \(p' = H p\)</span>
+              <span class="view-hint">click to pick a point; faint: before the transformation</span>
             </figcaption>
-            <div id="plane-view" class="plane-view"></div>
+            <div class="view-body">
+              <div class="view-main">
+                <div id="plane-view" class="plane-view"></div>
+              </div>
+            </div>
           </figure>
           <figure class="view card">
-            <figcaption>Transformed image <span class="muted">gray: no part of the original image</span></figcaption>
-            <div id="image-view" class="image-frame"></div>
+            <figcaption><span class="view-title">Transformed image</span> <span class="view-hint">gray: no part of the original image</span></figcaption>
+            <div class="view-body">
+              <div class="view-main">
+                <div id="image-view" class="image-frame"></div>
+              </div>
+            </div>
           </figure>
         </div>
-        <aside id="controls" class="controls"></aside>
       </section>
 
-      <section id="values" class="card values" aria-live="polite"></section>
+      <section class="card values"><div class="view-body"><div id="values" class="view-main values-body" aria-live="polite"></div></div></section>
 
       <article class="explanation">
         <h2>Parametric transformations</h2>

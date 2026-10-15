@@ -20,32 +20,39 @@
         <div class="views">
           <figure class="view card view-wide">
             <figcaption>
-              Partial sum \(S_n(t)\) over one period
-              <span class="muted legend">
+              <span class="view-title">Partial sum \(S_n(t)\) over one period</span>
+              <span class="view-hint legend">
                 <span class="key" style="--key: var(--fg-muted)">target \(f(t)\)</span>
                 <span class="key" style="--key: var(--accent)">\(S_n(t)\)</span>
                 <span class="key" style="--key: var(--viz-highlight)">newest term</span>
                 <span class="key" style="--key: var(--viz-object)">earlier terms</span>
               </span>
             </figcaption>
-            <div id="sum-plot"></div>
+            <div class="view-body">
+              <div class="view-main">
+                <div id="sum-plot"></div>
+              </div>
+            </div>
           </figure>
           <figure class="view card view-wide">
             <figcaption>
-              Coefficients \(b_k\) over the harmonic \(k\)
-              <span class="muted legend">
+              <span class="view-title">Coefficients \(b_k\) over the harmonic \(k\)</span>
+              <span class="view-hint legend">
                 <span class="key" style="--key: var(--accent)">included</span>
                 <span class="key" style="--key: var(--viz-highlight)">newest</span>
                 <span class="key" style="--key: var(--fg-faint)">next terms</span>
               </span>
             </figcaption>
-            <div id="coefficient-plot"></div>
+            <div class="view-body">
+              <div class="view-main">
+                <div id="coefficient-plot"></div>
+              </div>
+            </div>
           </figure>
         </div>
-        <aside id="controls" class="controls"></aside>
       </section>
 
-      <section id="values" class="card values" aria-live="polite"></section>
+      <section class="card values"><div class="view-body"><div id="values" class="view-main values-body" aria-live="polite"></div></div></section>
 
       <article class="explanation">
         <h2>Signals as sums of sinusoids</h2>

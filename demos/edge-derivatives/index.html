@@ -19,71 +19,102 @@
       <section class="workspace">
         <div class="views">
           <figure class="view card">
-            <figcaption>Image \(f\) <span class="muted">click to select a row and pixel</span></figcaption>
-            <div id="noisy-view" class="image-frame"></div>
+            <figcaption><span class="view-title">Image \(f\)</span> <span class="view-hint">click to select a row and pixel</span></figcaption>
+            <div class="view-body">
+              <div class="view-main">
+                <div id="noisy-view" class="image-frame"></div>
+              </div>
+            </div>
           </figure>
           <figure class="view card">
-            <figcaption>Smoothed \(f * g\) <span id="smooth-caption" class="muted"></span></figcaption>
-            <div id="smooth-view" class="image-frame"></div>
+            <figcaption><span class="view-title">Smoothed \(f * g\)</span> <span id="smooth-caption" class="view-hint"></span></figcaption>
+            <div class="view-body">
+              <div class="view-main">
+                <div id="smooth-view" class="image-frame"></div>
+              </div>
+            </div>
           </figure>
           <figure class="view card">
-            <figcaption>Derivative \(\frac{d f}{dx}\) <span class="muted">without smoothing, 0 = gray</span></figcaption>
-            <div id="raw-view" class="image-frame"></div>
+            <figcaption><span class="view-title">Derivative \(\frac{d f}{dx}\)</span> <span class="view-hint">without smoothing, 0 = gray</span></figcaption>
+            <div class="view-body">
+              <div class="view-main">
+                <div id="raw-view" class="image-frame"></div>
+              </div>
+            </div>
           </figure>
           <figure class="view card">
-            <figcaption>Derivative \(\frac{d}{dx}(f * g)\) <span class="muted">smoothed first, 0 = gray</span></figcaption>
-            <div id="deriv-view" class="image-frame"></div>
+            <figcaption><span class="view-title">Derivative \(\frac{d}{dx}(f * g)\)</span> <span class="view-hint">smoothed first, 0 = gray</span></figcaption>
+            <div class="view-body">
+              <div class="view-main">
+                <div id="deriv-view" class="image-frame"></div>
+              </div>
+            </div>
           </figure>
           <figure class="view card view-wide">
             <figcaption>
-              Intensity along the selected row
-              <span class="muted legend">
+              <span class="view-title">Intensity along the selected row</span>
+              <span class="view-hint legend">
                 <span class="key" style="--key: var(--fg-faint)">\(f\)</span>
                 <span class="key dashed" style="--key: var(--fg-muted)">without noise</span>
                 <span class="key" style="--key: var(--accent)">\(f * g\)</span>
                 <span class="key" style="--key: var(--viz-object)">detected edges</span>
               </span>
             </figcaption>
-            <div id="profile-plot"></div>
+            <div class="view-body">
+              <div class="view-main">
+                <div id="profile-plot"></div>
+              </div>
+            </div>
           </figure>
           <figure class="view card view-wide">
             <figcaption>
-              First derivative
-              <span class="muted legend">
+              <span class="view-title">First derivative</span>
+              <span class="view-hint legend">
                 <span class="key" style="--key: var(--fg-faint)">\(\frac{d f}{dx}\)</span>
                 <span class="key" style="--key: var(--accent)">\(\frac{d}{dx}(f * g)\)</span>
                 <span class="key dashed" style="--key: var(--viz-points)">\(f * \frac{dg}{dx}\)</span>
                 <span class="key dashed" style="--key: var(--fg-muted)">threshold \(\pm t\)</span>
               </span>
             </figcaption>
-            <div id="deriv-plot"></div>
+            <div class="view-body">
+              <div class="view-main">
+                <div id="deriv-plot"></div>
+              </div>
+            </div>
           </figure>
           <figure class="view card view-wide">
             <figcaption>
-              Second derivative \(\frac{d^2}{dx^2}(f * g)\)
-              <span class="muted legend">
+              <span class="view-title">Second derivative \(\frac{d^2}{dx^2}(f * g)\)</span>
+              <span class="view-hint legend">
                 <span class="key" style="--key: var(--accent)">smoothed</span>
                 <span class="key" style="--key: var(--viz-object)">zero crossings where \(\left|\frac{d}{dx}(f * g)\right| \ge t\)</span>
               </span>
             </figcaption>
-            <div id="second-plot"></div>
+            <div class="view-body">
+              <div class="view-main">
+                <div id="second-plot"></div>
+              </div>
+            </div>
           </figure>
           <figure class="view card view-wide">
             <figcaption>
-              Filter kernels
-              <span class="muted legend">
+              <span class="view-title">Filter kernels</span>
+              <span class="view-hint legend">
                 <span class="key" style="--key: var(--fg-faint)">\(G_\sigma(x)\)</span>
                 <span class="key dashed" style="--key: var(--viz-highlight)">\(G'_\sigma(x)\)</span>
                 <span class="key" style="--key: var(--accent)">sampled \(\frac{dg}{dx}\)</span>
               </span>
             </figcaption>
-            <div id="kernel-plot"></div>
+            <div class="view-body">
+              <div class="view-main">
+                <div id="kernel-plot"></div>
+              </div>
+            </div>
           </figure>
         </div>
-        <aside id="controls" class="controls"></aside>
       </section>
 
-      <section id="values" class="card values" aria-live="polite"></section>
+      <section class="card values"><div class="view-body"><div id="values" class="view-main values-body" aria-live="polite"></div></div></section>
 
       <article class="explanation">
         <h2>Where edges come from</h2>

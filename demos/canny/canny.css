@@ -1,18 +1,12 @@
 .views.steps {
   grid-template-columns: repeat(4, minmax(0, 1fr));
 }
-.views.steps .view figcaption .muted {
-  display: block;
-  margin-left: 0;
+/* Small panels: the hint gets its own line and is cut off rather than wrapped. */
+.views.steps .view-hint {
+  flex-basis: 100%;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-}
-.views.steps .legend .key {
-  margin-left: 0.6rem;
-}
-.views.steps .legend .key:first-child {
-  margin-left: 0;
 }
 
 @media (max-width: 1500px) {

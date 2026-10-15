@@ -1,4 +1,4 @@
-import { Pane } from 'tweakpane';
+import { Controls } from '../../src/shared/controls';
 import { type Border, padPlane, pixelAt } from '../../src/shared/filter';
 import { type Plane, type RGBImage, planeToImage, toGray } from '../../src/shared/image';
 import { addImagePicker } from '../../src/shared/imagePicker';
@@ -43,38 +43,50 @@ function defaults() {
 const state = defaults();
 let cells = PRESETS[state.preset].rows.map((r) => [...r]);
 
-const pane = new Pane({ container: document.getElementById('controls')!, title: 'Linear filter' });
+const ui = new Controls();
+const toolbar = ui.toolbar();
 let gray: Plane = toGray(
-  addImagePicker(pane, { names: ['scene', 'chart', 'text', 'zone-plate', 'gradients'], value: 'scene', width: W, height: H }, (img: RGBImage) => {
+  addImagePicker(toolbar, { names: ['scene', 'chart', 'text', 'zone-plate', 'gradients'], value: 'scene', width: W, height: H }, (img: RGBImage) => {
     gray = toGray(img);
     schedule();
   }),
 );
-const presetBinding = pane.addBinding(state, 'preset', {
-  label: 'filter',
-  options: Object.fromEntries(Object.entries(PRESETS).map(([name, p]) => [p.label, name])),
-});
-pane.addBinding(state, 'op', { label: 'operation', options: { correlation: 'correlation', convolution: 'convolution' } });
-pane.addBinding(state, 'border', { label: 'border', options: { 'clip filter (black)': 'zero', 'wrap around': 'wrap', 'copy edge': 'clamp', reflect: 'reflect' } });
-pane.addBinding(state, 'times', { label: 'apply n times', min: 1, max: 20, step: 1 });
-const display = pane.addFolder({ title: 'Display' });
-display.addBinding(state, 'display', { label: 'result', options: { clipped: 'clip', 'signed, 0 = gray': 'signed', absolute: 'abs' } });
-display.addBinding(state, 'zoom', { label: 'zoom', options: { '1×': 1, '2×': 2, '4×': 4, '8×': 8 } });
-pane.addButton({ title: 'Reset' }).on('click', () => {
+toolbar.addBinding(state, 'zoom', { label: 'zoom', options: { '1×': 1, '2×': 2, '4×': 4, '8×': 8 } });
+toolbar.addResetButton(() => {
   Object.assign(state, defaults());
   Object.assign(center, { x: state.x, y: state.y });
   cells = PRESETS[state.preset].rows.map((r) => [...r]);
   renderKernelGrid();
-  pane.refresh();
+  ui.refresh();
+  schedule();
 });
 
+ui.panel('input-view').addBinding(state, 'border', {
+  label: 'border',
+  options: { 'clip filter (black)': 'zero', 'wrap around': 'wrap', 'copy edge': 'clamp', reflect: 'reflect' },
+});
+
+const resultControls = ui.panel('result-view');
+resultControls.addBinding(state, 'times', { label: 'apply n times', min: 1, max: 20, step: 1 });
+resultControls.addBinding(state, 'display', { label: 'show values', options: { clipped: 'clip', 'signed, 0 = gray': 'signed', absolute: 'abs' } });
+
+const kernelControls = ui.panel('kernel-grid');
+const presetBinding = kernelControls.addBinding(state, 'preset', {
+  label: 'filter',
+  options: Object.fromEntries(Object.entries(PRESETS).map(([name, p]) => [p.label, name])),
+});
+kernelControls.addBinding(state, 'op', { label: 'operation', options: { correlation: 'correlation', convolution: 'convolution' } });
+
+/** Set while a weight is typed, so switching to a custom preset keeps the inputs (and the focus). */
+let editingWeight = false;
 presetBinding.on('change', ({ value }) => {
   if (isCustom(value)) {
+    if (editingWeight) return;
     cells = resizeCells(cells, PRESETS[value].rows.length);
   } else {
     cells = PRESETS[value].rows.map((r) => [...r]);
     state.display = 'signed' in PRESETS[value] ? 'signed' : 'clip';
-    pane.refresh();
+    ui.refresh();
   }
   renderKernelGrid();
 });
@@ -98,7 +110,9 @@ function renderKernelGrid(): void {
           input.classList.toggle('invalid', parseWeight(input.value) === null);
           if (!isCustom(state.preset)) {
             state.preset = cells.length === 3 ? 'custom3' : 'custom5';
+            editingWeight = true;
             presetBinding.refresh();
+            editingWeight = false;
           }
           schedule();
         });
@@ -217,6 +231,6 @@ function renderValues(input: Plane, result: Plane, f: Plane): void {
     </div>`;
 }
 
-pane.on('change', schedule);
+ui.on('change', schedule);
 onThemeChange(schedule);
 update();

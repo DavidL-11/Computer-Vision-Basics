@@ -1,4 +1,4 @@
-import { Pane } from 'tweakpane';
+import { Controls } from '../../src/shared/controls';
 import { type Plane, planeToImage, psnr, toGray } from '../../src/shared/image';
 import { addImagePicker } from '../../src/shared/imagePicker';
 import { initPage } from '../../src/shared/page';
@@ -32,21 +32,24 @@ function defaults() {
 }
 const state = defaults();
 
-const pane = new Pane({ container: document.getElementById('controls')!, title: 'JPEG' });
+const ui = new Controls();
+const toolbar = ui.toolbar();
 let original: Plane = toGray(
-  addImagePicker(pane, { names: ['scene', 'chart', 'text', 'gradients', 'zone-plate'], value: 'scene', width: W, height: H }, (img) => {
+  addImagePicker(toolbar, { names: ['scene', 'chart', 'text', 'gradients', 'zone-plate'], value: 'scene', width: W, height: H }, (img) => {
     original = toGray(img);
     schedule();
   }),
 );
-pane.addBinding(state, 'quality', { label: 'quality', min: 1, max: 100, step: 1 });
-pane.addBinding(state, 'table', { label: 'table', options: { 'JPEG luminance': 'luminance', 'flat (same step)': 'flat' } });
-pane.addBinding(state, 'zoom', { label: 'zoom', options: { '1×': 1, '2×': 2, '4×': 4, '8×': 8 } });
-pane.addButton({ title: 'Reset' }).on('click', () => {
+toolbar.addBinding(state, 'zoom', { label: 'zoom', options: { '1×': 1, '2×': 2, '4×': 4, '8×': 8 } });
+toolbar.addResetButton(() => {
   Object.assign(state, defaults());
   Object.assign(center, blockCenter());
-  pane.refresh();
+  ui.refresh();
+  schedule();
 });
+const decoded = ui.panel('decoded-view');
+decoded.addBinding(state, 'quality', { label: 'quality', min: 1, max: 100, step: 1 });
+decoded.addBinding(state, 'table', { label: 'quantization table', options: { 'JPEG luminance': 'luminance', 'flat (same step)': 'flat' } });
 
 const blockCenter = () => ({ x: (state.bx + 0.5) * B, y: (state.by + 0.5) * B });
 const center = blockCenter();
@@ -163,7 +166,7 @@ function renderValues(c: Compressed, table: number[]): void {
     </div>`;
 }
 
-pane.on('change', schedule);
+ui.on('change', schedule);
 onThemeChange(() => {
   basisView.draw();
   schedule();

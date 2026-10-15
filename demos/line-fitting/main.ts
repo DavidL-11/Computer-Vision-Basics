@@ -1,4 +1,4 @@
-import { Pane } from 'tweakpane';
+import { Controls } from '../../src/shared/controls';
 import { random } from '../../src/shared/noise';
 import { initPage } from '../../src/shared/page';
 import { perFrame } from '../../src/shared/pixelView';
@@ -28,41 +28,45 @@ function generate(): void {
 }
 generate();
 
-const pane = new Pane({ container: document.getElementById('controls')!, title: 'Line fitting' });
-const presets = pane.addFolder({ title: 'Points' });
+const ui = new Controls();
+const toolbar = ui.toolbar();
+const presets = toolbar.addFolder({ title: 'Points' });
 for (const name of PRESETS)
   presets.addButton({ title: name[0].toUpperCase() + name.slice(1) }).on('click', () => {
     state.preset = name;
     generate();
     schedule();
   });
-presets.addBinding(state, 'noise', { label: 'noise σ', min: 0, max: 1, step: 0.01, format: (v: number) => fmt(v, 2) }).on('change', () => {
+toolbar.addResetButton(() => {
+  Object.assign(state, defaults());
+  ui.refresh();
   generate();
   schedule();
 });
-presets.addButton({ title: 'New noise' }).on('click', () => {
+
+const fitControls = ui.panel('fit-view');
+const pointsFolder = fitControls.addFolder({ title: 'Points' });
+pointsFolder.addBinding(state, 'noise', { label: 'noise σ', min: 0, max: 1, step: 0.01, format: (v: number) => fmt(v, 2) }).on('change', () => {
+  generate();
+  schedule();
+});
+pointsFolder.addButton({ title: 'New noise' }).on('click', () => {
   state.seed++;
   generate();
   schedule();
 });
-presets
+pointsFolder
   .addBinding(state, 'rotation', { label: 'rotate (°)', min: -90, max: 90, step: 1, format: (v: number) => fmt(v, 0) })
   .on('change', () => {
     points = rotateAbout(points, centroid(points), (state.rotation - applied) * DEG);
     applied = state.rotation;
     schedule();
   });
-const display = pane.addFolder({ title: 'Display' });
+const display = fitControls.addFolder({ title: 'Show' });
 display.addBinding(state, 'showVLS', { label: 'vertical LS' });
 display.addBinding(state, 'showTLS', { label: 'total LS' });
 display.addBinding(state, 'showResiduals', { label: 'residuals' });
 display.on('change', () => schedule());
-pane.addButton({ title: 'Reset' }).on('click', () => {
-  Object.assign(state, defaults());
-  pane.refresh();
-  generate();
-  schedule();
-});
 
 const fitView = new FitView(document.getElementById('fit-view')!, {
   add(p) {

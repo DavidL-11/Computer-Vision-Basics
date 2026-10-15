@@ -1,4 +1,4 @@
-import { Pane } from 'tweakpane';
+import { Controls } from '../../src/shared/controls';
 import { type Plane, type RGBImage, mergeChannels, splitChannels } from '../../src/shared/image';
 import { addImagePicker } from '../../src/shared/imagePicker';
 import { DEG, type Mat3, det3, identity3 } from '../../src/shared/linalg';
@@ -65,23 +65,32 @@ function defaults() {
 const state = defaults();
 const params = (): Params => ({ ...state, theta: state.theta * DEG });
 
-const pane = new Pane({ container: document.getElementById('controls')!, title: 'Transformation' });
+const ui = new Controls();
+const toolbar = ui.toolbar();
+const presets = toolbar.addFolder({ title: 'Presets' });
+for (const name of Object.keys(PRESETS))
+  presets.addButton({ title: name[0].toUpperCase() + name.slice(1) }).on('click', () => {
+    Object.assign(state, preset(name));
+    ui.refresh();
+    schedule();
+  });
+toolbar.addResetButton(() => {
+  Object.assign(state, defaults());
+  ui.refresh();
+  schedule();
+});
+
 let image: RGBImage = addImagePicker(
-  pane,
+  ui.panel('image-view'),
   { names: ['chart', 'scene', 'shapes', 'text'], value: 'chart', width: SIZE, height: SIZE },
   (img) => {
     image = img;
     schedule();
   },
 );
-const presets = pane.addFolder({ title: 'Presets' });
-for (const name of Object.keys(PRESETS))
-  presets.addButton({ title: name[0].toUpperCase() + name.slice(1) }).on('click', () => {
-    Object.assign(state, preset(name));
-    pane.refresh();
-    schedule();
-  });
-const folder = (title: string) => pane.addFolder({ title });
+
+const planeControls = ui.panel('plane-view');
+const folder = (title: string) => planeControls.addFolder({ title });
 const number = (min: number, max: number, step = 0.01) => ({ min, max, step, format: (v: number) => fmt(v, step < 1 ? 2 : 0) });
 const t = folder('Translation');
 t.addBinding(state, 'tx', { label: 'tₓ', ...number(-1, 1) });
@@ -102,15 +111,10 @@ const p = folder('Perspective');
 // |g| + |h| ≤ 0.9 keeps w' = g x + h y + 1 > 0 on the grid [−1, 1]².
 p.addBinding(state, 'g', { label: 'g', ...number(-0.45, 0.45) });
 p.addBinding(state, 'h', { label: 'h', ...number(-0.45, 0.45) });
-const display = folder('Display');
+const display = folder('Show');
 display.addBinding(state, 'grid', { label: 'grid' });
 display.addBinding(state, 'shape', { label: 'shape' });
 display.addBinding(state, 'original', { label: 'original' });
-pane.addButton({ title: 'Reset' }).on('click', () => {
-  Object.assign(state, defaults());
-  pane.refresh();
-  schedule();
-});
 
 const planeView = new PlaneView(document.getElementById('plane-view')!, (q) => {
   state.picked = q;
@@ -244,6 +248,6 @@ function renderValues(H: Mat3): void {
     </div>`;
 }
 
-pane.on('change', schedule);
+ui.on('change', schedule);
 onThemeChange(schedule);
 update();

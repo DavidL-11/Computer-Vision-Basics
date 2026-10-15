@@ -1,4 +1,4 @@
-import { Pane } from 'tweakpane';
+import { Controls } from '../../src/shared/controls';
 import { fft2, fftShift, ifft2 } from '../../src/shared/fft';
 import { type Plane, type RGBImage, centerCrop, planeToImage, toGray } from '../../src/shared/image';
 import { addImagePicker } from '../../src/shared/imagePicker';
@@ -16,20 +16,20 @@ const names: TestImage[] = ['scene', 'chart', 'text', 'zone-plate', 'gradients']
 const state = { seed: 1 };
 
 const crop = (img: RGBImage): Plane => centerCrop(toGray(img), N, N);
-const pane = new Pane({ container: document.getElementById('controls')!, title: 'Magnitude vs phase' });
+const ui = new Controls();
 let a = crop(
-  addImagePicker(pane.addFolder({ title: 'Image A' }), { names, value: 'scene', width: 342, height: N, label: 'image A' }, (img) => {
+  addImagePicker(ui.panel('a-view'), { names, value: 'scene', width: 342, height: N, label: 'image A' }, (img) => {
     a = crop(img);
     schedule();
   }),
 );
 let b = crop(
-  addImagePicker(pane.addFolder({ title: 'Image B' }), { names, value: 'text', width: 342, height: N, label: 'image B' }, (img) => {
+  addImagePicker(ui.panel('b-view'), { names, value: 'text', width: 342, height: N, label: 'image B' }, (img) => {
     b = crop(img);
     schedule();
   }),
 );
-pane.addButton({ title: 'New random phase' }).on('click', () => {
+ui.panel('random-view').addButton({ title: 'New random phase' }).on('click', () => {
   state.seed++;
   schedule();
 });

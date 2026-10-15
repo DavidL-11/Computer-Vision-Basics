@@ -1,4 +1,4 @@
-import { Pane } from 'tweakpane';
+import { Controls } from '../../src/shared/controls';
 import { initPage } from '../../src/shared/page';
 import { lookAtAngles, snapshot } from '../../src/shared/camera';
 import { ImageView } from './imageView';
@@ -51,13 +51,24 @@ function update(): void {
 
 function select(index: number): void {
   state.selected = index;
-  pane.refresh();
+  ui.refresh();
   update();
 }
 
-const pane = new Pane({ container: document.getElementById('controls')!, title: 'Camera parameters' });
+const ui = new Controls();
+const toolbar = ui.toolbar();
+toolbar.addBinding(state, 'selected', {
+  label: 'selected vertex',
+  options: Object.fromEntries(cubePoints.map((p, i) => [p.label, i])),
+});
+toolbar.addResetButton(() => {
+  Object.assign(state, defaults());
+  fyBinding.disabled = state.lockAspect;
+  ui.refresh();
+  update();
+});
 
-const intr = pane.addFolder({ title: 'Intrinsics K' });
+const intr = ui.panel('image-view').addFolder({ title: 'Intrinsics K' });
 const fxBinding = intr.addBinding(state, 'fx', { label: 'fx [px]', min: 150, max: 1500, step: 1 });
 const fyBinding = intr.addBinding(state, 'fy', { label: 'fy [px]', min: 150, max: 1500, step: 1, disabled: state.lockAspect });
 intr.addBinding(state, 'lockAspect', { label: 'fy = fx' }).on('change', ({ value }) => {
@@ -77,7 +88,8 @@ intr.addBinding(state, 'u0', { label: 'u₀ [px]', min: 0, max: IMAGE_WIDTH, ste
 intr.addBinding(state, 'v0', { label: 'v₀ [px]', min: 0, max: IMAGE_HEIGHT, step: 1 });
 intr.addBinding(state, 'skew', { label: 'skew s', min: -300, max: 300, step: 1 });
 
-const extr = pane.addFolder({ title: 'Extrinsics (camera pose)' });
+const worldControls = ui.panel('world-view');
+const extr = worldControls.addFolder({ title: 'Extrinsics (camera pose)' });
 extr.addBinding(state, 'C', {
   label: 'center C',
   x: { min: -8, max: 8, step: 0.05 },
@@ -90,25 +102,14 @@ extr.addBinding(state, 'roll', { label: 'roll [°]', min: -180, max: 180, step: 
 extr.addButton({ title: 'Look at the cube' }).on('click', () => {
   const { yaw, pitch } = lookAtAngles([state.C.x, state.C.y, state.C.z], sceneCenter);
   Object.assign(state, { yaw, pitch, roll: 0 });
-  pane.refresh();
+  ui.refresh();
   update();
 });
 
-const display = pane.addFolder({ title: 'Display' });
-display.addBinding(state, 'selected', {
-  label: 'vertex',
-  options: Object.fromEntries(cubePoints.map((p, i) => [p.label, i])),
-});
+const display = worldControls.addFolder({ title: 'Show' });
 display.addBinding(state, 'showFrustum', { label: 'frustum' });
 display.addBinding(state, 'showImagePlane', { label: 'image plane' });
 display.addBinding(state, 'showRays', { label: 'rays' });
 
-pane.addButton({ title: 'Reset' }).on('click', () => {
-  Object.assign(state, defaults());
-  fyBinding.disabled = state.lockAspect;
-  pane.refresh();
-  update();
-});
-
-pane.on('change', update);
+ui.on('change', update);
 update();

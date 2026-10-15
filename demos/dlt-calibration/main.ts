@@ -1,5 +1,5 @@
-import { Pane } from 'tweakpane';
 import { buildK, buildP, buildR, buildT, lookAtAngles, project } from '../../src/shared/camera';
+import { Controls } from '../../src/shared/controls';
 import { DEG, type Mat3, type Mat34, type Vec3 } from '../../src/shared/linalg';
 import { random } from '../../src/shared/noise';
 import { initPage } from '../../src/shared/page';
@@ -36,19 +36,29 @@ const defaults = () => ({
 });
 const state = defaults();
 
-const pane = new Pane({ container: document.getElementById('controls')!, title: 'Calibration' });
-const intr = pane.addFolder({ title: 'True intrinsics K' });
+const ui = new Controls();
+const toolbar = ui.toolbar();
 const px = (min: number, max: number, step = 1) => ({ min, max, step, format: (v: number) => fmt(v, step < 1 ? 1 : 0) });
+const intr = toolbar.addFolder({ title: 'True intrinsics K' });
 intr.addBinding(state, 'alpha', { label: 'α (px)', ...px(400, 1600) });
 intr.addBinding(state, 'beta', { label: 'β (px)', ...px(400, 1600) });
 intr.addBinding(state, 'skew', { label: 's', ...px(-50, 50) });
 intr.addBinding(state, 'u0', { label: 'u₀ (px)', ...px(220, 420) });
 intr.addBinding(state, 'v0', { label: 'v₀ (px)', ...px(160, 320) });
-const pose = pane.addFolder({ title: 'True pose' });
+toolbar.addBinding(state, 'method', { label: 'method', options: { 'Method 1: Ax = b': 'Ax=b', 'Method 2: Ax = 0': 'Ax=0' } });
+toolbar.addResetButton(() => {
+  Object.assign(state, defaults());
+  ui.refresh();
+  schedule();
+});
+
+const pose = ui.panel('world-view').addFolder({ title: 'True pose' });
 pose.addBinding(state, 'distance', { label: 'distance (m)', ...px(0.6, 3, 0.05), format: (v: number) => fmt(v, 2) });
 pose.addBinding(state, 'azimuth', { label: 'azimuth (°)', ...px(20, 70) });
 pose.addBinding(state, 'elevation', { label: 'elevation (°)', ...px(-10, 60) });
-const data = pane.addFolder({ title: 'Measurements' });
+
+const imageControls = ui.panel('image-view');
+const data = imageControls.addFolder({ title: 'Measurements' });
 data.addBinding(state, 'noise', { label: 'noise σ (px)', min: 0, max: 3, step: 0.05, format: (v: number) => fmt(v, 2) });
 data.addBinding(state, 'count', { label: 'points', min: 6, max: ALL_POINTS.length, step: 1 });
 data.addBinding(state, 'onePlane', { label: 'one plane only' });
@@ -56,13 +66,7 @@ data.addButton({ title: 'New noise' }).on('click', () => {
   state.seed++;
   schedule();
 });
-pane.addBinding(state, 'method', { label: 'method', options: { 'Method 1: Ax = b': 'Ax=b', 'Method 2: Ax = 0': 'Ax=0' } });
-pane.addBinding(state, 'magnify', { label: 'error ×', min: 1, max: 100, step: 1 });
-pane.addButton({ title: 'Reset' }).on('click', () => {
-  Object.assign(state, defaults());
-  pane.refresh();
-  schedule();
-});
+imageControls.addFolder({ title: 'Display' }).addBinding(state, 'magnify', { label: 'error ×', min: 1, max: 100, step: 1 });
 
 const imageView = new ImageView(document.getElementById('image-view')!);
 const worldView = new WorldView(document.getElementById('world-view')!);
@@ -233,6 +237,6 @@ function renderValues(cam: CameraPose & { P: Mat34 }, X: Vec3[], uv: Vec2[], cal
     </div>`;
 }
 
-pane.on('change', schedule);
+ui.on('change', schedule);
 onThemeChange(schedule);
 update();

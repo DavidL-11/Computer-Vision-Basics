@@ -1,4 +1,4 @@
-import { Pane } from 'tweakpane';
+import { Controls } from '../../src/shared/controls';
 import { type Vec3, dot, norm } from '../../src/shared/linalg';
 import { eq, fmt, renderTex, texTuple, texVector } from '../../src/shared/tex';
 import { initPage } from '../../src/shared/page';
@@ -31,7 +31,7 @@ const pointKeys: PointKey[] = ['p1', 'p2', 'p3', 'p4'];
 
 const planeView = new PlaneView(document.getElementById('plane-view')!, (i, [x, y]) => {
   state[pointKeys[i]] = { x, y };
-  pane.refresh();
+  ui.refresh();
   update();
 });
 const rayView = new RayView(document.getElementById('ray-view')!);
@@ -124,9 +124,14 @@ function renderValues(pts: Vec2[], l1: Vec3, l2: Vec3, hit: Intersection, base: 
     </div>`;
 }
 
-const pane = new Pane({ container: document.getElementById('controls')!, title: 'Homogeneous coordinates' });
+const ui = new Controls();
+ui.toolbar().addResetButton(() => {
+  Object.assign(state, defaults());
+  ui.refresh();
+  update();
+});
 
-const pointsFolder = pane.addFolder({ title: 'Points on the plane w = 1' });
+const pointsFolder = ui.panel('plane-view').addFolder({ title: 'Points on the plane w = 1' });
 pointKeys.forEach((key, i) => {
   pointsFolder.addBinding(state, key, {
     label: POINT_NAMES[i],
@@ -138,26 +143,21 @@ pointsFolder.addButton({ title: 'Make l₂ parallel to l₁' }).on('click', () =
   const pts = points();
   const [x, y] = parallelThrough(pts[0], pts[1], pts[2], pts[3], PLANE);
   state.p4 = { x, y };
-  pane.refresh();
+  ui.refresh();
   update();
 });
 
-const scaleFolder = pane.addFolder({ title: 'Scale invariance' });
+const rayControls = ui.panel('ray-view');
+const scaleFolder = rayControls.addFolder({ title: 'Scale invariance' });
 scaleFolder.addBinding(state, 'scaled', {
   label: 'vector',
   options: { ...Object.fromEntries(POINT_NAMES.map((name, i) => [name, i])), q: Q_INDEX },
 });
 scaleFolder.addBinding(state, 'k', { label: 'k', min: -1, max: 2, step: 0.05 });
 
-const display = pane.addFolder({ title: 'Display' });
+const display = rayControls.addFolder({ title: 'Show' });
 display.addBinding(state, 'showPlanes', { label: 'line planes' });
 display.addBinding(state, 'showRays', { label: 'point rays' });
 
-pane.addButton({ title: 'Reset' }).on('click', () => {
-  Object.assign(state, defaults());
-  pane.refresh();
-  update();
-});
-
-pane.on('change', update);
+ui.on('change', update);
 update();

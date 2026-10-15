@@ -1,5 +1,5 @@
-import { Pane } from 'tweakpane';
 import { cameraToWorldRotation, snapshot } from '../../src/shared/camera';
+import { Controls } from '../../src/shared/controls';
 import { type Mat34, type Vec3, add, mulMat3Vec, scale, sub } from '../../src/shared/linalg';
 import { initPage } from '../../src/shared/page';
 import { perFrame } from '../../src/shared/pixelView';
@@ -36,12 +36,23 @@ const state = defaults();
 /** The setting captured when the dolly zoom is switched on. */
 let dollyRef = { f: state.f, D: state.D };
 
-const pane = new Pane({ container: document.getElementById('controls')!, title: 'Camera' });
-const lens = pane.addFolder({ title: 'Lens and sensor' });
+const ui = new Controls();
+const toolbar = ui.toolbar();
+const modelOptions = Object.fromEntries(Object.entries(MODEL_NAMES).map(([k, v]) => [v, k]));
+toolbar.addBinding(state, 'model', { label: 'projection model', options: modelOptions });
+toolbar.addResetButton(() => {
+  Object.assign(state, defaults());
+  fBinding.disabled = false;
+  ui.refresh();
+  schedule();
+});
+
+const sideControls = ui.panel('side-view');
+const lens = sideControls.addFolder({ title: 'Lens and sensor' });
 lens.addBinding(state, 'H', { label: 'sensor H [mm]', min: 4, max: 36, step: 0.1 });
 const fBinding = lens.addBinding(state, 'f', { label: 'f [mm]', min: 8, max: 800, step: 0.5 });
 
-const position = pane.addFolder({ title: 'Distance' });
+const position = sideControls.addFolder({ title: 'Distance' });
 const dBinding = position.addBinding(state, 'D', { label: 'subject D [m]', min: 3, max: 40, step: 0.1 });
 position.addBinding(state, 'dolly', { label: 'dolly zoom' }).on('change', ({ value }) => {
   fBinding.disabled = value;
@@ -53,20 +64,10 @@ dBinding.on('change', () => {
   fBinding.refresh();
 });
 
-const modelFolder = pane.addFolder({ title: 'Projection model' });
-const modelOptions = Object.fromEntries(Object.entries(MODEL_NAMES).map(([k, v]) => [v, k]));
-modelFolder.addBinding(state, 'model', { label: 'model', options: modelOptions });
-modelFolder.addBinding(state, 'ghost', { label: 'compare with', options: { none: 'none', ...modelOptions } });
-modelFolder.addBinding(state, 'probe', {
+ui.panel('image-view').addBinding(state, 'ghost', { label: 'compare with', options: { none: 'none', ...modelOptions } });
+ui.panel('values').addBinding(state, 'probe', {
   label: 'point',
   options: Object.fromEntries(PROBES.map((p, i) => [p.name, i])),
-});
-
-pane.addButton({ title: 'Reset' }).on('click', () => {
-  Object.assign(state, defaults());
-  fBinding.disabled = false;
-  pane.refresh();
-  schedule();
 });
 
 const sideView = new SideView(document.getElementById('side-view')!);
@@ -159,5 +160,5 @@ function renderValues(toCamera: (X: Vec3) => Vec3): void {
     </div>`;
 }
 
-pane.on('change', schedule);
+ui.on('change', schedule);
 update();

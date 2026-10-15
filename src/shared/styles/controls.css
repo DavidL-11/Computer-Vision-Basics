@@ -1,0 +1,463 @@
+/* Controls from controls.ts. In a panel's side column they stack; in a toolbar they wrap in a row. */
+
+.ctl-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+  font-size: 0.84rem;
+}
+.ctl-group [hidden] {
+  display: none !important;
+}
+
+.ctl {
+  margin: 0;
+  min-width: 0;
+}
+.ctl-label {
+  color: var(--fg-muted);
+  line-height: 1.3;
+}
+.ctl.is-disabled .ctl-label {
+  color: var(--fg-faint);
+}
+
+/* Slider: label and editable value on one line, the track below. */
+.ctl-slider {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  column-gap: 0.5rem;
+}
+.ctl-slider .ctl-label {
+  overflow-wrap: anywhere;
+}
+.ctl-number {
+  width: 5.2em;
+  padding: 0.05rem 0.3rem;
+  margin-right: -0.3rem;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  background: transparent;
+  color: var(--fg);
+  font: inherit;
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+.ctl-number:hover:not(:disabled) {
+  border-color: var(--border);
+}
+.ctl-number:focus {
+  border-color: var(--accent);
+  background: var(--bg-elev);
+}
+.ctl-number:disabled {
+  color: var(--fg-faint);
+}
+.ctl-field {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+.ctl-field .ctl-number {
+  border-color: var(--border);
+}
+
+.ctl-range {
+  grid-column: 1 / -1;
+  width: 100%;
+  height: 18px;
+  margin: 0;
+  background: transparent;
+  appearance: none;
+  cursor: pointer;
+  --track: color-mix(in srgb, var(--fg) 13%, transparent);
+}
+.ctl-range:focus-visible {
+  box-shadow: none;
+}
+.ctl-range::-webkit-slider-runnable-track {
+  height: 4px;
+  border-radius: 2px;
+  background: linear-gradient(to right, var(--accent) var(--fill, 0%), var(--track) var(--fill, 0%));
+}
+.ctl-range::-moz-range-track {
+  height: 4px;
+  border-radius: 2px;
+  background: linear-gradient(to right, var(--accent) var(--fill, 0%), var(--track) var(--fill, 0%));
+}
+.ctl-range::-webkit-slider-thumb {
+  appearance: none;
+  width: 14px;
+  height: 14px;
+  margin-top: -5px;
+  border-radius: 50%;
+  background: var(--bg-elev);
+  border: 2px solid var(--accent);
+}
+.ctl-range::-moz-range-thumb {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--bg-elev);
+  border: 2px solid var(--accent);
+}
+.ctl-range:focus-visible::-webkit-slider-thumb {
+  box-shadow: var(--focus-ring);
+}
+.ctl-range:focus-visible::-moz-range-thumb {
+  box-shadow: var(--focus-ring);
+}
+.ctl-range:disabled {
+  cursor: default;
+  --accent: var(--fg-faint);
+}
+
+/* Switch */
+.ctl-toggle {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  cursor: pointer;
+}
+.ctl-toggle input {
+  appearance: none;
+  position: relative;
+  flex-shrink: 0;
+  width: 28px;
+  height: 16px;
+  margin: 0;
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--fg) 18%, transparent);
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.ctl-toggle input::before {
+  content: '';
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--bg-elev);
+  transition: transform 0.15s;
+}
+.ctl-toggle input:checked {
+  background: var(--accent);
+}
+.ctl-toggle input:checked::before {
+  transform: translateX(12px);
+}
+.ctl-toggle .ctl-label {
+  color: var(--fg);
+}
+.ctl-toggle.is-disabled {
+  cursor: default;
+}
+.ctl-toggle.is-disabled input {
+  opacity: 0.5;
+}
+
+/* Color: hex field and swatch */
+.ctl-color {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto 30px;
+  align-items: center;
+  gap: 0.4rem;
+}
+.ctl-hex {
+  width: 5.8em;
+  border-color: var(--border);
+}
+.ctl-swatch {
+  width: 30px;
+  height: 24px;
+  padding: 0;
+  border: 1px solid var(--border-strong);
+  border-radius: 4px;
+  background: none;
+  cursor: pointer;
+}
+.ctl-swatch::-webkit-color-swatch-wrapper {
+  padding: 2px;
+}
+.ctl-swatch::-webkit-color-swatch {
+  border: 0;
+  border-radius: 2px;
+}
+.ctl-swatch::-moz-color-swatch {
+  border: 0;
+  border-radius: 2px;
+}
+
+/* Select and segments */
+.ctl-choice {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+.ctl-select-row {
+  display: flex;
+  gap: 0.35rem;
+}
+.ctl-select {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+}
+.ctl-select::after {
+  content: '';
+  position: absolute;
+  right: 0.65rem;
+  top: 50%;
+  width: 6px;
+  height: 6px;
+  margin-top: -5px;
+  border-right: 1.5px solid var(--fg-muted);
+  border-bottom: 1.5px solid var(--fg-muted);
+  transform: rotate(45deg);
+  pointer-events: none;
+}
+.ctl-select select {
+  width: 100%;
+  height: 30px;
+  padding: 0 1.8rem 0 0.6rem;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+  background: var(--bg-elev);
+  color: var(--fg);
+  font: inherit;
+  appearance: none;
+  cursor: pointer;
+  text-overflow: ellipsis;
+}
+.ctl-select select:hover:not(:disabled) {
+  border-color: var(--fg-faint);
+}
+.ctl-select select:disabled {
+  color: var(--fg-faint);
+  cursor: default;
+}
+
+.ctl-segments {
+  display: flex;
+  padding: 2px;
+  border-radius: var(--radius-sm);
+  background: var(--bg-sunken);
+  border: 1px solid var(--border);
+}
+.ctl-segment {
+  flex: 1;
+  position: relative;
+  min-width: 0;
+}
+.ctl-segment input {
+  position: absolute;
+  opacity: 0;
+  inset: 0;
+  margin: 0;
+  cursor: pointer;
+}
+.ctl-segment span {
+  display: block;
+  padding: 0.18rem 0.4rem;
+  border-radius: 3px;
+  color: var(--fg-muted);
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  pointer-events: none;
+}
+.ctl-segment:hover span {
+  color: var(--fg);
+}
+.ctl-segment input:checked + span {
+  background: var(--bg-elev);
+  color: var(--fg);
+  font-weight: 500;
+  box-shadow: 0 0 0 1px var(--border-strong);
+}
+.ctl-segment input:focus-visible + span {
+  box-shadow: var(--focus-ring);
+}
+.ctl-segment input:disabled + span {
+  color: var(--fg-faint);
+}
+
+/* A point: one legend, a slider per coordinate. */
+.ctl-point {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  padding: 0;
+  border: 0;
+}
+.ctl-point legend {
+  padding: 0;
+  margin-bottom: 0.2rem;
+}
+.ctl-point .ctl-slider {
+  grid-template-columns: 1rem minmax(0, 1fr) auto;
+}
+.ctl-point .ctl-slider .ctl-label {
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  color: var(--fg-faint);
+}
+.ctl-point .ctl-range {
+  grid-column: 2;
+  grid-row: 1;
+}
+
+/* Buttons */
+.ctl-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+.ctl-button,
+.ctl-icon-button {
+  min-height: 30px;
+  padding: 0.2rem 0.75rem;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+  background: var(--bg-elev);
+  color: var(--fg);
+  font: inherit;
+  font-weight: 500;
+  line-height: 1.3;
+  cursor: pointer;
+}
+.ctl-icon-button {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  padding: 0;
+  color: var(--fg-muted);
+  flex-shrink: 0;
+}
+.ctl-button:hover:not(:disabled),
+.ctl-icon-button:hover {
+  background: var(--bg-hover);
+  border-color: var(--fg-faint);
+  color: var(--fg);
+}
+.ctl-button:active:not(:disabled) {
+  transform: translateY(0.5px);
+}
+.ctl-button.is-primary {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--accent-fg);
+}
+.ctl-button.is-primary:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--accent) 88%, var(--fg));
+  border-color: transparent;
+  color: var(--accent-fg);
+}
+.ctl-button:disabled {
+  color: var(--fg-faint);
+  cursor: default;
+}
+.ctl-reset {
+  align-self: flex-start;
+  border-color: transparent;
+  background: transparent;
+  color: var(--fg-muted);
+  padding: 0 0.5rem;
+}
+
+/* Folders */
+.ctl-folder {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+  margin: 0;
+  padding-top: 0.85rem;
+  border-top: 1px solid var(--border);
+}
+.ctl-group > .ctl-folder:first-child {
+  padding-top: 0;
+  border-top: 0;
+}
+.ctl-folder-title {
+  margin: 0;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  color: var(--fg);
+}
+.ctl-folder-body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+.ctl-folder.is-collapsible > summary {
+  cursor: pointer;
+  list-style: none;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+.ctl-folder.is-collapsible > summary::-webkit-details-marker {
+  display: none;
+}
+.ctl-folder.is-collapsible > summary::before {
+  content: '';
+  width: 5px;
+  height: 5px;
+  border-right: 1.5px solid var(--fg-muted);
+  border-bottom: 1.5px solid var(--fg-muted);
+  transform: rotate(-45deg);
+  transition: transform 0.15s;
+}
+.ctl-folder.is-collapsible[open] > summary::before {
+  transform: rotate(45deg);
+}
+.ctl-folder.is-collapsible:not([open]) {
+  gap: 0;
+}
+
+/* In a toolbar the controls flow in a row; folders become labelled clusters. */
+.toolbar .ctl-group,
+.toolbar .ctl-folder-body {
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 0.75rem 1.5rem;
+}
+.toolbar .ctl-slider,
+.toolbar .ctl-choice,
+.toolbar .ctl-field,
+.toolbar .ctl-point {
+  width: 190px;
+}
+.toolbar .ctl-toggle {
+  min-height: 30px;
+}
+/* Same height as a select, so labels and buttons line up along the row. */
+.toolbar .ctl-slider {
+  row-gap: 0.3rem;
+}
+.toolbar .ctl-range {
+  height: 30px;
+}
+.toolbar .ctl-folder {
+  padding: 0 0 0 1.5rem;
+  border-top: 0;
+  border-left: 1px solid var(--border);
+  gap: 0.5rem;
+}
+.toolbar .ctl-group > .ctl-folder:first-child {
+  padding-left: 0;
+  border-left: 0;
+}
+.toolbar .ctl-reset {
+  margin-left: auto;
+  align-self: flex-end;
+}

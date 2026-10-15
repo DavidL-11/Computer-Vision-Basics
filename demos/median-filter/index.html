@@ -19,30 +19,49 @@
       <section class="workspace">
         <div class="views">
           <figure class="view card">
-            <figcaption>Noisy <span class="muted">click to select a pixel and row</span></figcaption>
-            <div id="noisy-view" class="image-frame"></div>
+            <figcaption><span class="view-title">Noisy</span> <span class="view-hint">click to select a pixel and row</span></figcaption>
+            <div class="view-body">
+              <div class="view-main">
+                <div id="noisy-view" class="image-frame"></div>
+              </div>
+            </div>
           </figure>
           <figure class="view card">
-            <figcaption>Original <span class="muted">without noise</span></figcaption>
-            <div id="original-view" class="image-frame"></div>
+            <figcaption><span class="view-title">Original</span> <span class="view-hint">without noise</span></figcaption>
+            <div class="view-body">
+              <div class="view-main">
+                <div id="original-view" class="image-frame"></div>
+              </div>
+            </div>
           </figure>
           <figure class="view card">
-            <figcaption>Mean filter <span id="mean-caption" class="muted"></span></figcaption>
-            <div id="mean-view" class="image-frame"></div>
+            <figcaption><span class="view-title">Mean filter</span> <span id="mean-caption" class="view-hint"></span></figcaption>
+            <div class="view-body">
+              <div class="view-main">
+                <div id="mean-view" class="image-frame"></div>
+              </div>
+            </div>
           </figure>
           <figure class="view card">
-            <figcaption>Median filter <span id="median-caption" class="muted"></span></figcaption>
-            <div id="median-view" class="image-frame"></div>
+            <figcaption><span class="view-title">Median filter</span> <span id="median-caption" class="view-hint"></span></figcaption>
+            <div class="view-body">
+              <div class="view-main">
+                <div id="median-view" class="image-frame"></div>
+              </div>
+            </div>
           </figure>
           <figure class="view card view-wide">
-            <figcaption>Intensity along the selected row</figcaption>
-            <div id="profile-view"></div>
+            <figcaption><span class="view-title">Intensity along the selected row</span></figcaption>
+            <div class="view-body">
+              <div class="view-main">
+                <div id="profile-view"></div>
+              </div>
+            </div>
           </figure>
         </div>
-        <aside id="controls" class="controls"></aside>
       </section>
 
-      <section id="values" class="card values" aria-live="polite"></section>
+      <section class="card values"><div class="view-body"><div id="values" class="view-main values-body" aria-live="polite"></div></div></section>
 
       <article class="explanation">
         <h2>Two kinds of noise</h2>

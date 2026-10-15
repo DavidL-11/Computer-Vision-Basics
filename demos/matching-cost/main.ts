@@ -1,4 +1,4 @@
-import { Pane } from 'tweakpane';
+import { Controls } from '../../src/shared/controls';
 import { type Plane, planeToImage, toGray } from '../../src/shared/image';
 import { addImagePicker } from '../../src/shared/imagePicker';
 import { gaussianNoise } from '../../src/shared/noise';
@@ -47,14 +47,23 @@ const defaults = () => ({
 });
 const state = defaults();
 
-const pane = new Pane({ container: document.getElementById('controls')!, title: 'Matching cost' });
+const ui = new Controls();
+const toolbar = ui.toolbar();
 let original: Plane = toGray(
-  addImagePicker(pane, { names: ['scene', 'shapes', 'text', 'chart', 'zone-plate'], value: 'scene', width: W, height: H }, (img) => {
+  addImagePicker(toolbar, { names: ['scene', 'shapes', 'text', 'chart', 'zone-plate'], value: 'scene', width: W, height: H }, (img) => {
     original = toGray(img);
     schedule();
   }),
 );
-const metricFolder = pane.addFolder({ title: 'Error metric E(u)' });
+toolbar.addBinding(state, 'radius', { label: 'window radius r', min: 1, max: 10, step: 1 });
+toolbar.addResetButton(() => {
+  Object.assign(state, defaults());
+  ui.refresh();
+  schedule();
+});
+
+const surfaceControls = ui.panel('surface-view');
+const metricFolder = surfaceControls.addFolder({ title: 'Error metric E(u)' });
 metricFolder.addBinding(state, 'metric', { label: 'metric', options: Object.fromEntries(Object.entries(METRICS).map(([k, m]) => [m.label, k])) });
 const pBinding = metricFolder.addBinding(state, 'p', { label: 'p', min: 0.25, max: 3, step: 0.05 });
 const aBinding = metricFolder.addBinding(state, 'a', { label: 'a', min: 0.01, max: 0.5, step: 0.01 });
@@ -62,10 +71,9 @@ metricFolder.addBinding(state, 'border', {
   label: 'outside & masked',
   options: { 'count all (clamp)': 'clamp', 'masks (WSRD)': 'wsrd', 'masks, normalized (NWSRD)': 'nwsrd' },
 });
-const search = pane.addFolder({ title: 'Search' });
-search.addBinding(state, 'radius', { label: 'window radius r', min: 1, max: 10, step: 1 });
-search.addBinding(state, 'range', { label: 'search radius R', min: 2, max: 12, step: 1 });
-const second = pane.addFolder({ title: 'Second image I₁' });
+surfaceControls.addFolder({ title: 'Search' }).addBinding(state, 'range', { label: 'search radius R', min: 2, max: 12, step: 1 });
+
+const second = ui.panel('i1-view');
 const shift = (label: string) => ({ label, min: -8, max: 8, step: 0.1, format: (v: number) => fmt(v, 1) });
 second.addBinding(state, 'tu', shift('true u (px)'));
 second.addBinding(state, 'tv', shift('true v (px)'));
@@ -73,11 +81,6 @@ second.addBinding(state, 'gain', { label: 'gain α', min: 0.3, max: 2, step: 0.0
 second.addBinding(state, 'bias', { label: 'bias β', min: -0.4, max: 0.4, step: 0.01 });
 second.addBinding(state, 'noise', { label: 'noise σₙ', min: 0, max: 0.1, step: 0.005 });
 second.addBinding(state, 'occluder', { label: 'occluder' });
-pane.addButton({ title: 'Reset' }).on('click', () => {
-  Object.assign(state, defaults());
-  pane.refresh();
-  schedule();
-});
 
 const clampShift = (s: number) => Math.max(-state.range, Math.min(state.range, s));
 const view0 = new PixelView(document.getElementById('i0-view')!, (x, y) => {
@@ -314,6 +317,6 @@ function renderValues(surfaces: Record<Metric, Float64Array>, s: ReturnType<type
     </div>`;
 }
 
-pane.on('change', schedule);
+ui.on('change', schedule);
 onThemeChange(schedule);
 update();

@@ -1,4 +1,4 @@
-import { Pane } from 'tweakpane';
+import { Controls } from '../../src/shared/controls';
 import { type Plane, planeToImage, psnr, toGray } from '../../src/shared/image';
 import { addImagePicker } from '../../src/shared/imagePicker';
 import { initPage } from '../../src/shared/page';
@@ -20,27 +20,29 @@ function defaults() {
 }
 const state = defaults();
 
-const pane = new Pane({ container: document.getElementById('controls')!, title: 'Median vs mean' });
+const ui = new Controls();
+const toolbar = ui.toolbar();
 let original: Plane = toGray(
-  addImagePicker(pane, { names: ['scene', 'chart', 'text', 'gradients'], value: 'scene', width: W, height: H }, (img) => {
+  addImagePicker(toolbar, { names: ['scene', 'chart', 'text', 'gradients'], value: 'scene', width: W, height: H }, (img) => {
     original = toGray(img);
     schedule();
   }),
 );
-const noiseFolder = pane.addFolder({ title: 'Noise' });
+toolbar.addBinding(state, 'size', { label: 'filter size', options: { '3 × 3': 3, '5 × 5': 5, '7 × 7': 7, '9 × 9': 9 } });
+toolbar.addBinding(state, 'zoom', { label: 'zoom', options: { '1×': 1, '2×': 2, '4×': 4, '8×': 8 } });
+toolbar.addResetButton(() => {
+  Object.assign(state, defaults());
+  Object.assign(center, { x: state.x, y: state.y });
+  ui.refresh();
+  schedule();
+});
+const noiseFolder = ui.panel('noisy-view').addFolder({ title: 'Noise' });
 noiseFolder.addBinding(state, 'noise', { label: 'type', options: { 'salt & pepper': 'salt-pepper', Gaussian: 'gaussian' } });
 const densityBinding = noiseFolder.addBinding(state, 'density', { label: 'density', min: 0, max: 0.5, step: 0.01 });
 const sigmaBinding = noiseFolder.addBinding(state, 'sigma', { label: 'σ', min: 0, max: 0.3, step: 0.01 });
 noiseFolder.addButton({ title: 'New noise' }).on('click', () => {
   state.seed++;
   schedule();
-});
-pane.addBinding(state, 'size', { label: 'filter size', options: { '3 × 3': 3, '5 × 5': 5, '7 × 7': 7, '9 × 9': 9 } });
-pane.addBinding(state, 'zoom', { label: 'zoom', options: { '1×': 1, '2×': 2, '4×': 4, '8×': 8 } });
-pane.addButton({ title: 'Reset' }).on('click', () => {
-  Object.assign(state, defaults());
-  Object.assign(center, { x: state.x, y: state.y });
-  pane.refresh();
 });
 
 const center = { x: state.x, y: state.y };
@@ -132,6 +134,6 @@ function renderValues(noisy: Plane, mean: Plane, med: Plane): void {
     </div>`;
 }
 
-pane.on('change', schedule);
+ui.on('change', schedule);
 onThemeChange(schedule);
 update();

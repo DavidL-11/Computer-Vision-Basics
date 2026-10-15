@@ -1,6 +1,6 @@
-import { Pane } from 'tweakpane';
 import { correlateSeparable, gaussianKernel } from '../../src/shared/filter';
 import { type Plane, planeToImage, toGray } from '../../src/shared/image';
+import { Controls } from '../../src/shared/controls';
 import { addImagePicker } from '../../src/shared/imagePicker';
 import { initPage } from '../../src/shared/page';
 import { PixelView, perFrame } from '../../src/shared/pixelView';
@@ -20,29 +20,37 @@ function defaults() {
 }
 const state = defaults();
 
-const pane = new Pane({ container: document.getElementById('controls')!, title: 'Aliasing' });
-const signalFolder = pane.addFolder({ title: '1D signal' });
-signalFolder.addBinding(state, 'f', { label: 'frequency f (Hz)', min: 0.5, max: 20, step: 0.1 });
-signalFolder.addBinding(state, 'fs', { label: 'sampling rate fₛ (Hz)', min: 2, max: 40, step: 0.5 });
-signalFolder.addBinding(state, 'phase', { label: 'phase φ (°)', min: -180, max: 180, step: 5 });
-const imageFolder = pane.addFolder({ title: 'Image' });
+const ui = new Controls();
+const signalControls = ui.panel('signal-plot');
+signalControls.addBinding(state, 'f', { label: 'frequency f (Hz)', min: 0.5, max: 20, step: 0.1 });
+signalControls.addBinding(state, 'fs', { label: 'sampling rate fₛ (Hz)', min: 2, max: 40, step: 0.5 });
+signalControls.addBinding(state, 'phase', { label: 'phase φ (°)', min: -180, max: 180, step: 5 });
+signalControls.addResetButton(() => {
+  const { f, fs, phase } = defaults();
+  Object.assign(state, { f, fs, phase });
+  ui.refresh();
+});
+
+const imageControls = ui.panel('original-view');
 let gray: Plane = toGray(
-  addImagePicker(imageFolder, { names: ['zone-plate', 'chart', 'scene', 'text'], value: 'zone-plate', width: W, height: H }, (img) => {
+  addImagePicker(imageControls, { names: ['zone-plate', 'chart', 'scene', 'text'], value: 'zone-plate', width: W, height: H }, (img) => {
     gray = toGray(img);
     schedule();
   }),
 );
-imageFolder.addBinding(state, 'k', { label: 'subsample by k', options: Object.fromEntries([2, 3, 4, 6, 8].map((k) => [`${k}`, k])) });
-imageFolder.addBinding(state, 'sigma', { label: 'pre-filter σ (px)', min: 0, max: 4, step: 0.1 });
-pane.addButton({ title: 'Reset' }).on('click', () => {
-  Object.assign(state, defaults());
-  pane.refresh();
+imageControls.addBinding(state, 'k', { label: 'subsample by k', options: Object.fromEntries([2, 3, 4, 6, 8].map((k) => [`${k}`, k])) });
+imageControls.addBinding(state, 'sigma', { label: 'pre-filter σ (px)', min: 0, max: 4, step: 0.1 });
+imageControls.addResetButton(() => {
+  const { k, sigma } = defaults();
+  Object.assign(state, { k, sigma });
+  ui.refresh();
 });
 
 const signalPlot = new Plot(document.getElementById('signal-plot')!, 240);
 const spectrumPlot = new Plot(document.getElementById('spectrum-plot')!, 170, { left: 20, right: 20, top: 22, bottom: 26 });
 const imageViews = ['original-view', 'naive-view', 'filtered-view'].map((id) => new PixelView(document.getElementById(id)!));
-const values = document.getElementById('values')!;
+const signalValues = document.getElementById('signal-values')!;
+const imageValues = document.getElementById('image-values')!;
 
 const radians = (deg: number) => (deg * Math.PI) / 180;
 
@@ -124,7 +132,7 @@ function renderValues(): void {
   const fNew = 1 / (2 * k);
   const P = 2 * Math.ceil(3 * sigma) + 1;
 
-  values.innerHTML = `
+  signalValues.innerHTML = `
     <div class="value-grid">
       <div class="value-block">
         <h3>Sampling the sinusoid</h3>
@@ -139,6 +147,9 @@ function renderValues(): void {
               : `f is above the Nyquist frequency: the samples look like a ${fmt(a.f, 2)} Hz sinusoid.`
         }</p>
       </div>
+    </div>`;
+  imageValues.innerHTML = `
+    <div class="value-grid">
       <div class="value-block">
         <h3>Subsampling the image by k = ${k}</h3>
         ${eq(`\\text{new Nyquist frequency } \\tfrac{1}{2k} = ${fmt(fNew, 3)} \\text{ cycles/px (period } ${2 * k} \\text{ px)}`)}
@@ -152,5 +163,5 @@ function renderValues(): void {
     </div>`;
 }
 
-pane.on('change', schedule);
+ui.on('change', schedule);
 update();

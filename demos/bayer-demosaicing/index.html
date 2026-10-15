@@ -21,18 +21,25 @@
       <section class="workspace">
         <div class="views">
           <figure class="view card">
-            <figcaption>Raw sensor mosaic <span class="muted">click to select a pixel (and zoom center)</span></figcaption>
-            <div id="raw-view" class="image-frame"></div>
+            <figcaption><span class="view-title">Raw sensor mosaic</span> <span class="view-hint">click to select a pixel (and zoom center)</span></figcaption>
+            <div class="view-body">
+              <div class="view-main">
+                <div id="raw-view" class="image-frame"></div>
+              </div>
+            </div>
           </figure>
           <figure class="view card">
-            <figcaption><span id="right-title">Demosaiced</span> <span class="muted">192 × 144 px</span></figcaption>
-            <div id="result-view" class="image-frame"></div>
+            <figcaption><span class="view-title"><span id="right-title">Demosaiced</span></span> <span class="view-hint">192 × 144 px</span></figcaption>
+            <div class="view-body">
+              <div class="view-main">
+                <div id="result-view" class="image-frame"></div>
+              </div>
+            </div>
           </figure>
         </div>
-        <aside id="controls" class="controls"></aside>
       </section>
 
-      <section id="values" class="card values" aria-live="polite"></section>
+      <section class="card values"><div class="view-body"><div id="values" class="view-main values-body" aria-live="polite"></div></div></section>
 
       <article class="explanation">
         <h2>The Bayer pattern</h2>

@@ -20,18 +20,25 @@
       <section class="workspace">
         <div class="views">
           <figure class="view card">
-            <figcaption>Photo <span class="muted">drag the corners 1–4; click elsewhere to pick a point</span></figcaption>
-            <div id="photo-view" class="image-frame photo-frame"></div>
+            <figcaption><span class="view-title">Photo</span> <span class="view-hint">drag the corners 1–4; click elsewhere to pick a point</span></figcaption>
+            <div class="view-body">
+              <div class="view-main">
+                <div id="photo-view" class="image-frame photo-frame"></div>
+              </div>
+            </div>
           </figure>
           <figure class="view card">
-            <figcaption>Rectified front view <span id="front-caption" class="muted"></span></figcaption>
-            <div class="image-frame front-frame"><div id="front-view"></div></div>
+            <figcaption><span class="view-title">Rectified front view</span> <span id="front-caption" class="view-hint"></span></figcaption>
+            <div class="view-body">
+              <div class="view-main">
+                <div class="image-frame front-frame"><div id="front-view"></div></div>
+              </div>
+            </div>
           </figure>
         </div>
-        <aside id="controls" class="controls"></aside>
       </section>
 
-      <section id="values" class="card values" aria-live="polite"></section>
+      <section class="card values"><div class="view-body"><div id="values" class="view-main values-body" aria-live="polite"></div></div></section>
 
       <article class="explanation">
         <h2>A plane seen at an angle</h2>

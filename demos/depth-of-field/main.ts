@@ -1,5 +1,5 @@
-import { Pane } from 'tweakpane';
 import { linearToSrgb } from '../../src/shared/color';
+import { Controls } from '../../src/shared/controls';
 import { type RGBImage, mapPixels, mergeChannels } from '../../src/shared/image';
 import { addImagePicker } from '../../src/shared/imagePicker';
 import { initPage } from '../../src/shared/page';
@@ -36,52 +36,52 @@ const LAYERS = [
   { key: 'far', name: 'background', color: '--layer-far', height: 95 },
 ] as const;
 
-const pane = new Pane({ container: document.getElementById('controls')!, title: 'Camera' });
-
-const presets = pane.addFolder({ title: 'Presets' });
+const ui = new Controls();
+const toolbar = ui.toolbar();
+const presets = toolbar.addFolder({ title: 'Presets' });
 const applyPreset = (p: Partial<ReturnType<typeof defaults>>) => {
   Object.assign(state, { S: 2, cAuto: true }, p);
   cBinding.disabled = true;
-  pane.refresh();
+  ui.refresh();
   schedule();
 };
 presets.addButton({ title: 'Smartphone: 4.3 mm, f/1.8' }).on('click', () => applyPreset({ f: 4.3, N: 1.8, sensor: 3 }));
 presets.addButton({ title: 'Full frame portrait: 85 mm, f/1.8' }).on('click', () => applyPreset({ f: 85, N: 1.8, sensor: 0 }));
+toolbar.addResetButton(() => {
+  Object.assign(state, defaults());
+  cBinding.disabled = true;
+  ui.refresh();
+  schedule();
+});
 
-const lens = pane.addFolder({ title: 'Lens' });
+const diagramControls = ui.panel('lens-diagram');
+const lens = diagramControls.addFolder({ title: 'Lens' });
 lens.addBinding(state, 'f', { label: 'f [mm]', min: 2, max: 200, step: 0.1 });
 lens.addBinding(state, 'N', { label: 'f-number N', min: 1.4, max: 22, step: 0.1 });
 lens.addBinding(state, 'S', { label: 'focus S [m]', min: 0.3, max: S_MAX, step: 0.01 });
 lens.addButton({ title: 'Focus on the subject' }).on('click', () => {
   state.S = state.subject;
-  pane.refresh();
+  ui.refresh();
   schedule();
 });
 const hyperfocalButton = lens.addButton({ title: 'Focus at the hyperfocal distance' });
 hyperfocalButton.on('click', () => {
   state.S = Math.round(hyperfocal(state.f / state.N, state.f, acceptableC()) / 10) / 100;
-  pane.refresh();
+  ui.refresh();
   schedule();
 });
-
-const sensorFolder = pane.addFolder({ title: 'Sensor' });
-sensorFolder.addBinding(state, 'sensor', {
+diagramControls.addFolder({ title: 'Sensor' }).addBinding(state, 'sensor', {
   label: 'size',
   options: Object.fromEntries(SENSORS.map((s, i) => [s.name, i])),
 });
-sensorFolder.addBinding(state, 'cAuto', { label: 'c = diagonal / 1500' }).on('change', ({ value }) => {
-  cBinding.disabled = value;
-});
-const cBinding = sensorFolder.addBinding(state, 'c', { label: 'c [mm]', min: 0.002, max: 0.1, step: 0.0001, disabled: true });
-
-const sceneFolder = pane.addFolder({ title: 'Scene distances' });
+const sceneFolder = diagramControls.addFolder({ title: 'Scene distances' });
 sceneFolder.addBinding(state, 'near', { label: 'foreground [m]', min: 0.3, max: 5, step: 0.05 });
 sceneFolder.addBinding(state, 'subject', { label: 'subject [m]', min: 0.5, max: 20, step: 0.05 });
 sceneFolder.addBinding(state, 'far', { label: 'background [m]', min: 2, max: 100, step: 0.5 });
 
 let subjectLayer = subject(
   addImagePicker(
-    sceneFolder,
+    ui.panel('image-view'),
     { names: ['chart', 'text', 'shapes', 'scene'], value: 'chart', width: CARD.w, height: CARD.h, label: 'subject image' },
     (img: RGBImage) => {
       subjectLayer = subject(img);
@@ -92,12 +92,11 @@ let subjectLayer = subject(
 const foregroundLayer = foreground();
 const backgroundLayer = background();
 
-pane.addButton({ title: 'Reset' }).on('click', () => {
-  Object.assign(state, defaults());
-  cBinding.disabled = true;
-  pane.refresh();
-  schedule();
+const cocControls = ui.panel('coc-plot').addFolder({ title: 'Acceptable blur c' });
+cocControls.addBinding(state, 'cAuto', { label: 'c = diagonal / 1500' }).on('change', ({ value }) => {
+  cBinding.disabled = value;
 });
+const cBinding = cocControls.addBinding(state, 'c', { label: 'c [mm]', min: 0.002, max: 0.1, step: 0.0001, disabled: true });
 
 const diagram = new LensDiagram(document.getElementById('lens-diagram')!);
 const imageView = new PixelView(document.getElementById('image-view')!);
@@ -235,6 +234,6 @@ function renderValues({ A, f, S, c, pitch, H, limits, layers }: Optics): void {
     </div>`;
 }
 
-pane.on('change', schedule);
+ui.on('change', schedule);
 onThemeChange(schedule);
 update();

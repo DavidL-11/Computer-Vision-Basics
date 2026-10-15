@@ -22,33 +22,44 @@
         <div class="views">
           <figure class="view card">
             <figcaption>
-              Image 0 <span class="muted">click a point to select it</span>
+              <span class="view-title">Image 0</span> <span class="view-hint">click a point to select it</span>
             </figcaption>
-            <div id="image0-view" class="image-view"></div>
+            <div class="view-body">
+              <div class="view-main">
+                <div id="image0-view" class="image-view"></div>
+              </div>
+            </div>
           </figure>
           <figure class="view card">
             <figcaption>
-              Image 1
-              <span class="muted legend">
+              <span class="view-title">Image 1</span>
+              <span class="view-hint legend">
                 <span class="key" style="--key: var(--accent)">epipolar lines of \(\hat F\)</span>
                 <span class="key dashed" style="--key: var(--fg-faint)">true lines</span>
                 <span class="key" style="--key: var(--viz-object)">epipole: dot \(\hat e\), ring \(e\)</span>
               </span>
             </figcaption>
-            <div id="image1-view" class="image-view"></div>
+            <div class="view-body">
+              <div class="view-main">
+                <div id="image1-view" class="image-view"></div>
+              </div>
+            </div>
           </figure>
           <figure class="view card view-wide">
             <figcaption>
-              Singular values \(\sigma_k\) of \(A\)
-              <span class="muted legend">(log scale; the red one belongs to the solution \(f\))</span>
+              <span class="view-title">Singular values \(\sigma_k\) of \(A\)</span>
+              <span class="view-hint legend">(log scale; the red one belongs to the solution \(f\))</span>
             </figcaption>
-            <div id="sigma-plot"></div>
+            <div class="view-body">
+              <div class="view-main">
+                <div id="sigma-plot"></div>
+              </div>
+            </div>
           </figure>
         </div>
-        <aside id="controls" class="controls"></aside>
       </section>
 
-      <section id="values" class="card values" aria-live="polite"></section>
+      <section class="card values"><div class="view-body"><div id="values" class="view-main values-body" aria-live="polite"></div></div></section>
 
       <article class="explanation">
         <h2>One equation per correspondence</h2>

@@ -1,4 +1,4 @@
-import type { FolderApi } from 'tweakpane';
+import type { Container } from './controls';
 import type { RGBImage } from './image';
 import { type TestImage, imageOptions, openImageFile, testImage } from './testImages';
 
@@ -11,11 +11,11 @@ export interface ImagePickerOptions {
 }
 
 /**
- * A list of test images plus "Open image…". Returns the initial image; later changes go to onChange, together with the
+ * A list of test images plus a button that opens the user's own image. Returns the initial image; later changes go to onChange, together with the
  * chosen test image or 'file' for the user's image.
  */
 export function addImagePicker(
-  parent: FolderApi,
+  parent: Container,
   opts: ImagePickerOptions,
   onChange: (img: RGBImage, source: TestImage | 'file') => void,
 ): RGBImage {
@@ -25,6 +25,8 @@ export function addImagePicker(
   const binding = parent.addBinding(state, 'image', {
     label: opts.label ?? 'image',
     options: { ...imageOptions(opts.names), 'Your image': 'file' },
+    view: 'select',
+    action: { title: 'Open your own image', onClick: () => void load() },
   });
 
   const load = async () => {
@@ -53,6 +55,5 @@ export function addImagePicker(
     previous = value;
     onChange(testImage(value as TestImage, opts.width, opts.height), value as TestImage);
   });
-  parent.addButton({ title: 'Open image…' }).on('click', () => void load());
   return testImage(opts.value, opts.width, opts.height);
 }

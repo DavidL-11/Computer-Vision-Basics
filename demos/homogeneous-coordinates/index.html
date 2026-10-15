@@ -20,18 +20,25 @@
       <section class="workspace">
         <div class="views">
           <figure class="view card">
-            <figcaption>Image plane \(w = 1\) <span class="muted">drag the points \(p_1 \dots p_4\)</span></figcaption>
-            <div id="plane-view" class="plane-view"></div>
+            <figcaption><span class="view-title">Image plane \(w = 1\)</span> <span class="view-hint">drag the points \(p_1 \dots p_4\)</span></figcaption>
+            <div class="view-body">
+              <div class="view-main">
+                <div id="plane-view" class="plane-view"></div>
+              </div>
+            </div>
           </figure>
           <figure class="view card">
-            <figcaption>Homogeneous space \((x, y, w)\) <span class="muted">drag to orbit, scroll to zoom</span></figcaption>
-            <div id="ray-view" class="view-3d ray-view"></div>
+            <figcaption><span class="view-title">Homogeneous space \((x, y, w)\)</span> <span class="view-hint">drag to orbit, scroll to zoom</span></figcaption>
+            <div class="view-body">
+              <div class="view-main">
+                <div id="ray-view" class="view-3d ray-view"></div>
+              </div>
+            </div>
           </figure>
         </div>
-        <aside id="controls" class="controls"></aside>
       </section>
 
-      <section id="values" class="card values" aria-live="polite"></section>
+      <section class="card values"><div class="view-body"><div id="values" class="view-main values-body" aria-live="polite"></div></div></section>
 
       <article class="explanation">
         <h2>Points and rays</h2>

@@ -17,33 +17,59 @@
         </p>
       </section>
 
-      <section class="workspace">
-        <div class="views">
-          <figure class="view card">
-            <figcaption>1D kernel \(G_\sigma(x)\) <span class="muted">sampled at the integers, truncated at \(\pm\lceil 3\sigma \rceil\)</span></figcaption>
-            <div id="kernel-plot"></div>
-          </figure>
-          <figure class="view card">
-            <figcaption>2D kernel \(G_\sigma(x) \, G_\sigma(y)\) <span id="kernel-size" class="muted"></span></figcaption>
-            <div class="image-frame kernel-frame"><div id="kernel-view"></div></div>
-          </figure>
-          <figure class="view card view-wide">
-            <figcaption>Two 1D passes <span class="muted">filter the rows, then the columns of the result</span></figcaption>
-            <div class="image-row">
-              <figure><div id="original-view"></div><figcaption>original</figcaption></figure>
-              <figure><div id="rows-view"></div><figcaption>after the horizontal pass</figcaption></figure>
-              <figure><div id="both-view"></div><figcaption>after both passes = 2D Gaussian</figcaption></figure>
-            </div>
-          </figure>
-          <figure class="view card view-wide">
-            <figcaption>Repeated box filter <span class="muted">bars: box of width \(w\) convolved \(n\) times, line: Gaussian with the same variance</span></figcaption>
-            <div id="box-plot"></div>
-          </figure>
+      <section class="demo-section">
+        <h2>One 2D Gaussian as two 1D passes</h2>
+        <div class="workspace">
+          <div class="views">
+            <figure class="view card">
+              <figcaption><span class="view-title">1D kernel \(G_\sigma(x)\)</span> <span class="view-hint">sampled at the integers, truncated at \(\pm\lceil 3\sigma \rceil\)</span></figcaption>
+              <div class="view-body">
+                <div class="view-main">
+                  <div id="kernel-plot"></div>
+                </div>
+              </div>
+            </figure>
+            <figure class="view card">
+              <figcaption><span class="view-title">2D kernel \(G_\sigma(x) \, G_\sigma(y)\)</span> <span id="kernel-size" class="view-hint"></span></figcaption>
+              <div class="view-body">
+                <div class="view-main">
+                  <div class="image-frame kernel-frame"><div id="kernel-view"></div></div>
+                </div>
+              </div>
+            </figure>
+            <figure class="view card view-wide">
+              <figcaption><span class="view-title">Two 1D passes</span> <span class="view-hint">filter the rows, then the columns of the result</span></figcaption>
+              <div class="view-body">
+                <div class="view-main">
+                  <div class="image-row">
+                    <figure><div id="original-view"></div><figcaption>original</figcaption></figure>
+                    <figure><div id="rows-view"></div><figcaption>after the horizontal pass</figcaption></figure>
+                    <figure><div id="both-view"></div><figcaption>after both passes = 2D Gaussian</figcaption></figure>
+                  </div>
+                </div>
+              </div>
+            </figure>
+          </div>
+          <section class="card values"><div class="view-body"><div id="gauss-values" class="view-main values-body" aria-live="polite"></div></div></section>
         </div>
-        <aside id="controls" class="controls"></aside>
       </section>
 
-      <section id="values" class="card values" aria-live="polite"></section>
+      <section class="demo-section">
+        <h2>Repeated box filters</h2>
+        <div class="workspace">
+          <div class="views">
+            <figure class="view card view-wide">
+              <figcaption><span class="view-title">Repeated box filter</span> <span class="view-hint">bars: box of width \(w\) convolved \(n\) times, line: Gaussian with the same variance</span></figcaption>
+              <div class="view-body">
+                <div class="view-main">
+                  <div id="box-plot"></div>
+                </div>
+              </div>
+            </figure>
+          </div>
+          <section class="card values"><div class="view-body"><div id="box-values" class="view-main values-body" aria-live="polite"></div></div></section>
+        </div>
+      </section>
 
       <article class="explanation">
         <h2>The Gaussian kernel</h2>

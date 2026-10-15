@@ -21,18 +21,25 @@
       <section class="workspace">
         <div class="views">
           <figure class="view card">
-            <figcaption>3D world <span class="muted">drag to orbit, scroll to zoom</span></figcaption>
-            <div id="world-view" class="view-3d world-view"></div>
+            <figcaption><span class="view-title">3D world</span> <span class="view-hint">drag to orbit, scroll to zoom</span></figcaption>
+            <div class="view-body">
+              <div class="view-main">
+                <div id="world-view" class="view-3d world-view"></div>
+              </div>
+            </div>
           </figure>
           <figure class="view card">
-            <figcaption>Camera image <span class="muted">zoomed out: the light rectangle is the image</span></figcaption>
-            <div id="image-view" class="image-view"></div>
+            <figcaption><span class="view-title">Camera image</span> <span class="view-hint">zoomed out: the light rectangle is the image</span></figcaption>
+            <div class="view-body">
+              <div class="view-main">
+                <div id="image-view" class="image-view"></div>
+              </div>
+            </div>
           </figure>
         </div>
-        <aside id="controls" class="controls"></aside>
       </section>
 
-      <section id="values" class="card values" aria-live="polite"></section>
+      <section class="card values"><div class="view-body"><div id="values" class="view-main values-body" aria-live="polite"></div></div></section>
 
       <article class="explanation">
         <h2>Where parallel lines meet</h2>

@@ -17,43 +17,65 @@
         </p>
       </section>
 
-      <section class="workspace">
-        <div class="views">
-          <figure class="view card view-wide">
-            <figcaption>
-              \(A x = U\,\Sigma\,V^\top x\), one step per panel
-              <span class="muted legend">
-                <span class="key" style="--key: var(--sv-1)">\(v_1\) and its images</span>
-                <span class="key" style="--key: var(--sv-2)">\(v_2\) and its images</span>
-                <span class="key" style="--key: var(--viz-highlight)">\(x\), \(b\)</span>
-                · click the last panel to choose \(b\)
-              </span>
-            </figcaption>
-            <div id="stages-view" class="stages-view"></div>
-          </figure>
-          <figure class="view card">
-            <figcaption>Rank-\(p\) approximation <span class="muted">grayscale, 160 × 120 px, i.e. \(m = 120\), \(n = 160\)</span></figcaption>
-            <div class="image-row">
-              <figure><div id="original-view"></div><figcaption>original</figcaption></figure>
-              <figure><div id="approx-view"></div><figcaption id="approx-caption"></figcaption></figure>
-            </div>
-          </figure>
-          <figure class="view card">
-            <figcaption>
-              Singular values \(\sigma_k\) of the image
-              <span class="muted legend">
-                <span class="key" style="--key: var(--accent)">kept, \(k \le p\)</span>
-                <span class="key" style="--key: var(--fg-muted)">dropped</span>
-                (log scale)
-              </span>
-            </figcaption>
-            <div id="sigma-plot"></div>
-          </figure>
+      <section class="demo-section">
+        <h2>The SVD of a 2 × 2 matrix</h2>
+        <div class="workspace">
+          <div class="views">
+            <figure class="view card view-wide">
+              <figcaption>
+                <span class="view-title">\(A x = U\,\Sigma\,V^\top x\), one step per panel</span>
+                <span class="view-hint legend">
+                  <span class="key" style="--key: var(--sv-1)">\(v_1\) and its images</span>
+                  <span class="key" style="--key: var(--sv-2)">\(v_2\) and its images</span>
+                  <span class="key" style="--key: var(--viz-highlight)">\(x\), \(b\)</span>
+                  <span>click the last panel to choose \(b\)</span>
+                </span>
+              </figcaption>
+              <div class="view-body">
+                <div class="view-main">
+                  <div id="stages-view" class="stages-view"></div>
+                </div>
+              </div>
+            </figure>
+          </div>
+          <section class="card values"><div class="view-body"><div id="matrix-values" class="view-main values-body" aria-live="polite"></div></div></section>
         </div>
-        <aside id="controls" class="controls"></aside>
       </section>
 
-      <section id="values" class="card values" aria-live="polite"></section>
+      <section class="demo-section">
+        <h2>Low-rank approximation of an image</h2>
+        <div class="workspace">
+          <div class="views">
+            <figure class="view card">
+              <figcaption><span class="view-title">Rank-\(p\) approximation</span> <span class="view-hint">grayscale, 160 × 120 px, i.e. \(m = 120\), \(n = 160\)</span></figcaption>
+              <div class="view-body">
+                <div class="view-main">
+                  <div class="image-row">
+                    <figure><div id="original-view"></div><figcaption>original</figcaption></figure>
+                    <figure><div id="approx-view"></div><figcaption id="approx-caption"></figcaption></figure>
+                  </div>
+                </div>
+              </div>
+            </figure>
+            <figure class="view card">
+              <figcaption>
+                <span class="view-title">Singular values \(\sigma_k\) of the image</span>
+                <span class="view-hint legend">
+                  <span class="key" style="--key: var(--accent)">kept, \(k \le p\)</span>
+                  <span class="key" style="--key: var(--fg-muted)">dropped</span>
+                  (log scale)
+                </span>
+              </figcaption>
+              <div class="view-body">
+                <div class="view-main">
+                  <div id="sigma-plot"></div>
+                </div>
+              </div>
+            </figure>
+          </div>
+          <section class="card values"><div class="view-body"><div id="image-values" class="view-main values-body" aria-live="polite"></div></div></section>
+        </div>
+      </section>
 
       <article class="explanation">
         <h2>The singular value decomposition</h2>
