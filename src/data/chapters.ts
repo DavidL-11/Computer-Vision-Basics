@@ -406,6 +406,12 @@ export const chapters: Chapter[] = [
           'Compare SSD, SAD, Lp, Geman–McClure, bias & gain and NCC over a search window, with masks and normalization at the border, occlusion and exposure changes.',
         slug: 'matching-cost',
       },
+      {
+        title: 'Lucas–Kanade step by step',
+        description:
+          'Linearize the image, solve AᵀA Δu = Aᵀb and step with size α: watch a translation converge to subpixel accuracy, and fail on edges and from far starts.',
+        slug: 'lucas-kanade',
+      },
     ],
   },
   {

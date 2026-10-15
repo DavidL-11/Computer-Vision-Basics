@@ -1,0 +1,175 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Interactive Lucas–Kanade motion estimation step by step: linearize the image, solve the normal equations AᵀA Δu = Aᵀb, update with step size α and watch a translation converge to subpixel accuracy, or fail at edges and far starts." />
+    <title>Lucas–Kanade step by step: iterative subpixel motion estimation · Computer Vision Basics</title>
+  </head>
+  <body>
+    <main class="demo-page">
+      <section class="demo-intro">
+        <h1>Lucas–Kanade step by step</h1>
+        <p class="lead">
+          Instead of trying every shift, Lucas–Kanade starts from a guess and asks the image gradients which way to go.
+          Each step solves a small least-squares problem and moves the window closer to the true motion, down to a
+          fraction of a pixel. Step through the iterations, change the step size and the starting point, and see where
+          the method converges and where it fails.
+        </p>
+      </section>
+
+      <section class="workspace">
+        <div class="views">
+          <figure class="view card">
+            <figcaption>
+              Frame \(I_0\) <span class="muted">click to select the window</span>
+            </figcaption>
+            <div id="i0-view" class="image-frame"></div>
+          </figure>
+          <figure class="view card">
+            <figcaption>
+              Frame \(I_1\)
+              <span class="muted legend">
+                <span class="key" style="--key: var(--accent)">estimates \(\mathbf{u}_0, \mathbf{u}_1, \dots\)</span>
+                <span class="key" style="--key: var(--viz-points)">true \(\mathbf{u}^*\) (×)</span>
+                · click to start there
+              </span>
+            </figcaption>
+            <div id="i1-view" class="image-frame"></div>
+          </figure>
+          <figure class="view card">
+            <figcaption>
+              Error surface \(E(\mathbf{u})\), \(\pm 8\) px
+              <span class="muted legend">
+                <span class="key dashed" style="--key: var(--viz-points)">linearized error at \(\mathbf{u}_k\)</span>
+                <span class="key" style="--key: var(--viz-highlight)">true \(\mathbf{u}^*\) (×)</span>
+                · click to start there
+              </span>
+            </figcaption>
+            <div id="surface-view" class="image-frame square-frame"></div>
+          </figure>
+          <figure class="view card">
+            <figcaption>
+              Window at step \(k\) <span class="muted">gray error = 0</span>
+            </figcaption>
+            <div class="image-row">
+              <figure><div id="patch-i0"></div><figcaption>\(I_0(\mathbf{x}_i)\)</figcaption></figure>
+              <figure><div id="patch-i1"></div><figcaption>\(I_1(\mathbf{x}_i + \mathbf{u}_k)\)</figcaption></figure>
+              <figure><div id="patch-e"></div><figcaption>error \(e_i\)</figcaption></figure>
+            </div>
+          </figure>
+          <figure class="view card view-wide">
+            <figcaption>
+              Convergence over the iterations \(k\)
+              <span class="muted legend">
+                <span class="key" style="--key: var(--accent)">distance to the truth \(|\mathbf{u}_k - \mathbf{u}^*|\)</span>
+                <span class="key dashed" style="--key: var(--viz-points)">step length \(|\alpha\, \Delta\mathbf{u}_k|\)</span>
+                · in pixels
+              </span>
+            </figcaption>
+            <div id="convergence-plot"></div>
+          </figure>
+        </div>
+        <aside id="controls" class="controls"></aside>
+      </section>
+
+      <section id="values" class="card values" aria-live="polite"></section>
+
+      <article class="explanation">
+        <h2>Following the slope of the error</h2>
+        <p>
+          We look for the displacement \(\mathbf{u} = (u, v)\) that moves a window of pixels \(\mathbf{x}_i\) in frame
+          \(I_0\) onto the same content in frame \(I_1\), by minimizing the sum of squared differences
+        </p>
+        $$ E(\mathbf{u}) = \sum_i \left[ I_1(\mathbf{x}_i + \mathbf{u}) - I_0(\mathbf{x}_i) \right]^2 = \sum_i e_i^2 . $$
+        <p>
+          A <a href="../matching-cost/">full search</a> evaluates \(E\) at every shift on a grid, which is expensive
+          and only as accurate as the grid. Lucas and Kanade instead start from an initial guess \(\mathbf{u}_0\),
+          often zero or the motion of the previous frame, and improve it step by step using the image gradient. Shifts
+          between pixels are no problem, since \(I_1\) can be interpolated anywhere.
+        </p>
+
+        <h2>Linearizing the image</h2>
+        <p>
+          Close to the current estimate \(\mathbf{u}\), the shifted image is approximated by its first-order Taylor
+          expansion, with the image gradient \(\mathbf{J}_1 = \nabla I_1 = (\partial I_1 / \partial x, \partial I_1 /
+          \partial y)\):
+        </p>
+        $$ E(\mathbf{u} + \Delta\mathbf{u}) = \sum_i \left[ I_1(\mathbf{x}_i + \mathbf{u} + \Delta\mathbf{u}) - I_0(\mathbf{x}_i) \right]^2 \approx \sum_i \left[ \mathbf{J}_1(\mathbf{x}_i + \mathbf{u})\, \Delta\mathbf{u} + e_i \right]^2 $$
+        <p>
+          with the current errors \(e_i = I_1(\mathbf{x}_i + \mathbf{u}) - I_0(\mathbf{x}_i)\). This is linear in the
+          unknown update \(\Delta\mathbf{u}\). For \(\mathbf{u} = 0\), \(e_i\) is the temporal derivative \(I_t\), and
+          setting each term to zero gives the optical flow constraint \(I_x u + I_y v + I_t = 0\): one equation per
+          pixel for two unknowns. A single pixel can only tell the motion along its gradient, which is why Lucas–Kanade
+          assumes the same motion for the whole window.
+        </p>
+
+        <h2>A 2 × 2 least-squares problem</h2>
+        <p>
+          Stacking the gradients of all \(N\) window pixels as the rows of a matrix \(A\) and the negated errors as a
+          vector \(\mathbf{b}\) turns the approximation into \(\| A\, \Delta\mathbf{u} - \mathbf{b} \|^2\), a
+          least-squares problem like <a href="../line-fitting/">line fitting</a>:
+        </p>
+        $$ A = \begin{bmatrix} I_x(\mathbf{x}_1 + \mathbf{u}) & I_y(\mathbf{x}_1 + \mathbf{u}) \\ \vdots & \vdots \\ I_x(\mathbf{x}_N + \mathbf{u}) & I_y(\mathbf{x}_N + \mathbf{u}) \end{bmatrix}, \qquad \mathbf{b} = - \begin{bmatrix} e_1 \\ \vdots \\ e_N \end{bmatrix} $$
+        <p>Its minimum solves the normal equations</p>
+        $$ A^\top A\, \Delta\mathbf{u} = A^\top \mathbf{b}, \qquad \begin{bmatrix} \sum I_x^2 & \sum I_x I_y \\ \sum I_x I_y & \sum I_y^2 \end{bmatrix} \begin{bmatrix} \Delta u \\ \Delta v \end{bmatrix} = - \begin{bmatrix} \sum I_x e_i \\ \sum I_y e_i \end{bmatrix} . $$
+        <p>
+          \(A^\top A\) is the second moment matrix \(M\) of the <a href="../autocorrelation/">autocorrelation
+          surface</a> and the <a href="../harris/">Harris detector</a>, and the dashed ellipse on the error surface is
+          the contour of the linearized error through the current estimate. Its center is where the linear model
+          expects the minimum, at \(\mathbf{u} + \Delta\mathbf{u}\).
+        </p>
+
+        <h2>Iterating</h2>
+        <p>
+          Because the image is not linear, the model's minimum is only an approximation. Lucas–Kanade moves there, or
+          a fraction \(\alpha\) of the way, linearizes again and repeats,
+        </p>
+        $$ \mathbf{u}_{k+1} = \mathbf{u}_k + \alpha\, \Delta\mathbf{u}_k , $$
+        <p>
+          until the update is smaller than a tolerance, here \(0.001\) px. This is the Gauss–Newton method. Near the
+          solution, full steps (\(\alpha = 1\)) make the distance to the truth drop steeply on the logarithmic plot. A
+          smaller \(\alpha\) is more cautious and shrinks the distance by roughly a constant factor per step, while
+          \(\alpha > 1\) overshoots and zigzags across the minimum, and too large a step never settles.
+        </p>
+        <p>
+          The gradient \(\mathbf{J}_1(\mathbf{x}_i + \mathbf{u})\) has to be interpolated and \(A^\top A\) rebuilt in
+          every step. Since \(I_1(\mathbf{x}_i + \mathbf{u}^*) = I_0(\mathbf{x}_i)\) at the solution, the gradient
+          \(\mathbf{J}_0(\mathbf{x}_i) = \nabla I_0(\mathbf{x}_i)\) is a good substitute near it, and it can be
+          computed once, together with \(A^\top A\) and its inverse.
+        </p>
+
+        <h2>When it fails</h2>
+        <ul>
+          <li>
+            <strong>Aperture problem:</strong> on a straight edge all gradients point the same way, \(A^\top A\) has
+            one eigenvalue near zero, and only the motion across the edge is determined. In a flat region both
+            eigenvalues vanish. The windows that track well are the ones a corner detector would pick.
+          </li>
+          <li>
+            <strong>Large motion:</strong> the linearization only holds over roughly the size of the image structures.
+            From a start farther away, the steps can point the wrong way and end in a different local minimum.
+            Smoothing both frames widens the basin of convergence at the cost of detail, which is the idea behind
+            estimating the motion coarse to fine on an image pyramid.
+          </li>
+          <li>
+            <strong>Changed appearance:</strong> the method assumes that a point keeps its brightness (brightness
+            constancy). Noise, lighting changes and occlusion leave errors that no shift can explain.
+          </li>
+        </ul>
+
+        <h2>Try this</h2>
+        <ul class="try">
+          <li>Press <em>Play from u₀</em> with the defaults: after 7 steps the estimate is within 0.02 px of the true shift (2.6, −1.8), far below the grid of a full search. The small rest comes from interpolation: \(I_1\) was made by resampling \(I_0\), which the smoothing does not undo exactly. With \(\sigma = 0\), the estimate ends at (2.600, −1.800).</li>
+          <li>Click on the error surface at about (−4, 4): the path follows the slope down to the minimum. Start in a corner, e.g. (−7, −7) or (7, 7): the steps run off to a wrong minimum outside the surface shown. Raise the pre-smoothing \(\sigma\) to 3 and try the same starts again.</li>
+          <li>Set the step size \(\alpha\) to 0.3: every step covers only part of the way, and the distance falls along a nearly straight line on the log plot. At 1.3 the path zigzags across the minimum and needs about 25 steps; at 1.5 it no longer settles.</li>
+          <li>Set the window radius to 4 and select a window on a straight edge, such as the right wall of the house below its window: \(\lambda_2 \ll \lambda_1\), the dashed ellipse becomes long and thin, and the estimate stops somewhere along the dark valley. Only the motion across the edge is right. Click the flat sky: \(A^\top A\) is singular and there is no step at all.</li>
+          <li>Set \(\sigma\) to 0 and start at (−4, 4): without smoothing, the surface has flat stretches with tiny gradients, and the estimate crawls along and runs out of iterations.</li>
+          <li>Switch the gradient to \(\nabla I_0(\mathbf{x}_i)\): from \(\mathbf{u}_0 = 0\) it converges as before. From (−4, 4) it gets lost, since \(\nabla I_0\) only describes \(I_1\) near the solution.</li>
+          <li>Add noise \(\sigma_n = 0.05\): the error image stays grainy and \(E\) cannot reach zero, but the estimate still ends within a few hundredths of a pixel, since the window averages the noise over all its pixels.</li>
+        </ul>
+      </article>
+    </main>
+    <script type="module" src="./main.ts"></script>
+  </body>
+</html>

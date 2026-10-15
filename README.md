@@ -77,6 +77,7 @@ If you found this repository useful, please consider starring it on GitHub.
 ### 10. Dense Motion Estimation
 
 - [Matching cost surface](https://davidl-11.github.io/Computer-Vision-Basics/demos/matching-cost/)
+- [Lucas–Kanade step by step](https://davidl-11.github.io/Computer-Vision-Basics/demos/lucas-kanade/)
 
 ## Read the code, too
 
