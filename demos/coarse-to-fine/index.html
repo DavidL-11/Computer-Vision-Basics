@@ -1,0 +1,146 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Interactive coarse-to-fine motion estimation: build an image pyramid, estimate a large translation with Lucas–Kanade at the coarsest level, double it and refine it level by level, and see why a single scale fails." />
+    <title>Coarse-to-fine alignment on an image pyramid · Computer Vision Basics</title>
+  </head>
+  <body>
+    <main class="demo-page">
+      <section class="demo-intro">
+        <h1>Coarse-to-fine alignment</h1>
+        <p class="lead">
+          Lucas–Kanade only sees a few pixels far: when a window moves farther than the size of its structures, the
+          linearization points the wrong way. Shrinking both images shrinks the motion too. Estimate it on a small,
+          blurred copy first, refine the estimate level by level up to full resolution, and compare with Lucas–Kanade
+          on the full images alone.
+        </p>
+      </section>
+
+      <section class="workspace">
+        <div class="views">
+          <figure class="view card">
+            <figcaption>
+              Frame \(I_0\) <span class="muted">click to select the window</span>
+            </figcaption>
+            <div id="i0-view" class="image-frame"></div>
+          </figure>
+          <figure class="view card">
+            <figcaption>
+              Frame \(I_1\)
+              <span class="muted legend">
+                <span class="key" style="--key: var(--accent)">estimates \(\mathbf{u}_0, \mathbf{u}_1, \dots\)</span>
+                <span class="key" style="--key: var(--viz-points)">true \(\mathbf{u}^*\) (×)</span>
+                <span class="key dashed" style="--key: var(--fg-faint)">level 0 only</span>
+              </span>
+            </figcaption>
+            <div id="i1-view" class="image-frame"></div>
+          </figure>
+          <figure class="view card view-wide">
+            <figcaption>
+              Pyramid of \(I_0\) and error surfaces \(E^{(l)}(\mathbf{u})\) of the window, \(\pm 16\) px
+              <span class="muted legend">
+                <span class="key" style="--key: var(--viz-highlight)">window</span>
+                <span class="key" style="--key: var(--accent)">estimates</span>
+                <span class="key" style="--key: var(--viz-highlight)">true \(\mathbf{u}^*\) (×)</span>
+                · black = smallest error, all surfaces over the same displacements of level 0
+              </span>
+            </figcaption>
+            <div id="pyramid" class="pyramid"></div>
+          </figure>
+          <figure class="view card">
+            <figcaption>
+              Window at <span id="patch-caption"></span>
+              <span class="muted legend">gray error = 0 · <span class="key" style="--key: var(--viz-object)">outside \(I_1\)</span></span>
+            </figcaption>
+            <div class="image-row">
+              <figure><div id="patch-i0"></div><figcaption>\(I_0^{(l)}(\mathbf{x}_i)\)</figcaption></figure>
+              <figure><div id="patch-i1"></div><figcaption>\(I_1^{(l)}(\mathbf{x}_i + \mathbf{u}^{(l)})\)</figcaption></figure>
+              <figure><div id="patch-e"></div><figcaption>error \(e_i\)</figcaption></figure>
+            </div>
+          </figure>
+          <figure class="view card">
+            <figcaption>
+              Distance to the truth \(|\mathbf{u}_k - \mathbf{u}^*|\)
+              <span class="muted legend">
+                <span class="key" style="--key: var(--accent)">coarse to fine</span>
+                <span class="key dashed" style="--key: var(--fg-faint)">level 0 only</span>
+                · in pixels
+              </span>
+            </figcaption>
+            <div id="convergence-plot"></div>
+          </figure>
+        </div>
+        <aside id="controls" class="controls"></aside>
+      </section>
+
+      <section id="values" class="card values" aria-live="polite"></section>
+
+      <article class="explanation">
+        <h2>Why large motions are hard</h2>
+        <p>
+          <a href="../lucas-kanade/">Lucas–Kanade</a> estimates the motion \(\mathbf{u}\) of a window by minimizing
+          \(E(\mathbf{u}) = \sum_i [I_1(\mathbf{x}_i + \mathbf{u}) - I_0(\mathbf{x}_i)]^2\), replacing the image with
+          its tangent plane at the current estimate. The tangent only describes the image over about the size of its
+          structures. If the window moved farther than that, the gradient does not know where it went, and the steps
+          run into the nearest local minimum of \(E\). The error surface of level 0 shows this: the dark dip at the
+          true shift is surrounded by others.
+        </p>
+        <p>
+          A <a href="../matching-cost/">full search</a> would find a large motion, but its cost grows with the square of
+          the search range, and it is limited to the grid. Both problems are solved by looking at the images at a
+          coarser scale first.
+        </p>
+
+        <h2>The image pyramid</h2>
+        <p>Each level of the pyramid is the previous one, low-pass filtered and subsampled by a factor of 2:</p>
+        $$ I^{(l)}(\mathbf{x}) = \tilde I^{(l-1)}(2\mathbf{x}), \qquad \tilde I = G_\sigma * I $$
+        <p>
+          The filter removes the frequencies that the smaller image cannot hold. Without it, fine patterns
+          <a href="../aliasing/">alias</a> into structures that are not in the scene. Every level has a quarter of the
+          pixels of the one below, so the whole pyramid is only a third larger than the image.
+        </p>
+        <p>
+          A displacement of \(\mathbf{u}\) pixels at full resolution is only \(\mathbf{u}^{(l)} = \mathbf{u} / 2^l\)
+          pixels at level \(l\). The window keeps its size in pixels, so at level \(l\) it covers \(2^l\) times as
+          much of the scene, and its structures are coarse. Measured in pixels of the full image, the basin of
+          convergence grows by a factor of 2 per level, as the error surfaces show.
+        </p>
+
+        <h2>Coarse to fine</h2>
+        <p>
+          The estimation starts at the coarsest level \(L\) with \(\mathbf{u} = 0\), or with a short full search,
+          which is cheap since the image is small. Its result is passed down to the next finer level, where
+          coordinates are twice as large, as the initial guess:
+        </p>
+        $$ \mathbf{u}^{(l-1)}_0 = 2\, \hat{\mathbf{u}}^{(l)} $$
+        <p>
+          At every level, a few Lucas–Kanade steps only have to correct the small error of the coarser estimate, which
+          lies well within the basin of convergence, and they add the detail the coarser level could not see. At level
+          0, the estimate reaches subpixel accuracy. Within each level, both images are smoothed slightly, as in the
+          Lucas–Kanade demo, so that full steps do not overshoot at sharp edges.
+        </p>
+
+        <h2>Limits</h2>
+        <ul>
+          <li>Objects smaller than a few pixels at the coarsest level disappear there, together with their motion.</li>
+          <li>At coarse levels the window covers a large area, and if parts of it move differently, their motions blend. An estimate that is too far off cannot be corrected at the finer levels.</li>
+          <li>Too many levels leave only a few pixels at the top, which can no longer determine the motion reliably.</li>
+        </ul>
+
+        <h2>Try this</h2>
+        <ul class="try">
+          <li>Press <em>Play</em> with the defaults: the window moves 13.6 px, about its own size, but only 1.7 px at level 3. Each level corrects the estimate a little, and level 0 ends within a few hundredths of a pixel. Lucas–Kanade on level 0 alone (dashed square and curve) gets stuck 14 px away.</li>
+          <li>Compare the error surfaces from left to right: the dark basin around the true shift is wide at the coarse levels and narrow at level 0, where other dips compete. The estimate arriving from level 1 is already inside the narrow basin.</li>
+          <li>Set the coarsest level \(L\) to 0, 1 and 2 and find out how many levels this motion needs. Then make the motion small, e.g. (2, −1), where a single level is enough.</li>
+          <li>Turn off <em>low-pass first</em> and choose the <em>text</em> image: the letters break up into speckles at the coarse levels, structure that is not in the scene.</li>
+          <li>Set \(L\) to 4: level 4 has only 10 × 8 pixels and the window shrinks to 7 × 7. Its estimate is several pixels off, but still close enough for the levels below.</li>
+          <li>Add noise \(\sigma_n = 0.05\): the coarse levels average it away, while level 0 sees its full strength and ends less accurate than level 1.</li>
+          <li>Change the window radius: a small window at level 0 has many competing minima, but the pyramid still finds the right one.</li>
+        </ul>
+      </article>
+    </main>
+    <script type="module" src="./main.ts"></script>
+  </body>
+</html>

@@ -1,0 +1,59 @@
+/* One column per pyramid level, coarsest first: the level of I₀ above its error surface. */
+.pyramid {
+  display: grid;
+  grid-template-columns: repeat(var(--levels, 4), minmax(0, 1fr));
+  gap: 0.6rem;
+  padding: 0.6rem;
+  background: var(--bg-sunken);
+  flex: 1;
+}
+.pyramid .level {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  padding: 0.35rem;
+  border: 2px solid transparent;
+  border-radius: 6px;
+}
+.pyramid .level.current {
+  border-color: var(--accent);
+}
+.pyramid figcaption {
+  font-size: 0.82rem;
+  color: var(--fg-muted);
+  text-align: center;
+  border: 0;
+  padding: 0;
+  font-weight: 400;
+}
+
+.level-table {
+  border-collapse: collapse;
+  font-size: 0.9rem;
+  font-variant-numeric: tabular-nums;
+}
+.level-table th,
+.level-table td {
+  padding: 0.15rem 1.1rem 0.15rem 0;
+  text-align: left;
+  white-space: nowrap;
+}
+.level-table th {
+  font-weight: 600;
+  color: var(--fg-muted);
+}
+.level-table tr.current td {
+  font-weight: 600;
+}
+
+@media (max-width: 700px) {
+  .pyramid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.image-row .pixel-canvas {
+  max-width: 200px;
+  margin: 0 auto;
+}

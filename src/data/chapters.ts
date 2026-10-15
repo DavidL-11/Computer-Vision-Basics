@@ -412,6 +412,12 @@ export const chapters: Chapter[] = [
           'Linearize the image, solve AᵀA Δu = Aᵀb and step with size α: watch a translation converge to subpixel accuracy, and fail on edges and from far starts.',
         slug: 'lucas-kanade',
       },
+      {
+        title: 'Coarse-to-fine alignment',
+        description:
+          'Build an image pyramid, estimate a large motion on the smallest level, double it and refine it level by level, and see why a single scale gets stuck.',
+        slug: 'coarse-to-fine',
+      },
     ],
   },
   {

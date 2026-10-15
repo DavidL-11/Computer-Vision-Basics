@@ -78,6 +78,7 @@ If you found this repository useful, please consider starring it on GitHub.
 
 - [Matching cost surface](https://davidl-11.github.io/Computer-Vision-Basics/demos/matching-cost/)
 - [Lucas–Kanade step by step](https://davidl-11.github.io/Computer-Vision-Basics/demos/lucas-kanade/)
+- [Coarse-to-fine alignment](https://davidl-11.github.io/Computer-Vision-Basics/demos/coarse-to-fine/)
 
 ## Read the code, too
 
