@@ -389,9 +389,11 @@ export const chapters: Chapter[] = [
     number: 10,
     title: 'Dense Motion Estimation',
     summary:
-      'Estimating motion between frames: matching error metrics, Lucas–Kanade, coarse-to-fine search, parametric motion and per-pixel optical flow.',
+      'Estimating motion between frames: motion parallax and the focus of expansion, matching error metrics, Lucas–Kanade, coarse-to-fine search, parametric motion and per-pixel optical flow.',
     concepts: [
       'Optical flow vs motion flow',
+      'Motion parallax',
+      'Focus of expansion',
       'Aperture problem',
       'SSD / SAD / robust / NCC',
       'Lucas–Kanade',
@@ -423,6 +425,18 @@ export const chapters: Chapter[] = [
         description:
           'Align whole images with a translation, Euclidean, affine or projective model: see the Jacobian as steepest-descent images and what a too simple model leaves behind.',
         slug: 'parametric-alignment',
+      },
+      {
+        title: 'Patch-based vs regularized flow',
+        description:
+          'Compute a flow vector for every pixel with Lucas–Kanade per window or with a smoothness term α²‖∇u‖², and see where each fails: flat regions, edges, repetitive patterns and motion boundaries.',
+        slug: 'optical-flow',
+      },
+      {
+        title: 'Motion parallax & focus of expansion',
+        description:
+          'Move a camera through a scene: near points flow faster (f·T/Z), forward motion radiates from the focus of expansion, and rotation adds flow that carries no depth.',
+        slug: 'motion-parallax',
       },
     ],
   },

@@ -1,0 +1,17 @@
+.world-view {
+  aspect-ratio: 16 / 7;
+}
+
+.image-view {
+  display: flex;
+  align-items: center;
+  flex: 1;
+  background: var(--bg-sunken);
+}
+.image-canvas {
+  display: block;
+  width: 100%;
+}
+.image-canvas.pickable {
+  cursor: crosshair;
+}

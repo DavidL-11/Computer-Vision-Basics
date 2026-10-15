@@ -80,6 +80,8 @@ If you found this repository useful, please consider starring it on GitHub.
 - [Lucas–Kanade step by step](https://davidl-11.github.io/Computer-Vision-Basics/demos/lucas-kanade/)
 - [Coarse-to-fine alignment](https://davidl-11.github.io/Computer-Vision-Basics/demos/coarse-to-fine/)
 - [Parametric alignment](https://davidl-11.github.io/Computer-Vision-Basics/demos/parametric-alignment/)
+- [Patch-based vs regularized flow](https://davidl-11.github.io/Computer-Vision-Basics/demos/optical-flow/)
+- [Motion parallax & focus of expansion](https://davidl-11.github.io/Computer-Vision-Basics/demos/motion-parallax/)
 
 ## Read the code, too
 

@@ -1,0 +1,52 @@
+.view {
+  /* Flow images are light in both themes, so the arrows stay dark. */
+  --flow-arrow: light-dark(#17181b, #17181b);
+}
+
+/* The true flow with its color key on the right. */
+.truth-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(70px, 22%);
+  gap: 0.6rem;
+  align-items: center;
+  padding: 0.6rem;
+  background: var(--bg-sunken);
+  flex: 1;
+}
+.truth-row figure {
+  margin: 0;
+}
+.truth-row figcaption {
+  font-size: 0.8rem;
+  color: var(--fg-muted);
+  padding: 0.25rem 0 0;
+  text-align: center;
+}
+
+.legend .key.hatched::before {
+  height: 0.8em;
+  vertical-align: -0.1em;
+  border: 1px solid var(--key);
+  background: repeating-linear-gradient(-45deg, var(--key) 0 1.5px, transparent 1.5px 4px);
+}
+
+.image-row .pixel-canvas {
+  max-width: 220px;
+  margin: 0 auto;
+}
+
+.flow-table {
+  border-collapse: collapse;
+  font-size: 0.9rem;
+  font-variant-numeric: tabular-nums;
+}
+.flow-table th,
+.flow-table td {
+  padding: 0.15rem 1.1rem 0.15rem 0;
+  text-align: left;
+  white-space: nowrap;
+}
+.flow-table th {
+  font-weight: 600;
+  color: var(--fg-muted);
+}

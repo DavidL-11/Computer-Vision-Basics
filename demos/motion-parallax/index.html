@@ -1,0 +1,146 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Interactive motion parallax and focus of expansion: move a camera through a scene and see that near points flow faster (flow ∝ 1/Z), that forward motion radiates from the focus of expansion e = K T / T_z, and that rotation adds flow that does not depend on depth." />
+    <title>Motion parallax &amp; focus of expansion, interactive demo · Computer Vision Basics</title>
+  </head>
+  <body>
+    <main class="demo-page">
+      <section class="demo-intro">
+        <h1>Motion parallax &amp; focus of expansion</h1>
+        <p class="lead">
+          When the camera moves through a static scene, every point moves in the image, and how it moves tells both
+          the depth of the point and where the camera is going. Near points move faster than far ones, and when moving
+          forward, all points stream away from the point you are heading for. Move the camera, turn it, and see which
+          part of the flow carries depth and which does not.
+        </p>
+      </section>
+
+      <section class="workspace">
+        <div class="views">
+          <figure class="view card view-wide">
+            <figcaption>
+              <span class="view-title">3D world</span>
+              <span class="view-hint legend">
+                <span>drag to orbit, scroll to zoom</span>
+                <span class="key" style="--key: var(--viz-highlight)">camera path over the next 30 frames</span>
+              </span>
+            </figcaption>
+            <div class="view-body">
+              <div class="view-main">
+                <div id="world-view" class="view-3d world-view"></div>
+              </div>
+            </div>
+          </figure>
+          <figure class="view card view-wide">
+            <figcaption>
+              <span class="view-title">Camera image with the flow \(\mathbf{x}_1 - \mathbf{x}_0\)</span>
+              <span class="view-hint legend">
+                <span class="key" style="--key: var(--accent)">ground</span>
+                <span class="key" style="--key: var(--viz-object)">posts</span>
+                <span class="key" style="--key: var(--viz-points)">mountains, 300 m away</span>
+                <span class="key dashed" style="--key: var(--fg-faint)">horizon</span>
+                <span>click a point to select it</span>
+              </span>
+            </figcaption>
+            <div class="view-body">
+              <div class="view-main">
+                <div id="image-view" class="image-view"></div>
+              </div>
+            </div>
+          </figure>
+          <figure class="view card view-wide">
+            <figcaption>
+              <span class="view-title">Flow length \(\|\mathbf{x}_1 - \mathbf{x}_0\|\) in pixels over the inverse depth \(1/Z\) in 1/m</span>
+              <span class="view-hint legend">
+                <span class="key dashed" style="--key: var(--fg-muted)">\(f\,\|(T_x, T_y)\| / Z\)</span>
+                <span>near points on the right</span>
+              </span>
+            </figcaption>
+            <div class="view-body">
+              <div class="view-main">
+                <div id="parallax-plot"></div>
+              </div>
+            </div>
+          </figure>
+        </div>
+      </section>
+
+      <section class="card values"><div class="view-body"><div id="values" class="view-main values-body" aria-live="polite"></div></div></section>
+
+      <article class="explanation">
+        <h2>Flow from a moving camera</h2>
+        <p>
+          Between two frames, the camera center moves by \(\mathbf{T}\) and the camera turns by a small rotation
+          \(R_\delta\), both given in the camera frame of the first image. A static point with camera coordinates
+          \(\mathbf{X}_c = Z\,K^{-1}\mathbf{x}_0\) in the first frame has the coordinates
+        </p>
+        $$ \mathbf{X}'_c = R_\delta^\top (\mathbf{X}_c - \mathbf{T}) $$
+        <p>
+          in the second, and its pixel moves from \(\mathbf{x}_0\) to \(\mathbf{x}_1 \sim K\mathbf{X}'_c\). The arrows
+          show this displacement, the motion field of the scene. Optical flow estimated from the images only
+          approximates it (see <a href="../optical-flow/">patch-based vs regularized flow</a>).
+        </p>
+
+        <h2>Motion parallax</h2>
+        <p>
+          If the camera moves parallel to the image plane (\(T_z = 0\)) without turning, every point keeps its depth
+          and its pixel moves by
+        </p>
+        $$ \mathbf{x}_1 - \mathbf{x}_0 = -\frac{f}{Z} \begin{bmatrix} T_x \\ T_y \end{bmatrix} $$
+        <p>
+          All points move in the same direction, opposite to the camera, but the length is inversely proportional to
+          the depth: near objects sweep across the view, the mountains barely move. This is motion parallax, the depth
+          cue you see from a train window. In the plot, all points lie on the line through the origin. Turned around,
+          the flow gives the depth, \(Z = f\,\|\mathbf{T}\| / \|\mathbf{x}_1 - \mathbf{x}_0\|\), as long as the motion
+          of the camera is known.
+        </p>
+        <p>
+          This is also why a 2D translation is only a rough model for the motion of a whole image: it ignores parallax,
+          and it only holds where the scene is at about the same depth.
+        </p>
+
+        <h2>Focus of expansion</h2>
+        <p>
+          With a forward component \(T_z \neq 0\), the image of the direction of travel,
+        </p>
+        $$ \mathbf{e} = \frac{K\,\mathbf{T}}{T_z}, $$
+        <p>is the one point that does not move, and the translational flow of every other point lies on the line through it:</p>
+        $$ \mathbf{x}_1 - \mathbf{e} = \frac{Z}{Z - T_z}\,(\mathbf{x}_0 - \mathbf{e}) $$
+        <p>
+          Moving forward, points stream away from \(\mathbf{e}\), the <strong>focus of expansion</strong>, and do so
+          faster the nearer they are and the farther they are from \(\mathbf{e}\). An approaching object grows radially
+          in the same way. Moving backward, the flow converges in a focus of contraction. So the flow tells where the
+          camera is heading: a pilot landing a plane aims at the point the flow radiates from. The focus of expansion is
+          the <a href="../epipolar-geometry/">epipole</a> of the first image: the image of the second camera center.
+        </p>
+
+        <h2>Rotation carries no depth</h2>
+        <p>Turning the camera without moving it maps every pixel through the same homography,</p>
+        $$ \mathbf{x}_1 \sim K R_\delta^\top K^{-1} \mathbf{x}_0, $$
+        <p>
+          independent of \(Z\): near and far points move alike, and a rotation alone reveals nothing about depth (which
+          is why panoramas are taken by turning around the camera center, see <a href="../homography/">homography</a>).
+          It also distorts the image, e.g. a pan shifts the image and bends it slightly into a trapezoid. For small motions,
+          the flow is approximately the sum of the translational part, which depends on depth, and the rotational
+          part, which does not. With rotation, the total flow no longer radiates from \(\mathbf{e}\), and depth
+          computed from the flow is wrong unless the rotation is removed first.
+        </p>
+
+        <h2>Try this</h2>
+        <ul class="try">
+          <li>Choose <em>sideways (train window)</em> and press <em>Play</em>: the posts in front sweep by, the ground near the camera moves fastest, and the mountains stand still. In the plot, all points lie on one line.</li>
+          <li>Choose <em>walking forward</em>: the flow radiates from the focus of expansion on the horizon. Points near it barely move, even close ones; in the plot, the points no longer lie on a line, since the flow also depends on the distance to e.</li>
+          <li>Choose <em>landing approach</em>: as in the lecture's runway picture, the flow radiates from the point the camera is heading for, here on the ground ahead.</li>
+          <li>Choose <em>forward and sideways</em>, then move the translation slider \(T_x\): the focus of expansion moves sideways and leaves the image when the motion is mostly sideways.</li>
+          <li>Choose <em>pan only</em>: all points move by about the same amount regardless of their depth. Switch the flow to <em>translation</em>: there is nothing left.</li>
+          <li>Choose <em>forward + pan</em> and switch between <em>total</em>, <em>translation</em> and <em>rotation</em>: the total flow seems to radiate from a different point, but only the translational part radiates from e. Compare the two depth estimates of the selected point.</li>
+          <li>Set \(T_z\) negative: the camera moves backward and the flow converges in a focus of contraction.</li>
+        </ul>
+      </article>
+    </main>
+    <script type="module" src="./main.ts"></script>
+  </body>
+</html>

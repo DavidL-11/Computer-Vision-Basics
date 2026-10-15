@@ -1,0 +1,196 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Interactive dense optical flow: compare patch-based Lucas–Kanade with regularized flow that adds a smoothness term α²‖∇u‖², and see where each fails: textureless regions, edges (aperture problem), repetitive patterns and motion boundaries." />
+    <title>Optical flow: patch-based vs regularized, interactive demo · Computer Vision Basics</title>
+  </head>
+  <body>
+    <main class="demo-page">
+      <section class="demo-intro">
+        <h1>Patch-based vs regularized flow</h1>
+        <p class="lead">
+          Optical flow gives every pixel its own motion vector. One brightness equation per pixel cannot determine two
+          unknowns, so something has to be added: either the assumption that a whole window moves together, or a
+          smoothness term that ties neighboring vectors to each other. Compare both on a scene with textured, flat,
+          striped and repetitive regions, and click a pixel to see why its window succeeds or fails.
+        </p>
+      </section>
+
+      <section class="workspace">
+        <div class="views">
+          <figure class="view card">
+            <figcaption>
+              <span class="view-title">Frame \(I_0\)</span> <span class="view-hint">click to select a pixel and its window</span>
+            </figcaption>
+            <div class="view-body">
+              <div class="view-main">
+                <div id="i0-view" class="image-frame"></div>
+              </div>
+            </div>
+          </figure>
+          <figure class="view card">
+            <figcaption>
+              <span class="view-title">Frame \(I_1\)</span>
+              <span class="view-hint legend"><span class="key dashed" style="--key: var(--viz-highlight)">cards in \(I_0\)</span></span>
+            </figcaption>
+            <div class="view-body">
+              <div class="view-main">
+                <div id="i1-view" class="image-frame"></div>
+              </div>
+            </div>
+          </figure>
+          <figure class="view card">
+            <figcaption>
+              <span class="view-title">Patch-based flow</span>
+              <span class="view-hint legend">
+                <span>Lucas–Kanade on the window around every pixel</span>
+                <span class="key hatched" style="--key: var(--fg-faint)">no estimate</span>
+              </span>
+            </figcaption>
+            <div class="view-body">
+              <div class="view-main">
+                <div id="patch-view" class="image-frame"></div>
+              </div>
+            </div>
+          </figure>
+          <figure class="view card">
+            <figcaption>
+              <span class="view-title">Regularized flow</span>
+              <span class="view-hint">smoothness term \(\alpha^2 \|\nabla \mathbf{u}_i\|^2\), <span id="sweep-caption"></span></span>
+            </figcaption>
+            <div class="view-body">
+              <div class="view-main">
+                <div id="reg-view" class="image-frame"></div>
+              </div>
+            </div>
+          </figure>
+          <figure class="view card">
+            <figcaption>
+              <span class="view-title">True flow \(\mathbf{u}^*\)</span>
+              <span class="view-hint">color = direction, saturation = length (full at <span id="max-caption"></span> px)</span>
+            </figcaption>
+            <div class="view-body">
+              <div class="view-main">
+                <div class="truth-row">
+                  <div id="truth-view"></div>
+                  <figure><div id="wheel-view"></div><figcaption>color key</figcaption></figure>
+                </div>
+              </div>
+            </div>
+          </figure>
+          <figure class="view card">
+            <figcaption>
+              <span class="view-title">Window around <span id="window-caption"></span></span>
+              <span class="view-hint legend">
+                <span class="key" style="--key: var(--viz-points)">true \(\mathbf{u}^*\) (×)</span>
+                <span class="key" style="--key: var(--accent)">patch-based</span>
+                <span class="key" style="--key: var(--viz-object)">regularized</span>
+              </span>
+            </figcaption>
+            <div class="view-body">
+              <div class="view-main">
+                <div class="image-row">
+                  <figure><div id="patch-i0"></div><figcaption>\(I_0\) in the window</figcaption></figure>
+                  <figure><div id="surface-view"></div><figcaption>error \(E(\mathbf{u})\) over \(\pm 4\) px, black = smallest</figcaption></figure>
+                </div>
+              </div>
+            </div>
+          </figure>
+        </div>
+      </section>
+
+      <section class="card values"><div class="view-body"><div id="values" class="view-main values-body" aria-live="polite"></div></div></section>
+
+      <article class="explanation">
+        <h2>One equation, two unknowns</h2>
+        <p>
+          Optical flow looks for a vector \(\mathbf{u}_i\) at every pixel such that
+          \(I_1(\mathbf{x}_i + \mathbf{u}_i) \approx I_0(\mathbf{x}_i)\). Summing the squared differences over all
+          pixels gives
+        </p>
+        $$ E_{\text{SSD-OF}}(\{\mathbf{u}_i\}) = \sum_i \left[ I_1(\mathbf{x}_i + \mathbf{u}_i) - I_0(\mathbf{x}_i) \right]^2 $$
+        <p>
+          Each \(\mathbf{u}_i\) has two components, so \(n\) pixels have \(2n\) unknowns, but only \(n\) equations.
+          Minimizing this alone is hopeless: almost any pixel of \(I_1\) with the same brightness is a perfect match.
+          Two ways out are compared here.
+        </p>
+
+        <h2>Patch-based flow</h2>
+        <p>
+          Assume that all pixels in a small window move by the same \(\mathbf{u}\), and estimate it with
+          <a href="../lucas-kanade/">Lucas–Kanade</a>: linearize, solve
+          \(A^\top A\, \Delta\mathbf{u} = A^\top \mathbf{b}\) and repeat. The window around each pixel gives that
+          pixel's vector. Whether this works depends on \(A^\top A = \sum_i \nabla I_1 \nabla I_1^\top\), the same
+          matrix as in the <a href="../harris/">Harris detector</a>:
+        </p>
+        <ul>
+          <li><strong>Textured window</strong>, two large eigenvalues: a clear optimum, the motion is found.</li>
+          <li>
+            <strong>Edge or stripes</strong>, one large eigenvalue: the error surface is a valley. Moving along the
+            edge does not change the window, so only the component along the gradient, the <em>normal flow</em>, can be
+            measured. This is the aperture problem, and the barber pole illusion is the same effect in human vision.
+          </li>
+          <li><strong>Flat window</strong>, no large eigenvalue: no optimum at all, and no estimate.</li>
+          <li>
+            <strong>Repetitive pattern</strong>: the error surface has many equal minima, one per period, and the
+            iteration ends in the nearest one, which need not be the right one.
+          </li>
+          <li>
+            <strong>Motion boundaries</strong>: a window across the silhouette of an object mixes two motions, and parts
+            of the background disappear behind the object (occlusion) or appear (disocclusion), so they have no match.
+          </li>
+        </ul>
+        <p>
+          Here, eigen-directions with \(\lambda < \tau\) are left out of the solution: an edge window gives the normal
+          flow, and a flat window gives no vector.
+        </p>
+
+        <h2>Regularized flow</h2>
+        <p>Instead of fixing the motion per window, add a term that penalizes differences between neighboring vectors:</p>
+        $$ E(\{\mathbf{u}_i\}) = \sum_i \left[ I_1(\mathbf{x}_i + \mathbf{u}_i) - I_0(\mathbf{x}_i) \right]^2 + \alpha^2 \sum_i \|\nabla \mathbf{u}_i\|^2 $$
+        <p>
+          \(\|\nabla \mathbf{u}_i\|^2\) is the sum of the squared differences of \(\mathbf{u}_i\) to its right and lower
+          neighbors. Now the problem is well posed: where the image has texture, the data term decides; where it has
+          none, the smoothness term fills in the motion from the surroundings. Along an edge, the data term fixes the
+          normal component and the neighbors supply the other one.
+        </p>
+        <p>
+          The data term is linearized as in Lucas–Kanade, around the current flow \(\mathbf{u}^0_i\):
+          \(I_1(\mathbf{x}_i + \mathbf{u}_i) - I_0(\mathbf{x}_i) \approx I_x u_i + I_y v_i + c_i\), with the gradient
+          \((I_x, I_y)\) of \(I_1\) at \(\mathbf{x}_i + \mathbf{u}^0_i\) and
+          \(c_i = I_1(\mathbf{x}_i + \mathbf{u}^0_i) - I_0(\mathbf{x}_i) - I_x u^0_i - I_y v^0_i\). Setting the
+          derivatives with respect to \(u_i\) and \(v_i\) to zero, with the mean \(\bar{\mathbf{u}}_i\) of the \(n\)
+          neighbors held fixed, gives
+        </p>
+        $$ u_i = \bar u_i - I_x \frac{I_x \bar u_i + I_y \bar v_i + c_i}{\alpha^2 n + I_x^2 + I_y^2}, \qquad v_i = \bar v_i - I_y \frac{I_x \bar u_i + I_y \bar v_i + c_i}{\alpha^2 n + I_x^2 + I_y^2} $$
+        <p>
+          Each vector is the average of its neighbors, corrected along the gradient by how badly that average fits the
+          brightness. Repeating this for all pixels spreads information across the image one pixel per sweep, so filling
+          a large flat region takes many iterations. Every 20 sweeps, the image is linearized again at the current flow.
+        </p>
+        <p>
+          The weight \(\alpha\) sets the balance. A small \(\alpha\) follows the data and keeps its noise and
+          ambiguities; a large \(\alpha\) gives smooth flow, but also smears the sharp change of motion at an object's
+          silhouette into the background. The true flow, with its sharp boundaries, usually has a higher energy than the
+          smooth result: the quadratic smoothness term prefers to blur boundaries.
+        </p>
+
+        <h2>Try this</h2>
+        <ul class="try">
+          <li>Compare the two flow images with the true flow. The patch-based flow is right on the textured card and the background, has no estimate in the middle of the flat card, the wrong color on the stripes and on the repetitive pattern.</li>
+          <li>Click the center of each card and look at the error surface: a single dip on the texture, a valley on the stripes, a flat plateau on the flat card, and a grid of dips on the repetitive pattern.</li>
+          <li>On the stripes, the patch-based vector is the normal flow: its direction is perpendicular to the stripes, not the direction in which the card moves.</li>
+          <li>Set the iterations of the regularized flow to 0 and press <em>Play</em>: the flow first appears on the textured parts and then grows into the flat disk and across the stripes.</li>
+          <li>Vary \(\alpha\) from 0.003 to 1: at small values the flat disk is not filled in and the repetitive pattern keeps the wrong motion; at large values the cards blur into the background and the error near the boundaries grows.</li>
+          <li>Change the window radius \(r\): small windows leave more of the flat disk without an estimate and are noisier; large windows reach across motion boundaries and smear them.</li>
+          <li>Move the cards by less than half a period of the repetitive pattern, e.g. (1, 0.6): now the patch-based flow finds the right minimum there too.</li>
+          <li>Set the motion of the background equal to that of the cards: without motion boundaries, the regularized flow is right almost everywhere.</li>
+          <li>Raise the noise and lower \(\tau\): flat windows now give vectors, but they are noise.</li>
+        </ul>
+      </article>
+    </main>
+    <script type="module" src="./main.ts"></script>
+  </body>
+</html>
