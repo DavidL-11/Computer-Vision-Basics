@@ -34,9 +34,12 @@ export interface BindingOptions {
   action?: { title: string; onClick: () => void };
 }
 
+export type ButtonIcon = 'play' | 'stop' | 'next' | 'reset';
+
 export interface ButtonOptions {
   title: string;
   primary?: boolean;
+  icon?: ButtonIcon;
 }
 
 export interface FolderOptions {
@@ -102,6 +105,15 @@ function el<K extends keyof HTMLElementTagNameMap>(tag: K, className?: string, t
   if (text !== undefined) e.textContent = text;
   return e;
 }
+
+const svg = (body: string) =>
+  `<svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true">${body}</svg>`;
+const BUTTON_ICONS: Record<ButtonIcon, string> = {
+  play: svg('<path fill="currentColor" d="M4.5 2.6v10.8a.6.6 0 0 0 .9.5l8.6-5.4a.6.6 0 0 0 0-1L5.4 2.1a.6.6 0 0 0-.9.5Z"/>'),
+  stop: svg('<rect fill="currentColor" x="3.5" y="3.5" width="9" height="9" rx="1.2"/>'),
+  next: svg('<path fill="currentColor" d="M3 3.1v9.8a.55.55 0 0 0 .85.46l7.3-4.9a.55.55 0 0 0 0-.92l-7.3-4.9A.55.55 0 0 0 3 3.1Z"/><rect fill="currentColor" x="11.5" y="3" width="1.8" height="10" rx=".6"/>'),
+  reset: svg('<path fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" d="M2.8 8a5.2 5.2 0 1 0 1.6-3.75M2.8 2.6v3h3"/>'),
+};
 
 const OPEN_ICON =
   '<svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" d="M8 10.5V2.5M5 5.5l3-3 3 3M2.5 10v2.5a1 1 0 0 0 1 1h9a1 1 0 0 0 1-1V10"/></svg>';
@@ -418,11 +430,20 @@ export class Binding<V> {
 
 export class Button {
   readonly element = el('button', 'ctl-button');
+  private readonly iconEl = el('span', 'ctl-button-icon');
+  private readonly label = el('span', 'ctl-button-label');
 
   constructor(opts: ButtonOptions) {
     this.element.type = 'button';
-    this.element.textContent = opts.title;
+    this.label.textContent = opts.title;
+    this.element.append(this.iconEl, this.label);
     if (opts.primary) this.element.classList.add('is-primary');
+    this.icon = opts.icon;
+  }
+
+  set icon(icon: ButtonIcon | undefined) {
+    this.iconEl.innerHTML = icon ? BUTTON_ICONS[icon] : '';
+    this.iconEl.hidden = !icon;
   }
 
   on(_event: 'click', fn: () => void): this {
@@ -431,10 +452,10 @@ export class Button {
   }
 
   get title(): string {
-    return this.element.textContent ?? '';
+    return this.label.textContent ?? '';
   }
   set title(t: string) {
-    this.element.textContent = t;
+    this.label.textContent = t;
   }
   get disabled(): boolean {
     return this.element.disabled;
@@ -485,7 +506,7 @@ export class Container {
 
   /** A "Reset" button set apart from the other controls (at the end of a toolbar). */
   addResetButton(onClick: () => void, title = 'Reset'): Button {
-    const b = new Button({ title });
+    const b = new Button({ title, icon: 'reset' });
     b.element.classList.add('ctl-reset');
     b.on('click', onClick);
     this.place(b.element);
@@ -584,7 +605,28 @@ export class Controls extends Container {
     if (!bar) {
       bar = el('div', 'toolbar card');
       scope.prepend(bar);
+      this.toolbars.push(bar);
     }
     return this.group(bar);
+  }
+
+  private readonly toolbars: HTMLElement[] = [];
+
+  /**
+   * Marks an animation as running or stopped. While it runs, the toolbar (with Stop) stays at the top of the screen
+   * on wide layouts. `reveal` scrolls the panel containing `#reveal` into view below the header and the toolbar, unless
+   * it is fully visible already.
+   */
+  playing(on: boolean, reveal?: string): void {
+    for (const bar of this.toolbars) bar.classList.toggle('is-playing', on);
+    const panel = reveal ? document.getElementById(reveal)?.closest<HTMLElement>('.view, .values') : null;
+    if (!on || !panel) return;
+    let top = (document.querySelector<HTMLElement>('.site-header')?.offsetHeight ?? 0) + 12;
+    const bar = this.toolbars.find((b) => getComputedStyle(b).position === 'sticky');
+    if (bar) top += bar.offsetHeight + 12;
+    const rect = panel.getBoundingClientRect();
+    if (rect.top >= top && rect.bottom <= window.innerHeight) return;
+    const smooth = !window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    window.scrollTo({ top: window.scrollY + rect.top - top, behavior: smooth ? 'smooth' : 'auto' });
   }
 }

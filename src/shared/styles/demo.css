@@ -44,6 +44,15 @@
 .toolbar {
   padding: 0.8rem 1rem;
 }
+/* While an animation plays, the toolbar with Stop stays below the header. */
+@media (min-width: 900px) {
+  .toolbar.is-playing {
+    position: sticky;
+    top: 60px;
+    z-index: 5;
+    box-shadow: 0 6px 20px rgb(0 0 0 / 0.12);
+  }
+}
 .toolbar:has(> .ctl-group > .ctl-reset:only-child) {
   padding: 0;
   border: 0;

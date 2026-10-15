@@ -364,12 +364,43 @@
   color: var(--fg-faint);
   cursor: default;
 }
+.ctl-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+}
+.ctl-button-icon {
+  display: grid;
+  flex-shrink: 0;
+}
+.ctl-button-icon[hidden] {
+  display: none;
+}
+.ctl-button-icon svg {
+  display: block;
+}
 .ctl-reset {
   align-self: flex-start;
-  border-color: transparent;
-  background: transparent;
-  color: var(--fg-muted);
-  padding: 0 0.5rem;
+}
+
+/* Playback and Reset in a toolbar: large, the main actions of the page. */
+.toolbar .ctl-button {
+  min-height: 40px;
+  padding: 0.4rem 1.15rem;
+  font-size: 0.95rem;
+  font-weight: 600;
+  border-width: 1.5px;
+}
+.toolbar .ctl-button:not(.is-primary) {
+  border-color: var(--fg-faint);
+}
+.toolbar .ctl-button.is-primary {
+  min-width: 7.5rem;
+  box-shadow: 0 1px 3px color-mix(in srgb, var(--accent) 35%, transparent);
+}
+.toolbar .ctl-buttons {
+  gap: 0.5rem;
 }
 
 /* Folders */

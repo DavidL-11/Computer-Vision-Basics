@@ -1,0 +1,188 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Interactive parametric motion estimation: align two whole images with a translation, Euclidean, affine or projective model by Gauss–Newton, see the Jacobian J = ∇I₁ ∂x′/∂p as steepest-descent images and watch the error image shrink." />
+    <title>Parametric alignment: translation, affine and projective motion, interactive demo · Computer Vision Basics</title>
+  </head>
+  <body>
+    <main class="demo-page">
+      <section class="demo-intro">
+        <h1>Parametric alignment</h1>
+        <p class="lead">
+          When the whole image moves in one way, a few parameters describe the motion of every pixel: a shift, a
+          rotation, an affine or a projective transformation. Estimate them all at once, with the same steps as
+          Lucas–Kanade, and watch the error image shrink. Then pick a model that is too simple for the motion and see
+          what is left over.
+        </p>
+      </section>
+
+      <section class="workspace">
+        <div class="views">
+          <figure class="view card">
+            <figcaption>
+              <span class="view-title">Frame \(I_0\)</span> <span class="view-hint">the pixels \(\mathbf{x}_i\) that are compared</span>
+            </figcaption>
+            <div class="view-body">
+              <div class="view-main">
+                <div id="i0-view" class="image-frame"></div>
+              </div>
+            </div>
+          </figure>
+          <figure class="view card">
+            <figcaption>
+              <span class="view-title">Frame \(I_1\)</span>
+              <span class="view-hint legend">
+                <span class="key" style="--key: var(--accent)">frame of \(I_0\) moved by \(f(\mathbf{x}; \mathbf{p}_k)\)</span>
+                <span class="key dashed" style="--key: var(--viz-points)">true motion</span>
+              </span>
+            </figcaption>
+            <div class="view-body">
+              <div class="view-main">
+                <div id="i1-view" class="image-frame"></div>
+              </div>
+            </div>
+          </figure>
+          <figure class="view card view-wide">
+            <figcaption>
+              <span class="view-title">Step <span id="step-caption"></span>: \(I_1\) warped back and the error</span>
+              <span class="view-hint legend">
+                <span>gray = zero error</span>
+                <span class="key" style="--key: var(--viz-object)">\(\mathbf{x}'_i\) outside \(I_1\), not counted</span>
+              </span>
+            </figcaption>
+            <div class="view-body">
+              <div class="view-main">
+                <div class="image-row">
+                  <figure><div id="warped-view"></div><figcaption>\(I_1(f(\mathbf{x}_i; \mathbf{p}_k))\)</figcaption></figure>
+                  <figure><div id="error-view"></div><figcaption>error \(e_i\) at step \(k\)</figcaption></figure>
+                  <figure><div id="error0-view"></div><figcaption>error at \(\mathbf{p}_0 = \mathbf{0}\)</figcaption></figure>
+                </div>
+              </div>
+            </div>
+          </figure>
+          <figure class="view card view-wide">
+            <figcaption>
+              <span class="view-title">Steepest-descent images \(\mathbf{J}_1 = \nabla I_1 \, \partial \mathbf{x}' / \partial \mathbf{p}\) at step <span id="jacobian-caption"></span></span>
+              <span class="view-hint">one image per parameter, gray = 0, each scaled to its own range</span>
+            </figcaption>
+            <div class="view-body">
+              <div class="view-main">
+                <div id="jacobian-row" class="image-row jacobian-row"></div>
+              </div>
+            </div>
+          </figure>
+          <figure class="view card">
+            <figcaption>
+              <span class="view-title">Corner error over the iterations \(k\)</span>
+              <span class="view-hint">distance of the moved image corners to the true ones, in pixels</span>
+            </figcaption>
+            <div class="view-body">
+              <div class="view-main">
+                <div id="corner-plot"></div>
+              </div>
+            </div>
+          </figure>
+          <figure class="view card">
+            <figcaption>
+              <span class="view-title">Intensity error \(\sqrt{E(\mathbf{p}_k)}\)</span>
+              <span class="view-hint">root mean square of \(e_i\) over the pixels that count</span>
+            </figcaption>
+            <div class="view-body">
+              <div class="view-main">
+                <div id="error-plot"></div>
+              </div>
+            </div>
+          </figure>
+        </div>
+      </section>
+
+      <section class="card values"><div class="view-body"><div id="values" class="view-main values-body" aria-live="polite"></div></div></section>
+
+      <article class="explanation">
+        <h2>One motion for the whole image</h2>
+        <p>
+          <a href="../lucas-kanade/">Lucas–Kanade</a> moves a small window by a shift \(\mathbf{u}\). When the camera
+          pans, rotates or zooms, or when the scene is a single plane, every pixel follows one transformation
+          \(\mathbf{x}' = f(\mathbf{x}; \mathbf{p})\) with a few parameters \(\mathbf{p}\). They are estimated from all
+          pixels at once by minimizing
+        </p>
+        $$ E(\mathbf{p}) = \sum_i \left[ I_1(f(\mathbf{x}_i; \mathbf{p})) - I_0(\mathbf{x}_i) \right]^2 = \sum_i e_i^2 . $$
+        <p>
+          Pixels whose \(\mathbf{x}'_i\) falls outside \(I_1\) have nothing to be compared with and are left out. Since
+          their number changes with \(\mathbf{p}\), the demo reports the mean of \(e_i^2\) over the pixels that count.
+        </p>
+
+        <h2>Motion models</h2>
+        <p>
+          The models are the <a href="../transformations-2d/">2D transformations</a>, written so that
+          \(\mathbf{p} = \mathbf{0}\) is the identity. Coordinates are measured from the image center, so that rotation
+          and scaling turn around the middle of the image:
+        </p>
+        <ul>
+          <li>Translation, 2 parameters: \(\mathbf{x}' = \mathbf{x} + \mathbf{t}\).</li>
+          <li>Euclidean, 3 parameters: \(\mathbf{x}' = R(\theta)\, \mathbf{x} + \mathbf{t}\), rotation and shift.</li>
+          <li>Affine, 6 parameters: \(x' = (1 + a_{00}) x + a_{01} y + t_x\), \(y' = a_{10} x + (1 + a_{11}) y + t_y\).</li>
+          <li>Projective, 8 parameters: \(x' = \frac{(1 + h_{00}) x + h_{01} y + h_{02}}{h_{20} x + h_{21} y + 1}\), \(y' = \frac{h_{10} x + (1 + h_{11}) y + h_{12}}{h_{20} x + h_{21} y + 1}\), the motion of a plane seen by a moving camera, as in the <a href="../homography/">homography</a> demo.</li>
+        </ul>
+
+        <h2>The chain rule</h2>
+        <p>
+          As in Lucas–Kanade, \(I_1\) is linearized around the current estimate, \(e_i(\mathbf{p} + \Delta\mathbf{p})
+          \approx e_i + \mathbf{J}_1(\mathbf{x}_i)\, \Delta\mathbf{p}\). The derivative of the error with respect to the
+          parameters has two factors: how the image changes when \(\mathbf{x}'\) moves, and how \(\mathbf{x}'\) moves
+          when \(\mathbf{p}\) changes,
+        </p>
+        $$ \mathbf{J}_1(\mathbf{x}_i) = \frac{\partial I_1}{\partial \mathbf{x}'} \frac{\partial \mathbf{x}'}{\partial \mathbf{p}} = \nabla I_1(\mathbf{x}'_i)\, \frac{\partial f}{\partial \mathbf{p}}(\mathbf{x}_i; \mathbf{p}) \qquad (1 \times 2 \text{ times } 2 \times n) . $$
+        <p>For the affine model, for example,</p>
+        $$ \frac{\partial \mathbf{x}'}{\partial \mathbf{p}} = \begin{bmatrix} 1 & 0 & x & y & 0 & 0 \\ 0 & 1 & 0 & 0 & x & y \end{bmatrix}, \qquad \mathbf{J}_1 = \begin{bmatrix} I_x & I_y & x I_x & y I_x & x I_y & y I_y \end{bmatrix} . $$
+        <p>
+          Each entry of \(\mathbf{J}_1\), taken over the whole image, is one of the steepest-descent images: the change
+          of the warped image when one parameter grows a little. The images for \(t_x\) and \(t_y\) are just the
+          gradients; the others are the gradients weighted by the position, which is why the corners of the image
+          carry most of the information about rotation and scaling.
+        </p>
+
+        <h2>Gauss–Newton with \(n\) unknowns</h2>
+        <p>
+          Minimizing \(\sum_i [\mathbf{J}_1(\mathbf{x}_i)\, \Delta\mathbf{p} + e_i]^2\) is a least-squares problem in
+          \(\Delta\mathbf{p}\). Its normal equations are an \(n \times n\) system, no matter how many pixels there are:
+        </p>
+        $$ A\, \Delta\mathbf{p} = \mathbf{b}, \qquad A = \sum_i \mathbf{J}_1^\top \mathbf{J}_1, \qquad \mathbf{b} = -\sum_i e_i\, \mathbf{J}_1^\top , \qquad \mathbf{p}_{k+1} = \mathbf{p}_k + \Delta\mathbf{p} . $$
+        <p>
+          For translation, \(A\) is the \(2 \times 2\) matrix of Lucas–Kanade summed over the whole image. The
+          iteration stops when an update moves the image corners by less than 0.001 px.
+        </p>
+
+        <h2>Choosing the model</h2>
+        <p>
+          A model with too few parameters cannot reach zero error: the best it can do is a compromise, and the rest
+          stays visible in the error image as a pattern that grows towards the image border. A model with more
+          parameters than the motion needs can express the true motion too, but its extra parameters also follow
+          whatever the images do not share, such as noise and interpolation errors, and every step costs more. The
+          simplest model that describes the motion is usually the most accurate.
+        </p>
+
+        <h2>Limits</h2>
+        <ul>
+          <li>The linearization only holds near the solution. Large shifts and rotations need a good start, which a <a href="../coarse-to-fine/">coarse-to-fine</a> pyramid provides for parametric models just as for a window.</li>
+          <li>The model has to fit the whole image. A moving object or a scene with depth breaks it, since different parts move differently; robust error functions and per-pixel optical flow handle that.</li>
+          <li>Brightness constancy is assumed as before: noise averages out over the many pixels, but changes in exposure do not.</li>
+        </ul>
+
+        <h2>Try this</h2>
+        <ul class="try">
+          <li>Press <em>Play</em> with the defaults: shift (10, −7), rotation 15° and scale 1.12 move the image corners by more than 30 px. The affine model needs 15 updates. For ten of them the corner error falls slowly, since the linearization only roughly points the way; then, once the estimate is close, it drops from 4 px to 0.05 px within three steps, the fast final convergence of Gauss–Newton. The error image fades to almost uniform gray; the last 0.05 px comes from interpolation, since \(I_1\) was made by resampling the image.</li>
+          <li>Switch the model to translation: no shift can explain a rotation and a scaling, the estimate drifts and still ends 33 px off at the corners after 30 iterations, and the error image keeps strong edges that grow towards the border. Euclidean converges in 19 updates but stays 13 px off, since it cannot scale.</li>
+          <li>Set the tilt \(g\) to 1.5: the affine model no longer settles and stays about 16 px off at the corners, while the projective model reaches 0.16 px after 27 updates.</li>
+          <li>Choose the projective model at the defaults: it needs 19 updates and ends at 0.37 px instead of 0.05 px. Its two extra parameters cannot stay at zero; they also fit the interpolation errors. With a pure shift (rotation 0, scale 1), translation ends within 0.005 px after 7 updates and projective at 0.11 px. A model should be as simple as the motion allows.</li>
+          <li>Compare the steepest-descent images for \(t_x\) and \(a_{00}\): the second is the first multiplied by \(x\), faint in the middle and strong at the left and right, with opposite signs on the two sides.</li>
+          <li>Change the pre-smoothing \(\sigma\): at 3 the iteration converges in 10 updates but only to 0.17 px, at 1 it takes 23 updates and ends at 0.02 px, and at 0.5 the fence and the flowers only look linear over about a pixel and the estimate never settles. Smoothing widens the basin and speeds up the first steps, detail makes the result accurate. A <a href="../coarse-to-fine/">pyramid</a> gets both.</li>
+          <li>Choose the test chart: its repeated bars look alike at many shifts, and with this large motion the estimate never gets going and is still 33 px off after 30 steps. Reduce the motion to shift (3, −2), rotation 3° and scale 1.04, and it converges.</li>
+        </ul>
+      </article>
+    </main>
+    <script type="module" src="./main.ts"></script>
+  </body>
+</html>

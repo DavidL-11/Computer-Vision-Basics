@@ -51,9 +51,9 @@ let original: Plane = toGray(
 );
 toolbar.addBinding(state, 'sigma', { label: 'pre-smoothing σ', min: 0, max: 4, step: 0.1 });
 toolbar.addBinding(state, 'k', { label: 'shown step k', min: 0, max: 100, step: 1 });
-const playButton = toolbar.addButton({ title: 'Play from u₀', primary: true });
-playButton.on('click', () => (timer ? stop() : play()));
-toolbar.addButton({ title: 'Next step' }).on('click', () => {
+const playButton = toolbar.addButton({ title: 'Play from u₀', primary: true, icon: 'play' });
+playButton.on('click', () => (timer ? stop() : play(true)));
+toolbar.addButton({ title: 'Next step', icon: 'next' }).on('click', () => {
   stop();
   state.k++;
   ui.refresh();
@@ -82,11 +82,14 @@ iteration.addBinding(state, 'jacobian', { label: 'gradient J', options: { '∇I�
 
 let timer = 0;
 let lastStep = 0;
-function play(): void {
+/** `reveal`: scroll the animated panel into view (when started with the Play button). */
+function play(reveal = false): void {
   stop();
+  ui.playing(true, reveal ? 'surface-view' : undefined);
   state.k = 0;
   ui.refresh();
   playButton.title = 'Stop';
+  playButton.icon = 'stop';
   timer = window.setInterval(() => {
     if (state.k >= lastStep) return stop();
     state.k++;
@@ -96,7 +99,9 @@ function play(): void {
 function stop(): void {
   window.clearInterval(timer);
   timer = 0;
+  ui.playing(false);
   playButton.title = 'Play from u₀';
+  playButton.icon = 'play';
 }
 
 const clampShift = (s: number) => Math.round(Math.max(-R, Math.min(R, s)) * 10) / 10;

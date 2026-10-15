@@ -418,6 +418,12 @@ export const chapters: Chapter[] = [
           'Build an image pyramid, estimate a large motion on the smallest level, double it and refine it level by level, and see why a single scale gets stuck.',
         slug: 'coarse-to-fine',
       },
+      {
+        title: 'Parametric alignment',
+        description:
+          'Align whole images with a translation, Euclidean, affine or projective model: see the Jacobian as steepest-descent images and what a too simple model leaves behind.',
+        slug: 'parametric-alignment',
+      },
     ],
   },
   {
